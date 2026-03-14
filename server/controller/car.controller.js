@@ -5,9 +5,91 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js
 import slugify from "slugify";
 import Joi from "joi";
 
+
+const buildMatch = (filters, excludeField = null) => {
+  const {
+    title,
+    brand,
+    fuelType,
+    transmission,
+    variant,
+    ownerCount,
+    minYear,
+    maxYear,
+    minKm,
+    maxKm,
+    priceBucket
+  } = filters;
+
+  const match = { lifecycleStatus: "ACTIVE" };
+
+  if (title && excludeField !== "title") {
+    match.title = { $regex: title, $options: "i" };
+  }
+
+  if (brand && excludeField !== "brand") {
+    const brands = Array.isArray(brand) ? brand : [brand];
+    match.brand = {
+      $in: brands
+        .filter(id => mongoose.Types.ObjectId.isValid(id))
+        .map(id => new mongoose.Types.ObjectId(id))
+    };
+  }
+
+  if (fuelType && excludeField !== "fuelType") {
+    const fuels = Array.isArray(fuelType) ? fuelType : [fuelType];
+    match.fuelType = { $in: fuels };
+  }
+
+  if (transmission && excludeField !== "transmission") {
+    const transmissions = Array.isArray(transmission)
+      ? transmission
+      : [transmission];
+    match.transmission = { $in: transmissions };
+  }
+
+  if (variant && excludeField !== "variant") {
+    match.variant = variant;
+  }
+
+  if (ownerCount && excludeField !== "ownerCount") {
+    match.ownerCount = ownerCount;
+  }
+
+  if ((minYear || maxYear) && excludeField !== "year") {
+    match.year = {};
+    if (minYear) match.year.$gte = minYear;
+    if (maxYear) match.year.$lte = maxYear;
+  }
+
+  if ((minKm || maxKm) && excludeField !== "kmDriven") {
+    match.kmDriven = {};
+    if (minKm) match.kmDriven.$gte = minKm;
+    if (maxKm) match.kmDriven.$lte = maxKm;
+  }
+
+  if (priceBucket && excludeField !== "price") {
+    const buckets = {
+      "0-5":  { $gte: 0, $lte: 500000 },
+      "5-10": { $gte: 500000, $lte: 1000000 },
+      "10-15":{ $gte: 1000000, $lte: 1500000 },
+      "15-20":{ $gte: 1500000, $lte: 2000000 },
+      "20+":  { $gte: 2000000 }
+    };
+
+    if (buckets[priceBucket]) {
+      match.price = buckets[priceBucket];
+    }
+  }
+
+  return match;
+};
+
 export const getCars = async (req, res, next) => {
   try {
-    const { value, error } = querySchema.validate(req.query);
+    const { value, error } = querySchema.validate(req.query, {
+      convert: true
+    });
 
     if (error) {
       return res.status(400).json({
@@ -16,101 +98,33 @@ export const getCars = async (req, res, next) => {
       });
     }
 
-    const {
-      title,
-      brand,
-      fuelType,
-      transmission,
-      varient,
-      ownerCount,
-      minYear,
-      maxYear,
-      minKm,
-      maxKm,
-      priceBucket,
-      sortBy,
-      order,
-      page,
-      limit
-    } = value;
-
-    const match = { lifecycleStatus: "ACTIVE" };
-
-    // Title search
-    if (title) {
-      match.title = { $regex: title, $options: "i" };
-    }
-
-    // Brand
-    if (brand) {
-      match.brand = new mongoose.Types.ObjectId(brand);
-    }
-
-    // Multi-select fuel
-    if (fuelType) {
-      match.fuelType = Array.isArray(fuelType)
-        ? { $in: fuelType }
-        : fuelType;
-    }
-
-    // Multi-select transmission
-    if (transmission) {
-      match.transmission = Array.isArray(transmission)
-        ? { $in: transmission }
-        : transmission;
-    }
-
-    if (varient) match.varient = varient;
-    if (ownerCount) match.ownerCount = ownerCount;
-
-    // Year range
-    if (minYear || maxYear) {
-      match.year = {};
-      if (minYear) match.year.$gte = minYear;
-      if (maxYear) match.year.$lte = maxYear;
-    }
-
-    // KM range
-    if (minKm || maxKm) {
-      match.kmDriven = {};
-      if (minKm) match.kmDriven.$gte = minKm;
-      if (maxKm) match.kmDriven.$lte = maxKm;
-    }
-
-    // Price buckets (in Lakhs)
-    if (priceBucket) {
-      const buckets = {
-        "0-5":  { $gte: 0, $lte: 500000 },
-        "5-10": { $gte: 500000, $lte: 1000000 },
-        "10-15":{ $gte: 1000000, $lte: 1500000 },
-        "15-20":{ $gte: 1500000, $lte: 2000000 },
-        "20+":  { $gte: 2000000 }
-      };
-
-      match.price = buckets[priceBucket];
-    }
+    const { sortBy, order, page, limit } = value;
 
     const sortStage = {
       [sortBy]: order === "asc" ? 1 : -1
     };
 
-    const result = await Car.aggregate([
-      { $match: match },
+    const baseMatch = buildMatch(value);
 
+    const result = await Car.aggregate([
       {
         $facet: {
-          data: [
+          // FILTERED DATA
+          filtered: [
+            { $match: baseMatch },
             { $sort: sortStage },
             { $skip: (page - 1) * limit },
             { $limit: limit }
           ],
 
           totalCount: [
+            { $match: baseMatch },
             { $count: "count" }
           ],
 
-          // Sidebar price buckets
+          // DISJUNCTIVE FACETS
           priceBuckets: [
+            { $match: buildMatch(value, "price") },
             {
               $bucket: {
                 groupBy: "$price",
@@ -123,39 +137,69 @@ export const getCars = async (req, res, next) => {
                   10000000
                 ],
                 default: "Other",
-                output: {
-                  count: { $sum: 1 }
-                }
+                output: { count: { $sum: 1 } }
               }
             }
           ],
 
           fuelTypes: [
-            { $group: { _id: "$fuelType", count: { $sum: 1 } } }
+            { $match: buildMatch(value, "fuelType") },
+            { $group: { _id: "$fuelType", count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
           ],
 
           transmissions: [
-            { $group: { _id: "$transmission", count: { $sum: 1 } } }
+            { $match: buildMatch(value, "transmission") },
+            { $group: { _id: "$transmission", count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+          ],
+
+          brands: [
+            { $match: buildMatch(value, "brand") },
+            { $group: { _id: "$brand", count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+          ],
+
+          // ALWAYS NEWEST (independent)
+          newest: [
+            { $match: { lifecycleStatus: "ACTIVE" } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 8 }
           ]
         }
       }
     ]);
 
     const output = result[0];
+    const total = output.totalCount[0]?.count || 0;
 
-    res.status(200).json({
+    // Similar items logic
+    let similarItems = [];
+    if (total > 0 && total < 3) {
+      similarItems = await Car.find({
+        lifecycleStatus: "ACTIVE",
+        brand: baseMatch.brand
+      })
+        .sort({ createdAt: -1 })
+        .limit(6);
+    }
+
+    return res.status(200).json({
       success: true,
-      total: output.totalCount[0]?.count || 0,
+      total,
       page,
-      totalPages: Math.ceil(
-        (output.totalCount[0]?.count || 0) / limit
-      ),
+      totalPages: Math.ceil(total / limit),
+
       filters: {
         priceBuckets: output.priceBuckets,
         fuelTypes: output.fuelTypes,
-        transmissions: output.transmissions
+        transmissions: output.transmissions,
+        brands: output.brands
       },
-      data: output.data
+
+      data: output.filtered,
+      similarItems,
+      newest: output.newest
     });
 
   } catch (error) {
@@ -170,42 +214,27 @@ const slugSchema = Joi.object({
   limit: Joi.number().integer().min(1).max(50).default(12)
 });
 
-export const getCarsBySlug = async (req, res, next) => {
+export const getCarBySlug = async (req, res, next) => {
   try {
-    const { value, error } = slugSchema.validate({
-      slug: req.params.slug,
-      ...req.query
-    });
+    const { slug } = req.params;
 
-    if (error) {
-      return res.status(400).json({
+    const car = await Car.findOne({
+      lifecycleStatus: "ACTIVE",
+      slug: slug.toLowerCase()
+    })
+      .populate("brand", "name")
+      .lean();
+
+    if (!car) {
+      return res.status(404).json({
         success: false,
-        message: error.details[0].message
+        message: "Car not found"
       });
     }
 
-    const { slug, page, limit } = value;
-
-    const match = {
-      lifecycleStatus: "ACTIVE",
-      slug: slug.toLowerCase()
-    };
-
-    const cars = await Car.find(match)
-      .populate("brand", "name")
-      .sort({ createdAt: -1 }) // newest first
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    const total = await Car.countDocuments(match);
-
     res.status(200).json({
       success: true,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      data: cars
+      data: car
     });
 
   } catch (error) {
@@ -216,12 +245,49 @@ export const getCarsBySlug = async (req, res, next) => {
 
 export const createCar = async (req, res, next) => {
   try {
-    // 1️⃣ Validate request body
+
+    // 🔥 Parse location if exists
+    if (req.body.location) {
+      req.body.location = JSON.parse(req.body.location);
+    }
+
+    // 🔥 Fix features (important!)
+   // 🔥 Fix features (important!)
+if (req.body.features) {
+
+  if (!Array.isArray(req.body.features)) {
+    req.body.features = [req.body.features];
+  }
+
+  // flatten comma separated values
+  req.body.features = req.body.features
+    .flatMap(f => typeof f === "string" ? f.split(",") : f)
+    .map(f => f.trim());
+
+  // remove duplicates
+  req.body.features = [...new Set(req.body.features)];
+}
     const { value, error } = createSchema.validate(req.body);
     if (error) {
       return res.status(400).json({
         success: false,
         message: error.message
+      });
+    }
+
+    // 🚫 Prevent duplicates: check if a car with the same key fields already exists
+    const duplicateQuery = {
+      title: value.title,
+      brand: value.brand,
+      year: value.year,
+      variant: value.variant
+    };
+
+    const existingCar = await Car.findOne(duplicateQuery).lean();
+    if (existingCar) {
+      return res.status(409).json({
+        success: false,
+        message: "A car with the same title, brand, year and variant already exists"
       });
     }
 
@@ -265,6 +331,14 @@ export const createCar = async (req, res, next) => {
     });
 
   } catch (error) {
+    // handle unique constraint errors (race conditions)
+    if (error && error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Duplicate car entry detected."
+      });
+    }
+
     next(error);
   }
 };

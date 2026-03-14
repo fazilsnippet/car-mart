@@ -8,7 +8,7 @@ const carSchema = new mongoose.Schema(
       index: true
     },
 
-varients :{
+variant  :{
       type: String,
       required: true,
       index: true
@@ -79,7 +79,10 @@ brand: {
       }
     ],
 
-    features: [String],
+    features: {
+  type: [String],
+  default: [],
+}, 
 
     lifecycleStatus: {
       type: String,
@@ -90,6 +93,12 @@ brand: {
 
   },
   { timestamps: true }
+);
+
+// compound index to avoid duplicate cars (title+brand+year+variant)
+carSchema.index(
+  { title: 1, brand: 1, year: 1, variant: 1 },
+  { unique: true }
 );
 
 export const Car = mongoose.model("Car", carSchema);  

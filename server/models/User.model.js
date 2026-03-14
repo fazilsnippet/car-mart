@@ -20,8 +20,9 @@ const viewedCarSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema(
   {
     avatar: {
-      type: String,
-    }, 
+  url: String,
+  public_id: String
+},
 
     userName: {
       type: String,
@@ -51,23 +52,23 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
     },
-    address: {
-      street: { type: String, default: "" },
-      city: { type: String, default: "" },
-      state: { type: String, default: "" },
-      postalCode: { type: String, default: "" },
-      country: { type: String, default: "" },
-      phone: {
+   
+  phone: {
         type: String,
         match: [/^\+?[0-9]{10,15}$/, "Please provide a valid phone number"],
       },
-    },
    role: {
   type: String,
   enum: ["USER", "ADMIN", ],
   default: "USER",
   index: true
 },
+bookingHistory: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+  },
+],
 
     passwordResetToken: {
       type: String,
@@ -95,11 +96,11 @@ const userSchema = new mongoose.Schema(
 );
 
 // Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
+
 
 // Compare entered password with stored password
 userSchema.methods.isPasswordCorrect = async function (password) {
