@@ -28,6 +28,7 @@ const registerSchema = z.object({
 
 const Signup = () => {
   const navigate = useNavigate(); // ✅ moved inside component
+  const dispatch = useDispatch(); // ✅ initialize dispatch before using it
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -90,19 +91,9 @@ const handleRegister = async () => {
     formData.append("email", email);
     if (avatar) formData.append("avatar", avatar);
 
-    await registerUser(formData).unwrap();
+    const response = await registerUser(formData).unwrap();
 
-    // ✅ fetch user immediately after register
-    const userResponse = await fetch("http://localhost:8001/api/users/me", {
-      method: "GET",
-      credentials: "include"
-    });
-    const userData = await userResponse.json();
-
-  
-
-const dispatch = useDispatch();
-dispatch(setUser(userData));
+    dispatch(setUser(response.user));
 
     // ✅ navigate to dashboard/home instead of login
     navigate("/");
@@ -121,7 +112,7 @@ dispatch(setUser(userData));
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="flex items-center justify-center min-h-screen p-6 bg-linear-to-br from-slate-900 to-slate-800">
       <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-2xl rounded-2xl">
 
         <div className="space-y-2 text-center">
@@ -157,6 +148,18 @@ dispatch(setUser(userData));
             >
               {otpLoading ? "Sending OTP..." : "Send OTP"}
             </button>
+
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-blue-600 hover:underline"
+                >
+                  Login
+                </button>
+              </p>
+            </div>
 
             {errors.server && (
               <p className="text-sm text-center text-red-500">
@@ -219,6 +222,18 @@ dispatch(setUser(userData));
             >
               {registerLoading ? "Registering..." : "Register"}
             </button>
+
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-blue-600 hover:underline"
+                >
+                  Login
+                </button>
+              </p>
+            </div>
 
             {errors.server && (
               <p className="text-sm text-center text-red-500">

@@ -9,8 +9,7 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result?.error?.status === 401) {
-    // attempt refresh — backend should refresh via cookies automatically
+  if (result?.error?.status === 401 && !args._retry) {
     const refreshResult = await baseQuery(
       { url: "/users/refreshtoken", method: "POST" },
       api,
@@ -18,12 +17,16 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     );
 
     if (refreshResult?.error) {
-      // refresh failed, log out
       api.dispatch(logout());
-    } else {
-      // retry original request
-      result = await baseQuery(args, api, extraOptions);
+      api.dispatch(baseApi.util.resetApiState());
+      return result;
     }
+
+    result = await baseQuery(
+      { ...args, _retry: true },
+      api,
+      extraOptions
+    );
   }
 
   return result;

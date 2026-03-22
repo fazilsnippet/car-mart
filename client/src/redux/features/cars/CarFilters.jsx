@@ -83,6 +83,7 @@ export default function CarFilters({
 
   const applyFilters = () => {
     onChange(draft); // 🔥 Only now server is queried
+    onClose?.(); // Close the filter panel after applying
   };
 
   const resetFilters = () => {

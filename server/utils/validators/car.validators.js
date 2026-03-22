@@ -19,43 +19,36 @@ import Joi from "joi";
 //   features: Joi.array().items(Joi.string())
 // });
 
+
 export const querySchema = Joi.object({
   title: Joi.string().trim(),
 
-  brand: Joi.alternatives().try(
-    Joi.string().hex().length(24),
-    Joi.array().items(
-      Joi.string().hex().length(24)
-    )
-  ),
+  brand: Joi.array()
+    .items(Joi.string().hex().length(24))
+    .single(),
 
-  fuelType: Joi.alternatives().try(
-    Joi.string().valid(
-      "Petrol","Diesel","Electric","Hybrid","CNG","LPG","Other"
-    ),
-    Joi.array().items(
+  fuelType: Joi.array()
+    .items(
       Joi.string().valid(
         "Petrol","Diesel","Electric","Hybrid","CNG","LPG","Other"
       )
     )
-  ),
+    .single(),
 
-  transmission: Joi.alternatives().try(
-    Joi.string().valid(
-      "MT","AT","CVT","DCT","AMT","IMT","E-CVT","SINGLE-SPEED","OTHERS"
-    ),
-    Joi.array().items(
+  transmission: Joi.array()
+    .items(
       Joi.string().valid(
         "MT","AT","CVT","DCT","AMT","IMT","E-CVT","SINGLE-SPEED","OTHERS"
       )
     )
-  ),
+    .single(),
 
   variant: Joi.string(),
 
   ownerCount: Joi.number().integer().min(1).max(10),
 
   minYear: Joi.number().min(1950),
+
   maxYear: Joi.number()
     .max(new Date().getFullYear())
     .when("minYear", {
@@ -64,11 +57,11 @@ export const querySchema = Joi.object({
     }),
 
   minKm: Joi.number().min(0),
-  maxKm: Joi.number()
-    .when("minKm", {
-      is: Joi.exist(),
-      then: Joi.number().greater(Joi.ref("minKm"))
-    }),
+
+  maxKm: Joi.number().when("minKm", {
+    is: Joi.exist(),
+    then: Joi.number().greater(Joi.ref("minKm"))
+  }),
 
   priceBucket: Joi.string().valid(
     "0-5","5-10","10-15","15-20","20+"
@@ -87,6 +80,7 @@ export const querySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(50).default(12)
 
 }).unknown(false);
+
 
 
 export const createSchema = Joi.object({

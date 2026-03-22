@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 dotenv.config("../../.env");
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary, cleanupUploadsFolder } from "../utils/cloudinary.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { OTP } from "../models/Otp.model.js"; 
 // import { generateOtp } from "../utils/generateOtp.js";
@@ -116,6 +116,9 @@ const registerUser = asyncHandler(async (req, res) => {
       url: cloudinaryResult.secure_url,
       publicId: cloudinaryResult.public_id,
     };
+
+    // Clean up the uploads folder after processing
+    cleanupUploadsFolder();
   }
 
   // Create user (password auto-hashed in model)
@@ -148,8 +151,14 @@ const registerUser = asyncHandler(async (req, res) => {
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
   return res.status(201).json(
-    new ApiResponse(201, {}, "User registered successfully")
+    new ApiResponse(201, {
+      user: createdUser,
+      accessToken,
+      refreshToken
+    }, "User registered successfully")
   );
 });
 
@@ -338,6 +347,9 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
       url: uploadResult.secure_url,
       public_id: uploadResult.public_id,
     };
+
+    // Clean up the uploads folder after processing
+    cleanupUploadsFolder();
   }
 
   await user.save();

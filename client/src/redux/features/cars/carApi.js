@@ -2,22 +2,31 @@ import { baseApi } from "../../api/baseApi";
 
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
- getCars: builder.query({
-    query: (params = {}) => {
-  const searchParams = new URLSearchParams();
+getCars: builder.query({
+  query: (params = {}) => {
+    const searchParams = new URLSearchParams();
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (!value) return;
+    Object.entries(params).forEach(([key, value]) => {
+      if (
+        value === "" ||
+        value === null ||
+        value === undefined
+      ) return;
 
-    if (Array.isArray(value)) {
-      value.forEach((v) => searchParams.append(key, v));
-    } else {
-      searchParams.append(key, value);
-    }
-  });
+      if (Array.isArray(value)) {
+        value.forEach((v) => {
+          if (v !== "" && v !== null && v !== undefined) {
+            searchParams.append(key, v);
+          }
+        });
+      } else {
+        searchParams.append(key, value);
+      }
+    });
 
-  return { url: `/car?${searchParams.toString()}` };
-},
+    return { url: `/car?${searchParams.toString()}` };
+  },
+
 
       providesTags: (result) =>
         result?.data

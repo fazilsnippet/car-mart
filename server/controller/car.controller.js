@@ -1,85 +1,65 @@
 import mongoose from "mongoose";
 import { Car } from "../models/Car.model.js";
 import { querySchema , updateSchema, createSchema} from "../utils/validators/car.validators.js";
-import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary, cleanupUploadsFolder } from "../utils/cloudinary.js";
 import slugify from "slugify";
 import Joi from "joi";
 
 
-const buildMatch = (filters, excludeField = null) => {
-  const {
-    title,
-    brand,
-    fuelType,
-    transmission,
-    variant,
-    ownerCount,
-    minYear,
-    maxYear,
-    minKm,
-    maxKm,
-    priceBucket
-  } = filters;
+export const buildMatch = (filters, excludeField) => {
+  const match = {
+    lifecycleStatus: "ACTIVE"
+  };
 
-  const match = { lifecycleStatus: "ACTIVE" };
-
-  if (title && excludeField !== "title") {
-    match.title = { $regex: title, $options: "i" };
+  if (filters.title) {
+    match.title = { $regex: filters.title, $options: "i" };
   }
 
-  if (brand && excludeField !== "brand") {
-    const brands = Array.isArray(brand) ? brand : [brand];
-    match.brand = {
-      $in: brands
-        .filter(id => mongoose.Types.ObjectId.isValid(id))
-        .map(id => new mongoose.Types.ObjectId(id))
-    };
+  if (filters.brand && excludeField !== "brand") {
+    match.brand = { $in: filters.brand };
   }
 
-  if (fuelType && excludeField !== "fuelType") {
-    const fuels = Array.isArray(fuelType) ? fuelType : [fuelType];
-    match.fuelType = { $in: fuels };
+  if (filters.fuelType && excludeField !== "fuelType") {
+    match.fuelType = { $in: filters.fuelType };
   }
 
-  if (transmission && excludeField !== "transmission") {
-    const transmissions = Array.isArray(transmission)
-      ? transmission
-      : [transmission];
-    match.transmission = { $in: transmissions };
+  if (filters.transmission && excludeField !== "transmission") {
+    match.transmission = { $in: filters.transmission };
   }
 
-  if (variant && excludeField !== "variant") {
-    match.variant = variant;
+  if (filters.ownerCount) {
+    match.ownerCount = filters.ownerCount;
   }
 
-  if (ownerCount && excludeField !== "ownerCount") {
-    match.ownerCount = ownerCount;
-  }
-
-  if ((minYear || maxYear) && excludeField !== "year") {
+  // Year range
+  if (filters.minYear || filters.maxYear) {
     match.year = {};
-    if (minYear) match.year.$gte = minYear;
-    if (maxYear) match.year.$lte = maxYear;
+    if (filters.minYear) match.year.$gte = filters.minYear;
+    if (filters.maxYear) match.year.$lte = filters.maxYear;
   }
 
-  if ((minKm || maxKm) && excludeField !== "kmDriven") {
+  // KM range
+  if (filters.minKm || filters.maxKm) {
     match.kmDriven = {};
-    if (minKm) match.kmDriven.$gte = minKm;
-    if (maxKm) match.kmDriven.$lte = maxKm;
+    if (filters.minKm) match.kmDriven.$gte = filters.minKm;
+    if (filters.maxKm) match.kmDriven.$lte = filters.maxKm;
   }
 
-  if (priceBucket && excludeField !== "price") {
-    const buckets = {
-      "0-5":  { $gte: 0, $lte: 500000 },
-      "5-10": { $gte: 500000, $lte: 1000000 },
-      "10-15":{ $gte: 1000000, $lte: 1500000 },
-      "15-20":{ $gte: 1500000, $lte: 2000000 },
-      "20+":  { $gte: 2000000 }
+  // Price bucket
+  if (filters.priceBucket && excludeField !== "price") {
+    const bucketMap = {
+      "0-5": [0, 500000],
+      "5-10": [500000, 1000000],
+      "10-15": [1000000, 1500000],
+      "15-20": [1500000, 2000000],
+      "20+": [2000000, Infinity]
     };
 
-    if (buckets[priceBucket]) {
-      match.price = buckets[priceBucket];
-    }
+    const [min, max] = bucketMap[filters.priceBucket];
+
+    match.price = {};
+    if (min !== undefined) match.price.$gte = min;
+    if (max !== Infinity) match.price.$lte = max;
   }
 
   return match;
@@ -100,6 +80,8 @@ export const getCars = async (req, res, next) => {
 
     const { sortBy, order, page, limit } = value;
 
+    const safePage = Math.max(1, page);
+
     const sortStage = {
       [sortBy]: order === "asc" ? 1 : -1
     };
@@ -109,11 +91,10 @@ export const getCars = async (req, res, next) => {
     const result = await Car.aggregate([
       {
         $facet: {
-          // FILTERED DATA
           filtered: [
             { $match: baseMatch },
             { $sort: sortStage },
-            { $skip: (page - 1) * limit },
+            { $skip: (safePage - 1) * limit },
             { $limit: limit }
           ],
 
@@ -122,19 +103,13 @@ export const getCars = async (req, res, next) => {
             { $count: "count" }
           ],
 
-          // DISJUNCTIVE FACETS
           priceBuckets: [
             { $match: buildMatch(value, "price") },
             {
               $bucket: {
                 groupBy: "$price",
                 boundaries: [
-                  0,
-                  500000,
-                  1000000,
-                  1500000,
-                  2000000,
-                  10000000
+                  0, 500000, 1000000, 1500000, 2000000, 10000000
                 ],
                 default: "Other",
                 output: { count: { $sum: 1 } }
@@ -160,7 +135,6 @@ export const getCars = async (req, res, next) => {
             { $sort: { count: -1 } }
           ],
 
-          // ALWAYS NEWEST (independent)
           newest: [
             { $match: { lifecycleStatus: "ACTIVE" } },
             { $sort: { createdAt: -1 } },
@@ -173,12 +147,12 @@ export const getCars = async (req, res, next) => {
     const output = result[0];
     const total = output.totalCount[0]?.count || 0;
 
-    // Similar items logic
     let similarItems = [];
-    if (total > 0 && total < 3) {
+
+    if (total > 0 && total < 3 && value.brand?.length) {
       similarItems = await Car.find({
         lifecycleStatus: "ACTIVE",
-        brand: baseMatch.brand
+        brand: { $in: value.brand }
       })
         .sort({ createdAt: -1 })
         .limit(6);
@@ -187,7 +161,7 @@ export const getCars = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       total,
-      page,
+      page: safePage,
       totalPages: Math.ceil(total / limit),
 
       filters: {
@@ -315,6 +289,9 @@ if (req.body.features) {
           url: result.url || result.secure_url,
           publicId: result.public_id
         }));
+
+      // Clean up the uploads folder after processing
+      cleanupUploadsFolder();
     }
 
     // 4️⃣ Create car in DB
@@ -340,6 +317,8 @@ if (req.body.features) {
     }
 
     next(error);
+  } finally {
+    cleanupUploadsFolder();
   }
 };
 
@@ -414,6 +393,9 @@ export const updateCar = async (req, res, next) => {
 
       // 🔹 Step C: Replace images in car
       car.images = successfulUploads;
+
+      // Clean up the uploads folder after processing
+      cleanupUploadsFolder();
     }
 
     // 6️⃣ Update other fields
@@ -429,6 +411,8 @@ export const updateCar = async (req, res, next) => {
 
   } catch (error) {
     next(error);
+  } finally {
+    cleanupUploadsFolder();
   }
 };
 

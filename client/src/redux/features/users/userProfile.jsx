@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   useGetUserProfileQuery,
   useUpdateAccountDetailsMutation,
@@ -7,15 +8,19 @@ import {
     useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "./userApi";
+import LogoutButton from "../auth/logout";
 
 
 const MyProfile = () => {
-  const { data, isLoading, refetch } = useGetUserProfileQuery();
-  const { data: recentCars } = useGetRecentlyViewedCarsQuery();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  // const { data, isLoading, refetch } = useGetUserProfileQuery();
+  const { data: recentCars } = useGetRecentlyViewedCarsQuery(undefined, { skip: !isAuthenticated });
 
   const [updateAccount, { isLoading: updatingAccount }] =
     useUpdateAccountDetailsMutation();
-
+const { data, isLoading } = useGetUserProfileQuery(undefined, {
+  skip: !isAuthenticated, // 🔥 THIS STOPS EVERYTHING
+});
   const [changePassword, { isLoading: updatingPassword }] =
     useChangePasswordMutation();
 
@@ -248,6 +253,10 @@ const MyProfile = () => {
             {updatingPassword ? "Updating..." : "Update Password"}
           </button>
 
+          <div className="mt-4">
+            <LogoutButton />
+          </div>
+
           {/* FORGOT PASSWORD SECTION */}
           <p
             className="mt-4 text-sm cursor-pointer text-emerald-400 hover:underline"
@@ -361,35 +370,6 @@ const MyProfile = () => {
             </div>
           )}
         </div>
-
-        {/* RECENTLY VIEWED */}
-        <div className="p-8 space-y-6 shadow-xl bg-slate-800 rounded-2xl">
-          <h3 className="text-xl font-semibold">Recently Viewed</h3>
-
-          {recentCars?.length === 0 && (
-            <p className="text-slate-400">No recently viewed cars.</p>
-          )}
-
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {recentCars?.map((car) => (
-              <div
-                key={car._id}
-                className="p-4 transition transform bg-slate-700 rounded-xl hover:scale-105"
-              >
-                <img
-                  src={car.images?.[0]}
-                  alt={car.title}
-                  className="object-cover w-full h-40 rounded-lg"
-                />
-                <h4 className="mt-3 font-semibold">{car.title}</h4>
-                <p className="font-bold text-emerald-400">
-                  ₹ {car.price?.toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </div>
   );

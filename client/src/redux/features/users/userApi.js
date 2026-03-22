@@ -3,11 +3,14 @@ import { baseApi } from "../../api/baseApi";
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-    // 🔹 Get User Profile
     getUserProfile: builder.query({
-      query: () => "/users/me",
-      providesTags: ["User"],
-    }),
+  query: () => "/users/me",
+  providesTags: ["User"],
+
+  refetchOnMountOrArgChange: false,
+  refetchOnFocus: false,
+  refetchOnReconnect: false,
+}),
 
  
 

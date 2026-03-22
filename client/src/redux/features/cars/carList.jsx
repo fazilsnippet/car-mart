@@ -3,6 +3,7 @@ import { useGetCarsQuery } from "./carApi";
 import { useGetBrandsQuery } from "../brands/brandApi";
 import CarCard from "./carCard";
 import CarFilters from "./CarFilters";
+import { useSearchParams } from "react-router-dom";
 import { HiOutlineAdjustments, HiOutlineX } from "react-icons/hi";
 
 export default function CarList() {
@@ -24,34 +25,48 @@ export default function CarList() {
     limit: 12
   };
 
-  const [filters, setFilters] = useState(initialFilters);
+  // const [filters, setFilters] = useState(initialFilters);
+const [searchParams, setSearchParams] = useSearchParams();
 
-  // Build query params for backend
+const filters = useMemo(() => ({
+  title: searchParams.get("title") || "",
+  brand: searchParams.getAll("brand"),
+  fuelType: searchParams.getAll("fuelType"),
+  transmission: searchParams.getAll("transmission"),
+  minYear: searchParams.get("minYear") || "",
+  maxYear: searchParams.get("maxYear") || "",
+  minKm: searchParams.get("minKm") || "",
+  maxKm: searchParams.get("maxKm") || "",
+  priceBucket: searchParams.get("priceBucket") || "",
+  sortBy: searchParams.get("sortBy") || "createdAt",
+  order: searchParams.get("order") || "desc",
+  page: Number(searchParams.get("page")) || 1,
+  limit: Number(searchParams.get("limit")) || 12
+}), [searchParams]);
+
+  // ✅ CLEAN + STABLE PARAMS
   const queryParams = useMemo(() => {
-    const params = { ...filters };
+    const params = {};
 
-    // Remove empty values
-    Object.keys(params).forEach((key) => {
+    Object.entries(filters).forEach(([key, value]) => {
       if (
-        params[key] === "" ||
-        params[key] === null ||
-        (Array.isArray(params[key]) && params[key].length === 0)
+        value === "" ||
+        value === null ||
+        (Array.isArray(value) && value.length === 0)
       ) {
-        delete params[key];
+        return;
       }
+
+      params[key] = value;
     });
 
     return params;
   }, [filters]);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error
-  } = useGetCarsQuery(queryParams);
+  const { data, isLoading, isError, error } =
+    useGetCarsQuery(queryParams);
 
-  const { data: brands } = useGetBrandsQuery();
+  const { data: brands = [] } = useGetBrandsQuery();
 
   if (isLoading) {
     return (
@@ -74,6 +89,33 @@ export default function CarList() {
   const totalPages = data?.totalPages || 1;
   const facets = data?.filters || {};
 
+// const handleFilterChange = (newFilters) => {
+//   setFilters((prev) => ({
+//     ...prev,
+//     ...newFilters,
+//     page: 1 // 🔥 MUST
+//   }));
+// };
+
+const updateFilters = (newFilters) => {
+  const params = new URLSearchParams(searchParams);
+
+  Object.entries(newFilters).forEach(([key, value]) => {
+    if (!value || (Array.isArray(value) && value.length === 0)) {
+      params.delete(key);
+    } else if (Array.isArray(value)) {
+      params.delete(key);
+      value.forEach(v => params.append(key, v));
+    } else {
+      params.set(key, value);
+    }
+  });
+
+  params.set("page", 1); // reset page
+
+  setSearchParams(params);
+};
+
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8">
       {/* Mobile Drawer */}
@@ -88,7 +130,7 @@ export default function CarList() {
               brands={brands}
               facets={facets}
               value={filters}
-              onChange={setFilters}
+              onChange={updateFilters}
               onClose={() => setIsFilterOpen(false)}
               compact
             />
@@ -124,7 +166,7 @@ export default function CarList() {
               brands={brands}
               facets={facets}
               value={filters}
-              onChange={setFilters}
+              onChange={updateFilters}
             />
           </div>
 
@@ -135,7 +177,7 @@ export default function CarList() {
                 No cars match your filters.
                 <div className="mt-4">
                   <button
-                    onClick={() => setFilters(initialFilters)}
+                    onClick={() => updateFilters(initialFilters)}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
                   >
                     <HiOutlineX className="w-4 h-4" />
@@ -156,9 +198,9 @@ export default function CarList() {
                   <div className="flex justify-center gap-2 mt-8">
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <button
-                        key={i}
+                        key={`page-${i}`}
                         onClick={() =>
-                          setFilters((prev) => ({
+                          updateFilters((prev) => ({
                             ...prev,
                             page: i + 1
                           }))

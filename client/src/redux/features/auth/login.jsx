@@ -11,6 +11,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -61,7 +62,8 @@ const Login = () => {
   };
 
   return (
-    <form onSubmit={handleLogin} className="flex flex-col max-w-sm gap-3">
+    <>
+    <form onSubmit={handleLogin} className="flex flex-col max-w-sm gap-3 mx-auto mt-10 align-middle:center">
       <input
         type="email"
         name="email"
@@ -92,6 +94,19 @@ const Login = () => {
 
       {errors.server && <p className="text-red-500">{errors.server}</p>}
     </form>
+
+    <div className="mt-4 text-center">
+      <p className="text-sm text-gray-600">
+        Don't have an account?{" "}
+        <button
+          onClick={() => navigate("/register")}
+          className="text-blue-600 hover:underline"
+        >
+          Register here
+        </button>
+      </p>
+    </div>
+    </>
   );
 };
 
