@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import { promises as fsPromises } from "fs";
+import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config()
@@ -74,7 +75,7 @@ export const deleteFromCloudinary = async (publicId) => {
 };
 
 export const cleanupUploadsFolder = () => {
-  const uploadDir = path.resolve("public/uploads");
+  const uploadDir = path.resolve("public");
   try {
     const files = fs.readdirSync(uploadDir);
     files.forEach(file => {

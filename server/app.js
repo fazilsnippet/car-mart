@@ -22,6 +22,7 @@ import brandRouter from './route/brand.route.js';
 import bookingRouter from './route/booking.route.js';
 import userRouter from './route/user.route.js';
 import otpRouter from './route/otp.route.js';
+import wishlistRouter from './route/wishlist.route.js';
 dotenv.config(); 
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/users', userRouter);
 // app.use('/api/orders' , orderRouter)
 // app.use("/api/brand", brandRouter)
 app.use("/api/otp", otpRouter)
+app.use("/api/wishlist", wishlistRouter)
 
 app.get('/', (req, res) => {
   res.send('Server is running');

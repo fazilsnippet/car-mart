@@ -420,8 +420,10 @@ export const updateCar = async (req, res, next) => {
 
 export const deleteCar = async (req, res, next) => {
   try {
+    const carId = req.params.id;
+
     // 1️⃣ Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(carId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid ID"
@@ -429,7 +431,7 @@ export const deleteCar = async (req, res, next) => {
     }
 
     // 2️⃣ Find car
-    const car = await Car.findById(req.params.id);
+    const car = await Car.findById(carId);
     if (!car) {
       return res.status(404).json({
         success: false,
@@ -438,22 +440,24 @@ export const deleteCar = async (req, res, next) => {
     }
 
     // 3️⃣ Delete images safely
-    if (car.images && car.images.length > 0) {
+    if (car.images?.length > 0) {
       const deleteResults = await Promise.allSettled(
         car.images.map(img => deleteFromCloudinary(img.publicId))
       );
 
-      // Optional: log failed deletions
       const failedDeletes = deleteResults.filter(r => r.status === "rejected");
       if (failedDeletes.length > 0) {
-        console.warn(`Failed to delete ${failedDeletes.length} images from Cloudinary`);
+        console.warn(`Failed to delete ${failedDeletes.length} images`);
       }
     }
 
-    // 4️⃣ Soft delete car
+    // 4️⃣ Soft delete
     car.images = [];
     car.lifecycleStatus = "INACTIVE";
-    car.deletedAt = new Date(); // optional timestamp for auditing
+    car.deletedAt = new Date();
+
+    // 🔥 IMPORTANT: reset popularity
+    car.wishlistCount = 0;
 
     await car.save();
 
@@ -466,6 +470,7 @@ export const deleteCar = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 export const getCarById = async (req, res, next) => {

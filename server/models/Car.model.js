@@ -83,13 +83,27 @@ brand: {
   type: [String],
   default: [],
 }, 
+wishlistCount: {
+  type: Number,
+  default: 0,
+  min: 0,
+        index: true // 🔥 helps sorting performance
 
-    lifecycleStatus: {
-      type: String,
-      enum: ["ACTIVE", "SOLD", "INACTIVE"],
-      default: "ACTIVE",
+},
+
+soldAt: {
+      type: Date,
+      default: null,
       index: true
-    },
+    }
+,
+
+lifecycleStatus: {
+  type: String,
+  enum: ["ACTIVE", "SOLD", "INACTIVE"],
+  default: "ACTIVE",
+  index: true
+}
 
   },
   { timestamps: true }
@@ -100,5 +114,9 @@ carSchema.index(
   { title: 1, brand: 1, year: 1, variant: 1 },
   { unique: true }
 );
+carSchema.index({ lifecycleStatus: 1, wishlistCount: -1 });
+
+// ⚠️ Optional (only if needed)
+carSchema.index({ soldAt: -1 });
 
 export const Car = mongoose.model("Car", carSchema);  
