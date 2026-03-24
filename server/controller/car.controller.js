@@ -16,8 +16,10 @@ export const buildMatch = (filters, excludeField) => {
   }
 
   if (filters.brand && excludeField !== "brand") {
-    match.brand = { $in: filters.brand };
-  }
+  match.brand = {
+    $in: filters.brand.map((id) => new mongoose.Types.ObjectId(id))
+  };
+}
 
   if (filters.fuelType && excludeField !== "fuelType") {
     match.fuelType = { $in: filters.fuelType };
@@ -471,7 +473,74 @@ export const deleteCar = async (req, res, next) => {
   }
 };
 
+import { markWishlistInactiveForCar } from "../services/wishlist.service.js";
+import { isValidObjectId } from "../utils/validators/validate.js";
 
+// export const markCarAsSold = async (req, res) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     await session.withTransaction(async () => {
+//       const { carId } = req.body;
+
+//       const car = await Car.findByIdAndUpdate(
+//         carId,
+//         {lifecycleStatus: "SOLD" },
+//         { new: true, session }
+//       );
+
+//       if (!car) throw new Error("Car not found");
+
+//       // ✅ THIS is where it's called
+//       await markWishlistInactiveForCar(carId);
+//     });
+
+//     res.json({ success: true, message: "Car marked as sold" });
+//   } catch (error) {
+//     res.status(400).json({ success: false, message: error.message });
+//   } finally {
+//     session.endSession();
+//   }
+// };
+
+
+export const markCarAsSold = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      const { id: carId } = req.params;
+
+      // ✅ Validate
+      if (!isValidObjectId(carId)) {
+        throw new Error("Invalid carId");
+      }
+
+      // ✅ Prevent double execution
+      const car = await Car.findOneAndUpdate(
+        {
+          _id: carId,
+          lifecycleStatus: { $ne: "SOLD" }, // 🔒 critical
+        },
+        { lifecycleStatus: "SOLD" },
+        { new: true, session }
+      );
+
+      if (!car) {
+        throw new Error("Car not found or already sold");
+      }
+
+      // ✅ Pass session → maintain atomicity
+      await markWishlistInactiveForCar(carId, session);
+    });
+
+    res.json({ success: true, message: "Car marked as SOLD" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  } finally {
+    session.endSession();
+  }
+};
 
 export const getCarById = async (req, res, next) => {
   try {

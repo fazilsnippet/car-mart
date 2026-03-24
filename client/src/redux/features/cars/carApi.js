@@ -52,6 +52,37 @@ getCarBySlug: builder.query({
       }),
       invalidatesTags: ["Car"],
     }),
+   markCarAsSold: builder.mutation({
+  query: (carId) => ({
+    url: `/cars/${carId}/sell`,
+    method: "PATCH",
+  }),
+
+  async onQueryStarted(carId, { dispatch, queryFulfilled }) {
+
+    // ✅ Safe: update only single car cache
+    const patchCar = dispatch(
+      carApi.util.updateQueryData("getCarById", carId, (draft) => {
+        if (draft) {
+          draft.lifecycleStatus = "SOLD";
+        }
+      })
+    );
+
+    try {
+      await queryFulfilled;
+    } catch {
+      patchCar.undo();
+    }
+  },
+
+  // ✅ Let server be source of truth for lists
+  invalidatesTags: (result, error, carId) => [
+    { type: "Car", id: carId },
+    { type: "Car", id: "LIST" },
+    { type: "Wishlist", id: "LIST" },
+  ],
+}),
   }),
 });
 
@@ -59,4 +90,5 @@ export const {
   useGetCarsQuery,
   useCreateCarMutation,
   useGetCarBySlugQuery,
+  useMarkCarAsSoldMutation,
 } = carApi;

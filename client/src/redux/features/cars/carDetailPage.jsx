@@ -8,14 +8,29 @@ import {
   HiOutlineHeart,
   HiOutlineCalendar,
 } from "react-icons/hi";
+import { useGetWishlistQuery, useToggleWishlistMutation } from "../wishlist/wishlistApi.js";
 
 const CarDetailPage = () => {
+
+
+const handleToggle = async () => {
+  try {
+    await toggleWishlist(car._id).unwrap();
+  } catch (err) {
+    console.error(err);
+  }
+};
   const { slug } = useParams();
   const { data: car, isLoading, isError } = useGetCarBySlugQuery(slug);
+  const { data: wishlist = [] } = useGetWishlistQuery();
+const [toggleWishlist, { isLoading: isTogglingWishlist }] = useToggleWishlistMutation();
 
+const isSaved = wishlist.some(
+  (item) => item.car?._id === car?._id
+);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-   const [isSaved, setIsSaved] = useState(false);
+  //  const [isSaved, setIsSaved] = useState(false);
   const [selectedBookingType, setSelectedBookingType] =
     useState("TEST_DRIVE");
   const thumbScrollRef = useRef(null);
@@ -245,22 +260,26 @@ const CarDetailPage = () => {
                       </span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setIsSaved((prev) => !prev)}
-                      className={`inline-flex items-center justify-center gap-2 rounded-xl border text-sm font-medium px-4 py-3 transition-all duration-200 ${
-                        isSaved
-                          ? "border-rose-500 bg-rose-50 text-rose-600"
-                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <HiOutlineHeart
-                        className={`w-5 h-5 ${
-                          isSaved ? "fill-rose-500 text-rose-500" : ""
-                        }`}
-                      />
-                      <span>{isSaved ? "Saved" : "Save"}</span>
-                    </button>
+                  <button
+  type="button"
+  onClick={handleToggle}
+  disabled={isTogglingWishlist}
+  className={`inline-flex items-center justify-center gap-2 rounded-xl border text-sm font-medium px-4 py-3 transition-all duration-200 ${
+    isSaved ?
+      // ? "border-rose-500 bg-rose-50 text-rose-600"
+      // : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+       "❤️" : "🤍"
+  } ${isTogglingWishlist ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  <HiOutlineHeart
+    className={`w-5 h-5 ${
+      isSaved ? "fill-rose-500 text-rose-500" : ""
+    }`}
+  />
+  <span>
+    {isTogglingWishlist ? "..." : isSaved ? "Saved" : "Save"}
+  </span>
+</button>
                   </div>
 
                   <div className="flex flex-wrap gap-2">

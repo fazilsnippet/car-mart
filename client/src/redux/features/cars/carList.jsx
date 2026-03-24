@@ -199,11 +199,12 @@ const updateFilters = (newFilters) => {
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <button
                         key={`page-${i}`}
-                        onClick={() =>
-                          updateFilters((prev) => ({
-                            ...prev,
-                            page: i + 1
-                          }))
+                       onClick={() =>
+                       updateFilters({
+                        ...filters,
+                        page: i + 1
+                       })
+
                         }
                         className={`px-3 py-2 rounded-lg text-sm font-medium ${
                           filters.page === i + 1

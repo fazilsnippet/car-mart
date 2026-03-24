@@ -469,51 +469,105 @@ import { isValidObjectId } from "../utils/validators/validate.js";
 // -------------------------
 // Toggle / Add / Remove
 // -------------------------
+// export const toggleWishlist = async (req, res) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     await session.withTransaction(async () => {
+//       const { carId } = req.body;
+//       const userId = req.user._id;
+
+//       // Validate IDs
+//       if (!isValidObjectId(carId)) throw new Error("Invalid carId");
+
+//       // Check car availability
+//       const car = await Car.findOne({
+//         _id: carId,
+//         lifecycleStatus: "ACTIVE"
+//       }).session(session);
+
+//       if (!car) throw new Error("Car not available");
+
+//       const existing = await Wishlist.findOne({ user: userId, car: carId }).session(session);
+
+//       // If exists → remove (hard delete)
+//       if (existing) {
+//         await Wishlist.deleteOne({ _id: existing._id }).session(session);
+
+//         await Car.findOneAndUpdate(
+//           { _id: carId, wishlistCount: { $gt: 0 } },
+//           { $inc: { wishlistCount: -1 } },
+//           { session }
+//         );
+
+//         return res.json({ success: true, action: "removed" });
+//       }
+
+//       // Otherwise → add
+//       await Wishlist.create([{ user: userId, car: carId }], { session });
+
+//       await Car.findByIdAndUpdate(
+//         carId,
+//         { $inc: { wishlistCount: 1 } },
+//         { session }
+//       );
+
+//       res.json({ success: true, action: "added" });
+//     });
+//   } catch (error) {
+//     res.status(400).json({ success: false, message: error.message });
+//   } finally {
+//     session.endSession();
+//   }
+// };
 export const toggleWishlist = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
-    await session.withTransaction(async () => {
+    const result = await session.withTransaction(async () => {
       const { carId } = req.body;
       const userId = req.user._id;
 
-      // Validate IDs
-      if (!isValidObjectId(carId)) throw new Error("Invalid carId");
+      if (!isValidObjectId(carId)) {
+        throw new Error("Invalid carId");
+      }
 
-      // Check car availability
       const car = await Car.findOne({
         _id: carId,
-        lifecycleStatus: "ACTIVE"
+        lifecycleStatus: "ACTIVE",
       }).session(session);
 
       if (!car) throw new Error("Car not available");
 
-      const existing = await Wishlist.findOne({ user: userId, car: carId }).session(session);
+      const existing = await Wishlist.findOne({
+        user: userId,
+        car: carId,
+      }).session(session);
 
-      // If exists → remove (hard delete)
       if (existing) {
         await Wishlist.deleteOne({ _id: existing._id }).session(session);
 
-        await Car.findOneAndUpdate(
+        await Car.updateOne(
           { _id: carId, wishlistCount: { $gt: 0 } },
           { $inc: { wishlistCount: -1 } },
           { session }
         );
 
-        return res.json({ success: true, action: "removed" });
+        return { action: "removed" };
       }
 
-      // Otherwise → add
       await Wishlist.create([{ user: userId, car: carId }], { session });
 
-      await Car.findByIdAndUpdate(
-        carId,
+      await Car.updateOne(
+        { _id: carId },
         { $inc: { wishlistCount: 1 } },
         { session }
       );
 
-      res.json({ success: true, action: "added" });
+      return { action: "added" };
     });
+
+    res.json({ success: true, ...result });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   } finally {
@@ -556,32 +610,60 @@ export const getWishlist = async (req, res) => {
 // -------------------------
 // Clear Wishlist
 // -------------------------
+// export const clearWishlist = async (req, res) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     await session.withTransaction(async () => {
+//       const userId= req.user._id;
+//       const items = await Wishlist.find({ user: userId }).session(session);
+//       const carIds = items.map(i => i.car);
+
+//       // Hard delete user wishlist entries
+//       await Wishlist.deleteMany({ user:userId}).session(session);
+
+//       // Decrement wishlistCount safely
+//       // if (carIds.length > 0) {
+//       //   await Car.updateMany(
+//       //     { _id: { $in: carIds }, wishlistCount: { $gt: 0 } },
+//       //     { $inc: { wishlistCount: -1 } },
+//       //     { session }
+//       //   );
+//       // }
+//       for (const carId of carIds){
+//         await Car.findOneAndUpdate(
+//           {_id: carId, wishlistCount:{$gt: 0}},
+//           {$inc:{wishlistCount:-1}},
+//           {session}
+//         )
+//       }
+//     });
+
+//     res.json({ success: true, message: "Wishlist cleared" });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   } finally {
+//     session.endSession();
+//   }
+// };
 export const clearWishlist = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
     await session.withTransaction(async () => {
-      const userId= req.user._id;
+      const userId = req.user._id;
+
       const items = await Wishlist.find({ user: userId }).session(session);
-      const carIds = items.map(i => i.car);
+      const carIds = items.map((i) => i.car);
 
-      // Hard delete user wishlist entries
-      await Wishlist.deleteMany({ user:userId}).session(session);
+      await Wishlist.deleteMany({ user: userId }).session(session);
 
-      // Decrement wishlistCount safely
-      // if (carIds.length > 0) {
-      //   await Car.updateMany(
-      //     { _id: { $in: carIds }, wishlistCount: { $gt: 0 } },
-      //     { $inc: { wishlistCount: -1 } },
-      //     { session }
-      //   );
-      // }
-      for (const carId of carIds){
-        await Car.findOneAndUpdate(
-          {_id: carId, wishlistCount:{$gt: 0}},
-          {$inc:{wishlistCount:-1}},
-          {session}
-        )
+      if (carIds.length > 0) {
+        await Car.updateMany(
+          { _id: { $in: carIds }, wishlistCount: { $gt: 0 } },
+          { $inc: { wishlistCount: -1 } },
+          { session }
+        );
       }
     });
 
@@ -592,13 +674,30 @@ export const clearWishlist = async (req, res) => {
     session.endSession();
   }
 };
-
 // -------------------------
 // Mark Wishlist Inactive When Car Sold
 // -------------------------
+// export const markWishlistInactiveForCar = async (carId) => {
+//   if (!isValidObjectId(carId)) throw new Error("Invalid carId");
+//   // if (!isValidObjectId(carId)) return;
+
+//   const now = new Date();
+
+//   await Wishlist.updateMany(
+//     { car: carId, status: "ACTIVE" },
+//     {
+//       status: "INACTIVE_BY_CAR",
+//       carBecameInactiveAt: now,
+//       hiddenAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days visibility
+//     }
+//   );
+
+//   // Optionally reset wishlistCount
+//   await Car.findByIdAndUpdate(carId, { wishlistCount: 0 });
+// };
+// call this when car is sold
 export const markWishlistInactiveForCar = async (carId) => {
-  if (!isValidObjectId(carId)) throw new Error("Invalid carId");
-  // if (!isValidObjectId(carId)) return;
+  if (!isValidObjectId(carId)) return;
 
   const now = new Date();
 
@@ -607,11 +706,10 @@ export const markWishlistInactiveForCar = async (carId) => {
     {
       status: "INACTIVE_BY_CAR",
       carBecameInactiveAt: now,
-      hiddenAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days visibility
+      hiddenAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
     }
   );
 
-  // Optionally reset wishlistCount
   await Car.findByIdAndUpdate(carId, { wishlistCount: 0 });
 };
 
