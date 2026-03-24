@@ -14,17 +14,31 @@ import MyProfile from "./redux/features/users/userProfile.jsx";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import PrivateRoute from "./utils/private";
-
+import MyBookings from "./redux/features/bookings/myBooking.jsx";
+import { useGetMeQuery } from "./redux/features/users/userApi.js";
+import { useDispatch } from "react-redux";
+import { setUser } from "./redux/features/auth/authSlice";
 function App() {
   const { theme } = useSelector((state) => state.ui);
+  const dispatch = useDispatch();
+
+  const { data, isLoading } = useGetMeQuery();
 
   useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    if (data?.data) {
+      dispatch(setUser(data.data));
     }
-  }, [theme]);
+  }, [data, dispatch]);
+
+  if (isLoading) return <p>Loading...</p>;
+
+  // useEffect(() => {
+  //   if (theme === "dark") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, [theme]);
   return (
     <BrowserRouter>
       <Routes>
@@ -38,6 +52,8 @@ function App() {
           <Route path="car/:slug" element={<CarDetailPage />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+           <Route path="register" element={<Register />} />
+            <Route path="myBooking" element={<MyBookings/> }/>
           <Route path="/myProfile" element={<PrivateRoute>
                 <MyProfile />
               </PrivateRoute>  }/>

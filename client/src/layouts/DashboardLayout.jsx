@@ -363,7 +363,7 @@ const navGroups = [
   },
   {
     title: "My activity",
-    items: [{ to: "/booking", label: "My Bookings", icon: HiOutlineTruck }],
+    items: [{ to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck }],
   },
 ];
 

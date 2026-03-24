@@ -507,7 +507,16 @@ const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
   }
 };
 
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized");
+  }
+  
 
+  return res.status(200).json(
+    new ApiResponse(200, req.user, "User fetched successfully")
+  );
+});
 export {
   sendSignupOtp,
   registerUser,

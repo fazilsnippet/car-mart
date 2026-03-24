@@ -92,22 +92,63 @@ export const getBookingById = asyncHandler(async (req, res) => {
 export const getMyBookings = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
-  const skip = (page - 1) * limit;
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
 
-  const bookings = await Booking.find({ userId: req.user._id })
-    .populate("carId", "title price images")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+  const userId = req.user._id;
 
-  const total = await Booking.countDocuments({ userId: req.user._id });
+  if (!userId) {
+    throw new ApiError(400, "User ID is required");
+  }
+
+  const bookings = await Booking.aggregate([
+    {
+      $match: { userId: new mongoose.Types.ObjectId(userId) }
+    },
+    {
+      $sort: { createdAt: -1 }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limitNum
+    },
+    {
+      $lookup: {
+        from: "cars",
+        localField: "carId",
+        foreignField: "_id",
+        as: "car"
+      }
+    },
+    {
+      $unwind: "$car"
+    },
+    {
+      $project: {
+        bookingType: 1,
+        status: 1,
+        createdAt: 1,
+        "car._id": 1,
+        "car.title": 1,
+        "car.price": 1,
+"car.image": {
+  $ifNull: [{ $arrayElemAt: ["$car.images", 0] }, null]
+}      }
+    }
+  ]);
+
+  const total = await Booking.countDocuments({ userId });
 
   return res.status(200).json(
     new ApiResponse(200, {
       bookings,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / limit)
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+
     })
   );
 });
@@ -156,23 +197,42 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 });
 
 
-export const updateBookingStatus = asyncHandler(async (req, res) => {
+export const updateBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { type } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid booking ID");
+  }
 
   const booking = await Booking.findById(id);
+
   if (!booking) {
     throw new ApiError(404, "Booking not found");
   }
 
-  booking.status = status;
-  booking.handledBy = req.user._id;
+  if (!req.user || !req.user._id) {
+  throw new ApiError(401, "Unauthorized - user missing");
+}
+  // Ensure user owns booking
+  if (booking.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  // Only allow type update
+  if (type) {
+    const allowedTypes = ["TEST_DRIVE", "CALLBACK", "VISIT"];
+    if (!allowedTypes.includes(type)) {
+      throw new ApiError(400, "Invalid booking type");
+    }
+    booking.bookingType = type;
+  }
 
   await booking.save();
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, booking, "Booking status updated"));
+  return res.status(200).json(
+    new ApiResponse(200, booking, "Booking updated successfully")
+  );
 });
 
 

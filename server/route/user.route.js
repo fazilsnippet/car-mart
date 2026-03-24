@@ -2,7 +2,7 @@ import express from "express";
 import {
 registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,
 updateAccountDetails,userProfile,sendSignupOtp,addRecentlyViewedCar,
-  getRecentlyViewedCars,forgotPassword
+  getRecentlyViewedCars,forgotPassword, getCurrentUser
 } from "../controller/user.controller.js";
 import { verifyJWT } from "../middleware/jwt.middleware.js";  // Assuming you have an auth middleware to verify JWT token
 import { upload } from "../middleware/multer.js";
@@ -27,5 +27,5 @@ userRouter.post("/recentlyviewed/:carId", verifyJWT, addRecentlyViewedCar);
 userRouter.get("/recentlyviewedcars", verifyJWT, getRecentlyViewedCars);  // Get recently viewed products
 
 userRouter.post("/forgotPassword", forgotPassword);  // Reset password
-
+userRouter.get("/mount", verifyJWT, getCurrentUser);
 export default userRouter;

@@ -41,7 +41,7 @@ app.use(cookieParser());
 // app.use('/api/categories', categoryRouter);  
 app.use('/api/car', carRouter); 
 app.use('/api/brand', brandRouter);
-app.use('api/booking', bookingRouter);
+app.use('/api/booking', bookingRouter);
 app.use('/api/otp', otpRouter);
 // app.use('/api/wishlist', wishlistRouter);  
 // app.use('/api/products', productRouter);  
