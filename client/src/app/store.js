@@ -6,10 +6,9 @@ import uiReducer from "../redux/features/ui/theme";
 export const store = configureStore({
   reducer: {
     [baseApi.reducerPath]: baseApi.reducer,
-     ui: uiReducer,
     auth: authReducer,
+    ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseApi.middleware),
 });
-

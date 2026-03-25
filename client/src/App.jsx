@@ -12,25 +12,34 @@ import Login from "./redux/features/auth/login.jsx";
 import Register from "./redux/features/auth/register.jsx";
 import MyProfile from "./redux/features/users/userProfile.jsx";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
 import PrivateRoute from "./utils/private";
 import MyBookings from "./redux/features/bookings/myBooking.jsx";
-import { useGetMeQuery } from "./redux/features/users/userApi.js";
-import { useDispatch } from "react-redux";
-import { setUser } from "./redux/features/auth/authSlice";
+import { useGetUserProfileQuery } from "./redux/features/users/userApi.js";
+import { setUser, logout } from "./redux/features/auth/authSlice";
+
+
+import { useSelector, useDispatch } from "react-redux";
 function App() {
   const { theme } = useSelector((state) => state.ui);
+
   const dispatch = useDispatch();
 
-  const { data, isLoading } = useGetMeQuery();
+  const { data, isLoading, isError } = useGetUserProfileQuery();
 
   useEffect(() => {
     if (data?.data) {
       dispatch(setUser(data.data));
     }
-  }, [data, dispatch]);
 
-  if (isLoading) return <p>Loading...</p>;
+    if (isError) {
+      dispatch(logout());
+    }
+  }, [data, isError, dispatch]);
+
+  if (isLoading) {
+    return <div>Loading app...</div>; // or spinner
+  }
+
 
   // useEffect(() => {
   //   if (theme === "dark") {
@@ -54,10 +63,8 @@ function App() {
           <Route path="register" element={<Register />} />
            <Route path="register" element={<Register />} />
             <Route path="myBooking" element={<MyBookings/> }/>
-          <Route path="/myProfile" element={<PrivateRoute>
-                <MyProfile />
-              </PrivateRoute>  }/>
-        </Route>
+          <Route path="/myProfile" element={<MyProfile /> }/>
+           </Route>
 
         <Route path="*" element={<NotFound />} />
       </Routes>

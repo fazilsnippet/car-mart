@@ -42,7 +42,7 @@ export default function MyBookings() {
         return (
          <div
   key={booking._id}
-  className="flex items-center justify-between gap-4 px-4 py-4 border-b min-h-[120px]"
+  className="flex items-center justify-between gap-4 px-4 py-4 border-b min-h-30"
 >
   {/* LEFT */}
   <div className="flex-1 space-y-2">
@@ -120,7 +120,7 @@ export default function MyBookings() {
   </div>
 
   {/* RIGHT IMAGE */}
-  <div className="w-28 h-28 shrink-0 overflow-hidden rounded-lg">
+  <div className="overflow-hidden rounded-lg w-28 h-28 shrink-0">
     <img
       src={
         booking.car?.image?.url?.replace(
@@ -129,7 +129,7 @@ export default function MyBookings() {
         )
       }
       alt={booking.car?.title}
-      className="w-full h-full object-cover"
+      className="object-cover w-full h-full"
     />
   </div>
 </div>

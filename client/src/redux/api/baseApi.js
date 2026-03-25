@@ -1,49 +1,42 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logout } from "../features/auth/authSlice";
 
-const baseQuery = fetchBaseQuery({
+const rawBaseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:8001/api",
-  credentials: "include",
-
-  // 🔥 ADD THIS
-  // prepareHeaders: (headers, { getState }) => {
-  //   const token = getState().auth?.accessToken;
-
-  //   if (token) {
-  //     headers.set("authorization", `Bearer ${token}`);
-  //   }
-
-  //   return headers;
-  // },
+  credentials: "include", // 🔥 cookies only
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions);
+  // normalize args
+  const url = typeof args === "string" ? args : args.url;
 
-  // 🔁 Handle token expiry
-  if (result?.error?.status === 401 && !args._retry) {
-    const refreshResult = await baseQuery(
+  let result = await rawBaseQuery(args, api, extraOptions);
+
+  // ❌ stop if already retried
+  if (args?._retry) return result;
+
+  // 🔥 handle 401 (only for protected routes)
+  if (
+    result?.error?.status === 401 &&
+    !url.includes("/users/login") &&
+    !url.includes("/users/refreshtoken") &&
+    !url.includes("/users/me")
+  ) {
+    const refreshResult = await rawBaseQuery(
       { url: "/users/refreshtoken", method: "POST" },
       api,
       extraOptions
     );
 
+    // ❌ refresh failed → logout + STOP
     if (refreshResult?.error) {
       api.dispatch(logout());
       api.dispatch(baseApi.util.resetApiState());
       return result;
     }
 
-    // 🔥 Optional: if backend returns new access token
-    if (refreshResult?.data?.accessToken) {
-      api.dispatch({
-        type: "auth/setCredentials",
-        payload: refreshResult.data,
-      });
-    }
-
-    // retry original request
-    result = await baseQuery(
+    // ✅ retry once
+    result = await rawBaseQuery(
       { ...args, _retry: true },
       api,
       extraOptions

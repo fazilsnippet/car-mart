@@ -137,8 +137,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // 🍪 Production-safe cookie config
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
+    secure:false,
+    sameSite: "lax",
   };
 
   res.cookie("accessToken", accessToken, {

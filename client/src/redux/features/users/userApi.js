@@ -2,16 +2,13 @@ import { baseApi } from "../../api/baseApi";
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-getMe: builder.query({
-  query: () => "/users/mount",
-}),
-    getUserProfile: builder.query({
+    getMe: builder.query({
+      query: () => "/users/mount",
+    }),
+
+ getUserProfile: builder.query({
   query: () => "/users/me",
   providesTags: ["User"],
-
-  refetchOnMountOrArgChange: false,
-  refetchOnFocus: false,
-  refetchOnReconnect: false,
 }),
 
  

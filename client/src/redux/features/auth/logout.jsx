@@ -26,9 +26,6 @@ export default function LogoutButton({ className = "" }) {
       // 2. 🔥 Reset ALL RTK Query cache (CRITICAL)
       dispatch(baseApi.util.resetApiState());
 
-      // 3. Clear localStorage if used
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
 
       // 4. Redirect
       navigate("/login");
