@@ -462,7 +462,7 @@
 // };
 
 import mongoose from "mongoose";
-import {Wishlist} from "../models/wishlist.model.js"
+import {Wishlist} from "../models/Wishlist.model.js"
 import { Car } from "../models/Car.model.js";
 import { isValidObjectId } from "../utils/validators/validate.js";
 

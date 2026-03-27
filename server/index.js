@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import connectDB from './db/index.js'
 import  app from "./app.js"
+import "./services/notication.worker.js"  // Import worker to start it
 dotenv.config({
   path: "./.env"
 });

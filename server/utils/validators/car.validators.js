@@ -103,7 +103,9 @@ export const createSchema = Joi.object({
 });
 
   
-  export const updateSchema = createSchema.fork(
+export const updateSchema = createSchema
+  .fork(
     Object.keys(createSchema.describe().keys),
     (field) => field.optional()
-  );
+  )
+  .fork(["price"], (field) => field.forbidden());

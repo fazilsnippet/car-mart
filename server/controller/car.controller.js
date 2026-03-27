@@ -418,13 +418,32 @@ export const updateCar = async (req, res, next) => {
   }
 };
 
+// file: controllers/car.controller.js
+import { notificationQueue } from "../services/notification.queue.js";
+
+export const updateCarPrice = async (req, res) => {
+  const { carId, newPrice } = req.body;
+
+  const car = await Car.findById(carId);
+
+  if (car.price > newPrice) {
+    await notificationQueue.add("price_drop", {
+      carId,
+      newPrice
+    });
+  }
+
+  car.price = newPrice;
+  await car.save();
+
+  res.json(car);
+};
 
 
 export const deleteCar = async (req, res, next) => {
   try {
     const carId = req.params.id;
 
-    // 1️⃣ Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(carId)) {
       return res.status(400).json({
         success: false,
@@ -432,7 +451,6 @@ export const deleteCar = async (req, res, next) => {
       });
     }
 
-    // 2️⃣ Find car
     const car = await Car.findById(carId);
     if (!car) {
       return res.status(404).json({
@@ -441,7 +459,6 @@ export const deleteCar = async (req, res, next) => {
       });
     }
 
-    // 3️⃣ Delete images safely
     if (car.images?.length > 0) {
       const deleteResults = await Promise.allSettled(
         car.images.map(img => deleteFromCloudinary(img.publicId))
@@ -453,15 +470,15 @@ export const deleteCar = async (req, res, next) => {
       }
     }
 
-    // 4️⃣ Soft delete
     car.images = [];
     car.lifecycleStatus = "INACTIVE";
     car.deletedAt = new Date();
-
-    // 🔥 IMPORTANT: reset popularity
     car.wishlistCount = 0;
 
     await car.save();
+
+    // ✅ 🔥 Trigger notification AFTER success
+    await notificationQueue.add("car_inactive", { carId });
 
     res.status(200).json({
       success: true,
@@ -476,51 +493,24 @@ export const deleteCar = async (req, res, next) => {
 import { markWishlistInactiveForCar } from "../services/wishlist.service.js";
 import { isValidObjectId } from "../utils/validators/validate.js";
 
-// export const markCarAsSold = async (req, res) => {
-//   const session = await mongoose.startSession();
-
-//   try {
-//     await session.withTransaction(async () => {
-//       const { carId } = req.body;
-
-//       const car = await Car.findByIdAndUpdate(
-//         carId,
-//         {lifecycleStatus: "SOLD" },
-//         { new: true, session }
-//       );
-
-//       if (!car) throw new Error("Car not found");
-
-//       // ✅ THIS is where it's called
-//       await markWishlistInactiveForCar(carId);
-//     });
-
-//     res.json({ success: true, message: "Car marked as sold" });
-//   } catch (error) {
-//     res.status(400).json({ success: false, message: error.message });
-//   } finally {
-//     session.endSession();
-//   }
-// };
-
-
 export const markCarAsSold = async (req, res) => {
   const session = await mongoose.startSession();
 
+  let carId;
+
   try {
     await session.withTransaction(async () => {
-      const { id: carId } = req.params;
+      const { id } = req.params;
+      carId = id;
 
-      // ✅ Validate
       if (!isValidObjectId(carId)) {
         throw new Error("Invalid carId");
       }
 
-      // ✅ Prevent double execution
       const car = await Car.findOneAndUpdate(
         {
           _id: carId,
-          lifecycleStatus: { $ne: "SOLD" }, // 🔒 critical
+          lifecycleStatus: { $ne: "SOLD" },
         },
         { lifecycleStatus: "SOLD" },
         { new: true, session }
@@ -530,11 +520,14 @@ export const markCarAsSold = async (req, res) => {
         throw new Error("Car not found or already sold");
       }
 
-      // ✅ Pass session → maintain atomicity
       await markWishlistInactiveForCar(carId, session);
     });
 
+    // ✅ AFTER transaction success → trigger event
+    await notificationQueue.add("car_sold", { carId });
+
     res.json({ success: true, message: "Car marked as SOLD" });
+
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   } finally {

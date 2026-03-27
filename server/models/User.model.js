@@ -88,6 +88,10 @@ bookingHistory: [
     },
       recentlyViewed: [viewedCarSchema],
 
+      wishlist:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Wishlist"
+      },
   },
   {
     timestamps: true,
