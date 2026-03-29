@@ -7,11 +7,11 @@ import { verifyJWT } from "../middleware/jwt.middleware.js"
 carRouter.get("/", getCars);
 carRouter.get("/slug/:slug", getCarBySlug);
 carRouter.patch("/update-price", updateCarPrice);
+carRouter.patch("/:id/sell", verifyJWT, markCarAsSold);
 carRouter.post("/", upload.array("images", 12), createCar);
 carRouter.put("/:id/update", upload.array("images", 12), updateCar);
 carRouter.delete("/:id/delete", deleteCar);
 // carRouter.patch("/:id/sell", verifyJWT, isAdmin, markCarAsSold);
-carRouter.patch("/:id/sell", verifyJWT, markCarAsSold);
 
 carRouter.get("/:id", getCarById);
 

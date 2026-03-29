@@ -10,6 +10,7 @@ const notificationSchema = new mongoose.Schema({
     "car_sold", 
     "car_booked",
     "car_inactive",
+      "new-message",
     "system"
   ],
   required: true
@@ -18,9 +19,25 @@ const notificationSchema = new mongoose.Schema({
   message: String,
 data: {
   carId: mongoose.Schema.Types.ObjectId,
+  oldPrice: Number,
   newPrice: Number
 },
-  read: { type: Boolean, default: false }
-}, { timestamps: true });
+  status: {
+      type: String,
+      enum: ["pending", "sent", "failed"],
+      default: "pending",
+    },
+
+    attempts: {
+      type: Number,
+      default: 0,
+    },
+      read: { type: Boolean, default: false },
+
+
+    lastAttemptAt: Date,
+  },
+ { timestamps: true });
 
 export const Notification = mongoose.model("Notification", notificationSchema);
+

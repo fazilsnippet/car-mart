@@ -10,6 +10,7 @@ import userRouter from './route/user.route.js';
 import otpRouter from './route/otp.route.js';
 import wishlistRouter from './route/wishlist.route.js';
 import notificationRouter from './route/notification.route.js';
+import testRouter from './route/test.route.js';
 dotenv.config(); 
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/users', userRouter);
 app.use("/api/otp", otpRouter)
 app.use("/api/wishlist", wishlistRouter)
 app.use("/api/notifications", notificationRouter)
+app.use("/api/test", testRouter)
 
 app.get('/', (req, res) => {
   res.send('Server is running');

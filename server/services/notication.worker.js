@@ -156,22 +156,21 @@ export const notificationWorker = new Worker(
 
     const { carId } = job.data;
 
-    if (!carId) {
-      console.log("❌ Missing carId");
-      return;
-    }
-
-    const objectCarId = new mongoose.Types.ObjectId(carId);
+if (job.name !== "new-message" && !carId) {
+  console.log("❌ Missing carId");
+  return;
+}
 
     // =========================
     // 1️⃣ Fetch all user sources
     // =========================
-    const [wishlistUsers, bookingUsers, conversations] = await Promise.all([
-      Wishlist.find({ car: objectCarId }).select("user"),
-      Booking.find({ car: objectCarId }).select("user"),
-    Conversation.find({ car: carId }).populate("user", "name email")
-    ]);
+ const objectCarId = new mongoose.Types.ObjectId(carId);
 
+const [wishlistUsers, bookingUsers, conversations] = await Promise.all([
+  Wishlist.find({ car: objectCarId }).select("user"),
+  Booking.find({ car: objectCarId }).select("user"),
+  Conversation.find({ car: objectCarId }).select("user")
+]);
     // =========================
     // 2️⃣ Convert to Sets
     // =========================
@@ -195,7 +194,9 @@ export const notificationWorker = new Worker(
         // ❌ exclude booking users
         [...wishlistSet, ...enquirySet].forEach(id => finalUserSet.add(id));
         break;
-
+case "new-message":
+  finalUserSet.add(job.data.userId.toString());
+  break;
       case "car_sold":
       case "car_inactive":
         [...wishlistSet, ...bookingSet, ...enquirySet].forEach(id => finalUserSet.add(id));
@@ -239,8 +240,11 @@ export const notificationWorker = new Worker(
     // =========================
     // 6️⃣ Insert into DB
     // =========================
-    await Notification.insertMany(notifications);
-
+try {
+  await Notification.insertMany(notifications);
+} catch (err) {
+  console.error("❌ Insert failed:", err);
+}
     console.log(`✅ ${notifications.length} notifications inserted`);
   },
   {
