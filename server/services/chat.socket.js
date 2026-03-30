@@ -39,7 +39,8 @@ export const initSocket = (server) => {
       } else {
         await notificationQueue.add("new-message", {
           userId: receiverId,
-          message: text
+          message: text,
+           conversationId: conversationId
         });
       }
 

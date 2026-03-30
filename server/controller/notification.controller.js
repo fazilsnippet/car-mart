@@ -12,17 +12,36 @@ export const sendBroadcast = async (req, res) => {
 
 // file: controllers/notification.controller.js
 
-export const getUserNotifications = async (req, res) => {
+export const getUserNotifications = async (req, res, next) => {
   try {
-    const userId = req.user._id; // from auth middleware
+    const userId = req.user._id;
 
-    const notifications = await Notification.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .limit(20); // pagination later
+    const pageNum = parseInt(req.query.page, 10) || 1;
+    const limitNum = parseInt(req.query.limit, 10) || 20;
 
-    res.json(notifications);
+    const [notifications, unreadCount] = await Promise.all([
+      Notification.find({ user: userId })
+        .select("title message read type data createdAt")
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+
+      Notification.countDocuments({
+        user: userId,
+        read: false,
+      }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: notifications,
+      unreadCount,
+      page: pageNum,
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 

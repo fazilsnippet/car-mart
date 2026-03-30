@@ -11,7 +11,6 @@ const AddToWishlistButton = ({ carId }) => {
   const [toggleWishlist, { isLoading: toggleLoading }] =
     useToggleWishlistMutation();
 
-  // ✅ Check if car is already in wishlist
   const isWishlisted = useMemo(() => {
     return wishlist.some((item) => item.car?._id === carId);
   }, [wishlist, carId]);
@@ -24,21 +23,21 @@ const AddToWishlistButton = ({ carId }) => {
     }
   };
 
-  if (wishlistLoading) return null; // or skeleton
+  if (wishlistLoading) return null;
 
   return (
     <button
+      type="button"
       onClick={handleToggle}
       disabled={toggleLoading}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition 
-        ${
-           isWishlisted ? "❤️" : "🤍"}
-        }
-        ${toggleLoading ? "opacity-50 cursor-not-allowed" : ""}
-      `}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-200 ${
+        isWishlisted
+          ? "border-rose-500 bg-rose-50 text-rose-600"
+          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+      } ${toggleLoading ? "cursor-not-allowed opacity-50" : ""}`}
     >
       {toggleLoading
-        ? "..."
+        ? "Updating..."
         : isWishlisted
         ? "Remove from Wishlist"
         : "Add to Wishlist"}

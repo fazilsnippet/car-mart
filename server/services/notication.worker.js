@@ -136,7 +136,6 @@
 
 // file: queue/notification.worker.js
 // file: queue/notification.worker.js
-
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
 import { Notification } from "../models/Notification.model.js";
@@ -146,8 +145,7 @@ import { Conversation } from "../models/Conversation.model.js";
 
 console.log("✅ Notification Worker Started...");
 
-// 👉 Replace this with dynamic admin detection later
-const ADMIN_ID = process.env.ADMIN_ID; 
+const ADMIN_ID = process.env.ADMIN_ID;
 
 export const notificationWorker = new Worker(
   "notifications",
@@ -156,96 +154,121 @@ export const notificationWorker = new Worker(
 
     const { carId } = job.data;
 
-if (job.name !== "new-message" && !carId) {
-  console.log("❌ Missing carId");
-  return;
-}
-
-    // =========================
-    // 1️⃣ Fetch all user sources
-    // =========================
- const objectCarId = new mongoose.Types.ObjectId(carId);
-
-const [wishlistUsers, bookingUsers, conversations] = await Promise.all([
-  Wishlist.find({ car: objectCarId }).select("user"),
-  Booking.find({ car: objectCarId }).select("user"),
-  Conversation.find({ car: objectCarId }).select("user")
-]);
-    // =========================
-    // 2️⃣ Convert to Sets
-    // =========================
-    const wishlistSet = new Set(wishlistUsers.map(u => u.user.toString()));
-    const bookingSet = new Set(bookingUsers.map(u => u.user.toString()));
-    // 👉 Extract users (exclude admin)
-  const enquirySet = new Set(
-  conversations
-    .map(conv => conv.user.toString())
-    .filter(id => !ADMIN_ID || id !== ADMIN_ID)
-);
-    
-
-    // =========================
-    // 3️⃣ Build final audience
-    // =========================
     let finalUserSet = new Set();
 
-    switch (job.name) {
-      case "price_drop":
-        // ❌ exclude booking users
-        [...wishlistSet, ...enquirySet].forEach(id => finalUserSet.add(id));
-        break;
-case "new-message":
-  finalUserSet.add(job.data.userId.toString());
-  break;
-      case "car_sold":
-      case "car_inactive":
-        [...wishlistSet, ...bookingSet, ...enquirySet].forEach(id => finalUserSet.add(id));
+    try {
+      // =========================
+      // 🎯 HANDLE JOB TYPES
+      // =========================
+      switch (job.name) {
 
-        // ❗ exclude buyer if exists
-        if (job.data.boughtBy) {
-          finalUserSet.delete(job.data.boughtBy.toString());
+        // =========================
+        // 💬 NEW MESSAGE
+        // =========================
+        case "new-message": {
+          if (!job.data.userId) {
+            console.log("❌ Missing userId for new-message");
+            return;
+          }
+
+          finalUserSet.add(job.data.userId.toString());
+          break;
         }
-        break;
 
-      default:
-        console.log("⚠️ Unknown job type");
-        return;
-    }
+        // =========================
+        // 🚗 CAR EVENTS
+        // =========================
+        case "price_drop":
+        case "car_sold":
+        case "car_inactive": {
 
-    // =========================
-    // 4️⃣ Exit if no users
-    // =========================
-    if (!finalUserSet.size) {
-      console.log("❌ No users to notify");
-      return;
-    }
+          if (!carId) {
+            console.log("❌ Missing carId");
+            return;
+          }
 
-    // =========================
-    // 5️⃣ Build notifications
-    // =========================
-    const notifications = Array.from(finalUserSet).map((userId) => ({
-      user: userId,
-      type: job.name,
-      title: getTitle(job.name),
-      message: getMessage(job.name, job.data),
-      data: {
-        carId,
-        ...(job.name === "price_drop" && {
-          oldPrice: job.data.oldPrice,
-          newPrice: job.data.newPrice
-        })
+          const objectCarId = new mongoose.Types.ObjectId(carId);
+
+          // 🔥 Fetch only when needed
+          const [wishlistUsers, bookingUsers, conversations] = await Promise.all([
+            Wishlist.find({ car: objectCarId }).select("user"),
+            Booking.find({ car: objectCarId }).select("user"),
+            Conversation.find({ car: objectCarId }).select("user")
+          ]);
+
+          const wishlistSet = new Set(wishlistUsers.map(u => u.user.toString()));
+          const bookingSet = new Set(bookingUsers.map(u => u.user.toString()));
+
+          const enquirySet = new Set(
+            conversations
+              .map(conv => conv.user.toString())
+              .filter(id => !ADMIN_ID || id !== ADMIN_ID)
+          );
+
+          if (job.name === "price_drop") {
+            // ❌ exclude booking users
+            [...wishlistSet, ...enquirySet].forEach(id => finalUserSet.add(id));
+          } else {
+            [...wishlistSet, ...bookingSet, ...enquirySet].forEach(id =>
+              finalUserSet.add(id)
+            );
+
+          
+            // ❗ exclude buyer if exists
+            if (job.data.boughtBy) {
+              finalUserSet.delete(job.data.boughtBy.toString());
+            }
+          }
+
+          break;
+        }
+
+        // =========================
+        // ⚠️ UNKNOWN JOB
+        // =========================
+        default:
+          console.log("⚠️ Unknown job type:", job.name);
+          return;
       }
-    }));
 
-    // =========================
-    // 6️⃣ Insert into DB
-    // =========================
-try {
-  await Notification.insertMany(notifications);
-} catch (err) {
-  console.error("❌ Insert failed:", err);
-}
-    console.log(`✅ ${notifications.length} notifications inserted`);
+      // =========================
+      // 🚫 NO USERS
+      // =========================
+      if (!finalUserSet.size) {
+        console.log("❌ No users to notify");
+        return;
+      }
+
+      console.log("👥 Users to notify:", finalUserSet);
+
+      // =========================
+      // 🧱 BUILD NOTIFICATIONS
+      // =========================
+      const notifications = Array.from(finalUserSet).map((userId) => ({
+        user: userId,
+        type: job.name,
+        title: getTitle(job.name),
+        message: getMessage(job.name, job.data),
+        data: {
+          carId: carId || null,
+           conversationId: job.data.conversationId,
+          ...(job.name === "price_drop" && {
+            oldPrice: job.data.oldPrice,
+            newPrice: job.data.newPrice
+          })
+        }
+      }));
+
+      // =========================
+      // 💾 INSERT INTO DB
+      // =========================
+      await Notification.insertMany(notifications);
+
+      console.log(`✅ ${notifications.length} notifications inserted`);
+
+    } catch (err) {
+      console.error("❌ Worker error:", err);
+    }
   },
   {
     connection: { host: "127.0.0.1", port: 6379 }
@@ -253,7 +276,7 @@ try {
 );
 
 // =========================
-// 🔧 Helper Functions
+// 🔧 HELPERS
 // =========================
 
 function getTitle(event) {
@@ -264,6 +287,8 @@ function getTitle(event) {
       return "Car Sold";
     case "car_inactive":
       return "Listing Removed";
+    case "new-message":
+      return "New Message";
     default:
       return "Update";
   }
@@ -277,6 +302,8 @@ function getMessage(event, data) {
       return "This car has been sold";
     case "car_inactive":
       return "This car is no longer available";
+    case "new-message":
+      return data.message || "You have a new message";
     default:
       return "";
   }

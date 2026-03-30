@@ -186,17 +186,34 @@ export const getCars = async (req, res, next) => {
 
 const slugSchema = Joi.object({
   slug: Joi.string().trim().required(),
-  page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(50).default(12)
+  // page: Joi.number().integer().min(1).default(1),
+  // limit: Joi.number().integer().min(1).max(50).default(12)
 });
 
 export const getCarBySlug = async (req, res, next) => {
   try {
-    const { slug } = req.params;
+    // 🔹 Validate params + query together
+    const { error, value } = slugSchema.validate({
+      slug: req.params.slug,
+      // page: req.query.page,
+      // limit: req.query.limit,
+    });
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.details[0].message,
+      });
+    }
+
+    const { slug } = value;
+
+    // 🔹 Normalize slug safely
+    const normalizedSlug = slug.toLowerCase();
 
     const car = await Car.findOne({
       lifecycleStatus: "ACTIVE",
-      slug: slug.toLowerCase()
+      slug: normalizedSlug,
     })
       .populate("brand", "name")
       .lean();
@@ -204,13 +221,13 @@ export const getCarBySlug = async (req, res, next) => {
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: "Car not found"
+        message: "Car not found",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: car
+      data: car,
     });
 
   } catch (error) {
@@ -507,18 +524,18 @@ export const markCarAsSold = async (req, res) => {
         throw new Error("Invalid carId");
       }
 
-      const car = await Car.findOneAndUpdate(
-        {
-          _id: carId,
-          lifecycleStatus: { $ne: "SOLD" },
-        },
-        { lifecycleStatus: "SOLD" },
-        { new: true, session }
-      );
+     const car = await Car.findOneAndUpdate(
+  {
+    _id: carId,
+    lifecycleStatus: { $ne: "SOLD" },
+  },
+  { $set: { lifecycleStatus: "SOLD" } },
+  { returnDocument: "after", session }
+);
 
-      if (!car) {
-        throw new Error("Car not found or already sold");
-      }
+if (!car) {
+  throw new Error("Car already sold or does not exist");
+}
 
       await markWishlistInactiveForCar(carId, session);
     });

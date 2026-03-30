@@ -589,8 +589,14 @@ export const getWishlist = async (req, res) => {
         { hiddenAt: { $gt: now } } // visible if hiddenAt > now
       ]
     })
-      .populate({path: "car",
-                select: "title price lifecycleStatus"
+      .populate({
+        path: "car",
+        select:
+          "title price lifecycleStatus slug year fuelType transmission kmDriven location images brand variant",
+        populate: {
+          path: "brand",
+          select: "name slug logo"
+        }
       })
       .sort({ createdAt: -1 });
 

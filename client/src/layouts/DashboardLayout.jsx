@@ -351,6 +351,7 @@ import {
   HiOutlineQuestionMarkCircle,
   HiOutlineX,
 } from "react-icons/hi";
+import NotificationBell from "../redux/features/notification/notificationbell";
 
 const navGroups = [
   {
@@ -584,7 +585,7 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-4">
 
             <button className="relative p-2 rounded-lg hover:bg-slate-100">
-              <HiOutlineBell className="w-5 h-5" />
+                   <NotificationBell  className="w-5 h-5" />
             </button>
 
             <button

@@ -24,39 +24,42 @@ export const wishlistApi = baseApi.injectEndpoints({
     // -------------------------
     // Toggle Wishlist
     // -------------------------
-    toggleWishlist: builder.mutation({
-      query: (carId) => ({
-        url: "/wishlist/toggle",
-        method: "POST",
-        body: { carId },
-      }),
+  toggleWishlist: builder.mutation({
+  query: (carId) => ({
+    url: `/wishlist/${carId}`,
+    method: "POST",
+  }),
 
-      async onQueryStarted(carId, { dispatch, queryFulfilled }) {
-        const patch = dispatch(
-          wishlistApi.util.updateQueryData("getWishlist", undefined, (draft) => {
-            const index = draft.findIndex(
-              (item) => item.car._id === carId
-            );
+  async onQueryStarted(carId, { dispatch, queryFulfilled }) {
+    const patchResult = dispatch(
+      wishlistApi.util.updateQueryData(
+        "getWishlist",
+        undefined,
+        (draft) => {
+          const index = draft.findIndex(
+            (item) => item.car?._id === carId
+          );
 
-            if (index > -1) {
-              draft.splice(index, 1);
-            } else {
-              draft.unshift({
-                car: { _id: carId },
-              });
-            }
-          })
-        );
-
-        try {
-          await queryFulfilled;
-        } catch {
-          patch.undo();
+          if (index > -1) {
+            // remove
+            draft.splice(index, 1);
+          } else {
+            // add (minimal structure)
+            draft.push({
+              car: { _id: carId }
+            });
+          }
         }
-      },
+      )
+    );
 
-      invalidatesTags: [{ type: "Wishlist", id: "LIST" }],
-    }),
+    try {
+      await queryFulfilled;
+    } catch {
+      patchResult.undo(); // rollback
+    }
+  },
+}),
 
     // -------------------------
     // Clear Wishlist

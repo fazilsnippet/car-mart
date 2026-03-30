@@ -7,8 +7,10 @@ import {
   HiOutlineX,
   HiOutlineHeart,
   HiOutlineCalendar,
+  HiOutlineChatAlt2,
 } from "react-icons/hi";
 import { useGetWishlistQuery, useToggleWishlistMutation } from "../wishlist/wishlistApi.js";
+import { useStartConversationMutation } from "../chats/chatApi.js";
 
 const CarDetailPage = () => {
 
@@ -20,14 +22,26 @@ const handleToggle = async () => {
     console.error(err);
   }
 };
+
+const handleStartChat = async () => {
+  try {
+    if (!car?._id) return;
+
+    const conversation = await startConversation({ carId: car._id }).unwrap();
+    navigate(`/chat/${conversation._id}`);
+  } catch (error) {
+    console.error("Failed to start chat:", error);
+  }
+};
   const { slug } = useParams();
   const { data: car, isLoading, isError } = useGetCarBySlugQuery(slug);
   const { data: wishlist = [] } = useGetWishlistQuery();
-const [toggleWishlist, { isLoading: isTogglingWishlist }] = useToggleWishlistMutation();
+  const [toggleWishlist, { isLoading: isTogglingWishlist }] =
+    useToggleWishlistMutation();
+  const [startConversation, { isLoading: isStartingChat }] =
+    useStartConversationMutation();
 
-const isSaved = wishlist.some(
-  (item) => item.car?._id === car?._id
-);
+  const isSaved = wishlist.some((item) => item.car?._id === car?._id);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   //  const [isSaved, setIsSaved] = useState(false);
@@ -255,9 +269,17 @@ const isSaved = wishlist.some(
                       className="inline-flex items-center justify-center flex-1 gap-2 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 bg-indigo-600 shadow-md rounded-xl hover:bg-indigo-700"
                     >
                       <HiOutlineCalendar className="w-5 h-5" />
-                      <span>
-                        Book {selectedTypeLabel.toLowerCase()}
-                      </span>
+                      <span>Book {selectedTypeLabel.toLowerCase()}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleStartChat}
+                      disabled={isStartingChat}
+                      className="inline-flex items-center justify-center flex-1 gap-2 px-4 py-3 text-sm font-semibold transition-all duration-200 border shadow-sm rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <HiOutlineChatAlt2 className="w-5 h-5" />
+                      <span>{isStartingChat ? "Opening..." : "Start Chat"}</span>
                     </button>
 
                   <button
