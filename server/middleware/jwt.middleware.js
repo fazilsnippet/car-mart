@@ -1,14 +1,21 @@
 
 
-import  {ApiError}  from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User.model.js";
+import fs from "fs";
+import { ApiError } from "../utils/errorHandler.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   const bearerToken = req.header("Authorization")?.startsWith("Bearer ")
     ? req.header("Authorization").split(" ")[1]?.trim()
     : null;
+
+
+console.log(
+  "Exists:",
+  fs.existsSync(new URL("../utils/ApiError.js", import.meta.url))
+);
 
   const token = req.cookies?.accessToken || bearerToken;
 
