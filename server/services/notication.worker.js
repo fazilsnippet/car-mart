@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { Notification } from "../models/Notification.model.js";
 import { Booking } from "../models/Booking.model.js";
 import { Conversation } from "../models/Conversation.model.js";
-import { Wishlist } from "../models/Wishlist.model.js";
+import { Wishlist } from "../models/wishlist.model.js";
 console.log("✅ Notification Worker Started...");
 
 const ADMIN_ID = process.env.ADMIN_ID;

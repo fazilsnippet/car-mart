@@ -1,5 +1,5 @@
 // call this when car is sold
-import {Wishlist} from "../models/Wishlist.model.js";
+import {Wishlist} from "../models/wishlist.model.js";
 import {Car} from "../models/Car.model.js";
 
 
