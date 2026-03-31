@@ -238,82 +238,28 @@ export const getCarBySlug = async (req, res, next) => {
 
 export const createCar = async (req, res, next) => {
   try {
+    const value = req.validatedData;
 
-    // 🔥 Parse location if exists
-    if (req.body.location) {
-      req.body.location = JSON.parse(req.body.location);
-    }
-
-    // 🔥 Fix features (important!)
-   // 🔥 Fix features (important!)
-if (req.body.features) {
-
-  if (!Array.isArray(req.body.features)) {
-    req.body.features = [req.body.features];
-  }
-
-  // flatten comma separated values
-  req.body.features = req.body.features
-    .flatMap(f => typeof f === "string" ? f.split(",") : f)
-    .map(f => f.trim());
-
-  // remove duplicates
-  req.body.features = [...new Set(req.body.features)];
-}
-    const { value, error } = createSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-
-    // 🚫 Prevent duplicates: check if a car with the same key fields already exists
-    const duplicateQuery = {
-      title: value.title,
-      brand: value.brand,
-      year: value.year,
-      variant: value.variant
-    };
-
-    const existingCar = await Car.findOne(duplicateQuery).lean();
-    if (existingCar) {
-      return res.status(409).json({
-        success: false,
-        message: "A car with the same title, brand, year and variant already exists"
-      });
-    }
-
-    // 2️⃣ Generate slug
     const slug = slugify(
       `${value.title}-${value.year}-${Date.now()}`,
       { lower: true, strict: true }
     );
 
-    // 3️⃣ Handle multiple image uploads
     let uploadedImages = [];
 
-    if (req.files && req.files.length > 0) {
-
-      const uploadPromises = req.files.map(file =>
-        uploadOnCloudinary(file.path)
+    if (req.files?.length > 0) {
+      const results = await Promise.allSettled(
+        req.files.map(file => uploadOnCloudinary(file.path))
       );
 
-      const results = await Promise.all(uploadPromises);
-
-      // Filter failed uploads
       uploadedImages = results
-        .filter(result => result !== null)
-        .map(result => ({
-          url: result.url || result.secure_url,
-          publicId: result.public_id
+        .filter(r => r.status === "fulfilled" && r.value)
+        .map(r => ({
+          url: r.value.url || r.value.secure_url,
+          publicId: r.value.public_id
         }));
-
-      // Clean up the uploads folder after processing
-      cleanupUploadsFolder();
     }
 
-    // 4️⃣ Create car in DB
     const car = await Car.create({
       ...value,
       slug,
@@ -327,14 +273,12 @@ if (req.body.features) {
     });
 
   } catch (error) {
-    // handle unique constraint errors (race conditions)
-    if (error && error.code === 11000) {
+    if (error?.code === 11000) {
       return res.status(409).json({
         success: false,
         message: "Duplicate car entry detected."
       });
     }
-
     next(error);
   } finally {
     cleanupUploadsFolder();
@@ -345,7 +289,6 @@ if (req.body.features) {
 
 export const updateCar = async (req, res, next) => {
   try {
-    // 1️⃣ Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -353,16 +296,8 @@ export const updateCar = async (req, res, next) => {
       });
     }
 
-    // 2️⃣ Validate request body
-    const { value, error } = updateSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
+    const value = req.validatedData;
 
-    // 3️⃣ Find car
     const car = await Car.findById(req.params.id);
     if (!car) {
       return res.status(404).json({
@@ -371,53 +306,41 @@ export const updateCar = async (req, res, next) => {
       });
     }
 
-    // 4️⃣ Regenerate slug if title/year changed
     if (value.title || value.year) {
       const newTitle = value.title || car.title;
       const newYear = value.year || car.year;
 
-      value.slug = slugify(
+      car.slug = slugify(
         `${newTitle}-${newYear}-${Date.now()}`,
         { lower: true, strict: true }
       );
     }
 
-    // 5️⃣ Handle new images safely
-    if (req.files && req.files.length > 0) {
+    if (req.files?.length > 0) {
+      const results = await Promise.allSettled(
+        req.files.map(file => uploadOnCloudinary(file.path))
+      );
 
-      // 🔹 Step A: Upload new images first
-      const uploadPromises = req.files.map(file => uploadOnCloudinary(file.path));
-      const uploadedResults = await Promise.allSettled(uploadPromises);
-
-      // Filter successful uploads
-      const successfulUploads = uploadedResults
-        .filter(r => r.status === "fulfilled" && r.value !== null)
+      const newImages = results
+        .filter(r => r.status === "fulfilled" && r.value)
         .map(r => ({
           url: r.value.url || r.value.secure_url,
           publicId: r.value.public_id
         }));
 
-      if (successfulUploads.length === 0) {
-        return res.status(500).json({
-          success: false,
-          message: "Failed to upload any images"
-        });
+      if (newImages.length > 0) {
+        const oldImages = car.images;
+
+        car.images = newImages;
+        await car.save();
+
+        // delete old AFTER successful save
+        await Promise.allSettled(
+          oldImages.map(img => deleteFromCloudinary(img.publicId))
+        );
       }
-
-      // 🔹 Step B: Delete old images only after new ones succeed
-      if (car.images && car.images.length > 0) {
-        const deletePromises = car.images.map(img => deleteFromCloudinary(img.publicId));
-        await Promise.allSettled(deletePromises);
-      }
-
-      // 🔹 Step C: Replace images in car
-      car.images = successfulUploads;
-
-      // Clean up the uploads folder after processing
-      cleanupUploadsFolder();
     }
 
-    // 6️⃣ Update other fields
     Object.assign(car, value);
 
     await car.save();

@@ -1,94 +1,182 @@
 import { baseApi } from "../../api/baseApi";
 
-export const carApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
-getCars: builder.query({
-  query: (params = {}) => {
-    const searchParams = new URLSearchParams();
+const toCarFormData = (data, { includePrice = true } = {}) => {
+  if (data instanceof FormData) return data;
 
-    Object.entries(params).forEach(([key, value]) => {
-      if (
-        value === "" ||
-        value === null ||
-        value === undefined
-      ) return;
+  const formData = new FormData();
 
-      if (Array.isArray(value)) {
-        value.forEach((v) => {
-          if (v !== "" && v !== null && v !== undefined) {
-            searchParams.append(key, v);
-          }
-        });
-      } else {
-        searchParams.append(key, value);
+  // 🔥 FIX features → always array
+  const formattedFeatures =
+    typeof data.features === "string"
+      ? data.features.split(",").map(f => f.trim()).filter(Boolean)
+      : data.features;
+
+  // 🔥 FIX location → ensure nested object
+  const location =
+    data.location ||
+    (data.city || data.state
+      ? {
+          city: data.city,
+          state: data.state
+        }
+      : undefined);
+
+  // 🔥 Build payload
+  const payload = {
+    ...data,
+    features: formattedFeatures,
+    location
+  };
+
+  // ❌ remove root-level city/state (important)
+  delete payload.city;
+  delete payload.state;
+
+  if (!includePrice) {
+    delete payload.price;
+  }
+
+  // 🔥 Separate images
+  const images = payload.images || [];
+  delete payload.images;
+
+  // 🔥 Remove empty values
+  Object.keys(payload).forEach((key) => {
+    const value = payload[key];
+    if (
+      value === "" ||
+      value === null ||
+      value === undefined ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      delete payload[key];
+    }
+  });
+
+  // 🔥 Send as ONE JSON field
+  formData.append("data", JSON.stringify(payload));
+
+  // 🔥 Append images
+  if (Array.isArray(images)) {
+    images.forEach((file) => {
+      if (file) {
+        formData.append("images", file);
       }
     });
+  }
 
-    return { url: `/car?${searchParams.toString()}` };
-  },
+  return formData;
+};
 
+export const carApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getCars: builder.query({
+      query: (params = {}) => {
+        const searchParams = new URLSearchParams();
 
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === "" || value === null || value === undefined) return;
+
+          if (Array.isArray(value)) {
+            value.forEach((v) => {
+              if (v !== "" && v !== null && v !== undefined) {
+                searchParams.append(key, v);
+              }
+            });
+          } else {
+            searchParams.append(key, value);
+          }
+        });
+
+        const queryString = searchParams.toString();
+        return { url: `/car${queryString ? `?${queryString}` : ""}` };
+      },
       providesTags: (result) =>
         result?.data
           ? [
-              ...result.data.map(({ _id }) => ({
-                type: "Car",
-                id: _id
-              })),
-              { type: "Car", id: "LIST" }
+              ...result.data.map(({ _id }) => ({ type: "Car", id: _id })),
+              { type: "Car", id: "LIST" },
             ]
-          : [{ type: "Car", id: "LIST" }]
+          : [{ type: "Car", id: "LIST" }],
     }),
-getCarBySlug: builder.query({
-  query: (slug) => `/car/slug/${slug}`,
-  transformResponse: (response) => response.data,
-}),
+
+    getCarById: builder.query({
+      query: (id) => `/car/${id}`,
+      transformResponse: (response) => response.data,
+      providesTags: (result, error, id) => [{ type: "Car", id }],
+    }),
+
+    getCarBySlug: builder.query({
+      query: (slug) => `/car/slug/${slug}`,
+      transformResponse: (response) => response.data,
+    }),
 
     createCar: builder.mutation({
-      query: (formData) => ({
+      query: (carData) => ({
         url: "/car",
         method: "POST",
-        body: formData,
+        body: toCarFormData(carData),
       }),
-      invalidatesTags: ["Car"],
+      invalidatesTags: [{ type: "Car", id: "LIST" }],
     }),
-   markCarAsSold: builder.mutation({
-  query: (carId) => ({
-    url: `/cars/${carId}/sell`,
-    method: "PATCH",
-  }),
 
-  async onQueryStarted(carId, { dispatch, queryFulfilled }) {
+    updateCar: builder.mutation({
+      query: ({ carId, ...carData }) => ({
+        url: `/car/${carId}/update`,
+        method: "PUT",
+        body: toCarFormData(carData, { includePrice: false }),
+      }),
+      invalidatesTags: (result, error, { carId }) => [
+        { type: "Car", id: carId },
+        { type: "Car", id: "LIST" },
+      ],
+    }),
 
-    // ✅ Safe: update only single car cache
-    const patchCar = dispatch(
-      carApi.util.updateQueryData("getCarById", carId, (draft) => {
-        if (draft) {
-          draft.lifecycleStatus = "SOLD";
-        }
-      })
-    );
+    updateCarPrice: builder.mutation({
+      query: ({ carId, newPrice }) => ({
+        url: "/car/update-price",
+        method: "PATCH",
+        body: { carId, newPrice },
+      }),
+      invalidatesTags: (result, error, { carId }) => [
+        { type: "Car", id: carId },
+        { type: "Car", id: "LIST" },
+      ],
+    }),
 
-    try {
-      await queryFulfilled;
-    } catch {
-      patchCar.undo();
-    }
-  },
+    markCarAsSold: builder.mutation({
+      query: (carId) => ({
+        url: `/car/${carId}/sell`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, carId) => [
+        { type: "Car", id: carId },
+        { type: "Car", id: "LIST" },
+        { type: "Wishlist", id: "LIST" },
+      ],
+    }),
 
-  // ✅ Let server be source of truth for lists
-  invalidatesTags: (result, error, carId) => [
-    { type: "Car", id: carId },
-    { type: "Car", id: "LIST" },
-    { type: "Wishlist", id: "LIST" },
-  ],
-}),
+    deleteCar: builder.mutation({
+      query: (carId) => ({
+        url: `/car/${carId}/delete`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, carId) => [
+        { type: "Car", id: carId },
+        { type: "Car", id: "LIST" },
+        { type: "Wishlist", id: "LIST" },
+      ],
+    }),
   }),
 });
 
 export const {
   useGetCarsQuery,
+  useGetCarByIdQuery,
   useCreateCarMutation,
+  useUpdateCarMutation,
+  useUpdateCarPriceMutation,
+  useDeleteCarMutation,
   useGetCarBySlugQuery,
   useMarkCarAsSoldMutation,
 } = carApi;

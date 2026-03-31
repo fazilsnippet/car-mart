@@ -1,19 +1,36 @@
 import { baseApi } from "../../api/baseApi";
 
+const buildQueryString = (params = {}) => {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === "" || value === undefined || value === null) return;
+    searchParams.append(key, value);
+  });
+
+  return searchParams.toString();
+};
+
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getMe: builder.query({
       query: () => "/users/mount",
+      providesTags: ["User"],
     }),
 
- getUserProfile: builder.query({
-  query: () => "/users/me",
-  providesTags: ["User"],
-}),
+    getUserProfile: builder.query({
+      query: () => "/users/me",
+      providesTags: ["User"],
+    }),
 
- 
+    getAllUsers: builder.query({
+      query: (params = {}) => {
+        const queryString = buildQueryString(params);
+        return `/users/all${queryString ? `?${queryString}` : ""}`;
+      },
+      providesTags: ["User"],
+    }),
 
-    // 🔹 Refresh Token (optional manual call)
     refreshAccessToken: builder.mutation({
       query: () => ({
         url: "/users/refreshtoken",
@@ -21,7 +38,6 @@ export const userApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 🔹 Change Password
     changePassword: builder.mutation({
       query: (data) => ({
         url: "/users/changepassword",
@@ -30,7 +46,6 @@ export const userApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 🔹 Update Account Details (with avatar support)
     updateAccountDetails: builder.mutation({
       query: ({ fullName, email, avatar }) => {
         const formData = new FormData();
@@ -47,17 +62,15 @@ export const userApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    // 🔹 Update Address
-    // updateUserAddress: builder.mutation({
-    //   query: (address) => ({
-    //     url: "/users/update-address",
-    //     method: "PATCH",
-    //     body: { address },
-    //   }),
-    //   invalidatesTags: ["User"],
-    // }),
+    toggleBanUser: builder.mutation({
+      query: ({ userId, isBanned }) => ({
+        url: `/users/ban/${userId}`,
+        method: "PATCH",
+        body: { isBanned },
+      }),
+      invalidatesTags: ["User"],
+    }),
 
-    // 🔹 Add Recently Viewed Car
     addRecentlyViewedCar: builder.mutation({
       query: (carId) => ({
         url: `/users/recentlyviewed/${carId}`,
@@ -65,7 +78,8 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["RecentlyViewed"],
     }),
-      forgotPassword: builder.mutation({
+
+    forgotPassword: builder.mutation({
       query: (email) => ({
         url: "/users/forgotPassword",
         method: "POST",
@@ -73,7 +87,6 @@ export const userApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 🔐 Verify OTP + Reset Password
     resetPassword: builder.mutation({
       query: ({ email, otp, newPassword }) => ({
         url: "/otp/forgot/resetpassword",
@@ -82,23 +95,24 @@ export const userApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // 🔹 Get Recently Viewed Cars
     getRecentlyViewedCars: builder.query({
       query: () => "/users/recentlyviewedcars",
       providesTags: ["RecentlyViewed"],
     }),
-
   }),
 });
 
-export const { 
+export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useGetUserProfileQuery,
+  useGetAllUsersQuery,
+  useToggleBanUserMutation,
   useRefreshAccessTokenMutation,
   useChangePasswordMutation,
   useUpdateAccountDetailsMutation,
   useAddRecentlyViewedCarMutation,
   useGetRecentlyViewedCarsQuery,
   useGetMeQuery,
+  useLazyGetMeQuery,
 } = userApi;

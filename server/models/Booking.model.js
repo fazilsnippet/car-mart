@@ -16,6 +16,13 @@ const bookingSchema = new mongoose.Schema(
       index: true
     },
 
+    handledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true
+    },
+
     bookingType: {
       type: String,
       enum: ["TEST_DRIVE", "CALLBACK", "VISIT"],

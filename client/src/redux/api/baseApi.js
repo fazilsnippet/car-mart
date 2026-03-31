@@ -20,7 +20,8 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     result?.error?.status === 401 &&
     !url.includes("/users/login") &&
     !url.includes("/users/refreshtoken") &&
-    !url.includes("/users/me")
+    !url.includes("/users/me") &&
+    !url.includes("/users/mount")
   ) {
     const refreshResult = await rawBaseQuery(
       { url: "/users/refreshtoken", method: "POST" },
@@ -31,7 +32,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     // ❌ refresh failed → logout + STOP
     if (refreshResult?.error) {
       api.dispatch(logout());
-      api.dispatch(baseApi.util.resetApiState());
       return result;
     }
 

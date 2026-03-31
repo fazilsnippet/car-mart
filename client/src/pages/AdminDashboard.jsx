@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   useDeleteCarMutation,
@@ -17,23 +16,25 @@ import {
   useGetAllUsersQuery,
   useToggleBanUserMutation,
 } from "../redux/features/users/userApi";
-import CarCard from "../redux/features/cars/carCard";
 import CarForm from "../redux/features/cars/CarForm";
 import {
-  HiOutlineTrendingUp,
-  HiOutlineCollection,
-  HiOutlineClock,
   HiOutlineArrowRight,
+  HiOutlineClipboardList,
+  HiOutlineCollection,
   HiOutlineCurrencyDollar,
   HiOutlineShieldCheck,
-  HiOutlineClipboardList,
   HiOutlineTruck,
+  HiOutlineUserCircle,
+  HiOutlineViewGrid,
 } from "react-icons/hi";
 
-const FUEL_SECTIONS = ["Petrol", "Diesel", "Electric", "Hybrid", "CNG"];
-const LISTINGS_PER_BLOCK = 6;
-const LISTINGS_PER_FUEL = 4;
-const ADMIN_TABS = ["overview", "bookings", "cars", "users", "wishlist"];
+const ADMIN_TABS = [
+  { key: "overview", label: "Overview" },
+  { key: "bookings", label: "Bookings" },
+  { key: "cars", label: "Cars" },
+  { key: "users", label: "Users" },
+  { key: "wishlist", label: "Wishlist" },
+];
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -51,41 +52,50 @@ const getStatusClasses = (status) => {
   switch (status) {
     case "COMPLETED":
     case "ACTIVE":
-      return "bg-emerald-50 text-emerald-700";
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100";
     case "CONTACTED":
     case "SOLD":
-      return "bg-blue-50 text-blue-700";
+      return "bg-blue-50 text-blue-700 ring-1 ring-blue-100";
     case "CANCELLED":
     case "INACTIVE_BY_CAR":
-      return "bg-rose-50 text-rose-700";
+      return "bg-rose-50 text-rose-700 ring-1 ring-rose-100";
     default:
-      return "bg-amber-50 text-amber-700";
+      return "bg-amber-50 text-amber-700 ring-1 ring-amber-100";
   }
 };
 
-function StatCard({ icon: Icon, label, value, helper, tone = "indigo" }) {
-  const toneClasses = {
-    indigo: "bg-indigo-50 text-indigo-600",
-    blue: "bg-blue-50 text-blue-600",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
-  };
-
+function StatCard({ icon: Icon, label, value, helper, accent }) {
   return (
-    <div className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${toneClasses[tone]}`}>
-          <Icon className="w-5 h-5" />
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_-24px_rgba(15,23,42,0.45)]">
+      <div className={`h-1.5 w-full ${accent}`} />
+      <div className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className="text-xs font-medium text-slate-500">{helper}</span>
         </div>
-        <span className="text-xs text-slate-500">{helper}</span>
+        <p className="text-sm text-slate-500">{label}</p>
+        <h3 className="mt-1 text-2xl font-bold text-slate-900">{value}</h3>
       </div>
-      <p className="text-sm text-slate-500">{label}</p>
-      <h3 className="mt-1 text-2xl font-bold text-slate-900">{value}</h3>
     </div>
   );
 }
 
-function AdminDashboard({ user }) {
+function SectionShell({ title, description, children }) {
+  return (
+    <section className="rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_20px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur sm:p-6">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <p className="text-sm text-slate-500">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export default function AdminDashboard() {
+  const user = useSelector((state) => state.auth.user);
   const [activeTab, setActiveTab] = useState("overview");
   const [bookingStatus, setBookingStatus] = useState("");
   const [bookingSearch, setBookingSearch] = useState("");
@@ -115,10 +125,10 @@ function AdminDashboard({ user }) {
   const bookings = bookingsResponse?.data?.bookings ?? [];
   const bookingTotal = bookingsResponse?.data?.total ?? 0;
 
-  const { data: bookingDetailsResponse, isFetching: bookingDetailsLoading } = useGetBookingByIdQuery(
-    selectedBookingId,
-    { skip: !selectedBookingId }
-  );
+  const { data: bookingDetailsResponse, isFetching: bookingDetailsLoading } =
+    useGetBookingByIdQuery(selectedBookingId, {
+      skip: !selectedBookingId,
+    });
   const bookingDetails = bookingDetailsResponse?.data;
 
   const { data: wishlistResponse, isLoading: wishlistLoading } = useGetWishlistAdminQuery();
@@ -219,20 +229,65 @@ function AdminDashboard({ user }) {
   };
 
   return (
-    <div className="space-y-6 duration-700 animate-in fade-in">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin control center</h1>
-          <p className="text-sm text-slate-500">
-            Manage bookings, cars, wishlist activity, and users from one place.
-          </p>
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-4xl bg-linear-to-br from-slate-950 via-slate-900 to-indigo-900 p-6 text-white shadow-[0_25px_80px_-35px_rgba(15,23,42,0.9)] sm:p-8">
+        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-400/20 blur-3xl" />
+        <div className="absolute -bottom-10 left-0 h-32 w-32 rounded-full bg-cyan-400/10 blur-3xl" />
+
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.5fr,1fr] lg:items-end">
+          <div>
+            <span className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100/90">
+              Premium admin suite
+            </span>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+              Welcome back, {user?.fullName || user?.userName}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+              Review bookings, curate inventory, monitor wishlists, and manage access from a dedicated control center.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab("bookings")}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900"
+              >
+                Open bookings <HiOutlineArrowRight className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("cars")}
+                className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90"
+              >
+                Manage inventory
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Inventory</p>
+              <p className="mt-2 text-2xl font-bold">{totalCars}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Bookings</p>
+              <p className="mt-2 text-2xl font-bold">{bookingTotal}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Users</p>
+              <p className="mt-2 text-2xl font-bold">{counts.totalUsers}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Wishlists</p>
+              <p className="mt-2 text-2xl font-bold">{activeWishlistCount}</p>
+            </div>
+          </div>
         </div>
-        <div className="text-sm text-slate-500">Signed in as {user?.fullName || user?.userName}</div>
-      </div>
+      </section>
 
       {feedback && (
         <div
-          className={`rounded-xl border px-4 py-3 text-sm ${
+          className={`rounded-2xl border px-4 py-3 text-sm shadow-sm ${
             feedback.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
               : "border-rose-200 bg-rose-50 text-rose-700"
@@ -243,64 +298,85 @@ function AdminDashboard({ user }) {
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={HiOutlineCollection} label="Active inventory" value={totalCars} helper="Cars live" tone="blue" />
-        <StatCard icon={HiOutlineClipboardList} label="Total bookings" value={bookingTotal} helper="All requests" tone="indigo" />
-        <StatCard icon={HiOutlineShieldCheck} label="Banned users" value={counts.bannedUsers} helper="Safety control" tone="amber" />
-        <StatCard icon={HiOutlineCurrencyDollar} label="Active wishlists" value={activeWishlistCount} helper="Saved interest" tone="emerald" />
+        <StatCard
+          icon={HiOutlineCollection}
+          label="Active inventory"
+          value={totalCars}
+          helper="Live cars"
+          accent="bg-gradient-to-r from-indigo-500 to-violet-500"
+        />
+        <StatCard
+          icon={HiOutlineClipboardList}
+          label="Total bookings"
+          value={bookingTotal}
+          helper="Requests"
+          accent="bg-gradient-to-r from-sky-500 to-cyan-500"
+        />
+        <StatCard
+          icon={HiOutlineShieldCheck}
+          label="Banned users"
+          value={counts.bannedUsers}
+          helper="Restricted"
+          accent="bg-gradient-to-r from-amber-500 to-orange-500"
+        />
+        <StatCard
+          icon={HiOutlineCurrencyDollar}
+          label="Active wishlists"
+          value={activeWishlistCount}
+          helper="Saved interest"
+          accent="bg-gradient-to-r from-emerald-500 to-teal-500"
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
         {ADMIN_TABS.map((tab) => (
           <button
-            key={tab}
+            key={tab.key}
             type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`rounded-full px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === tab
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 border border-slate-200"
+            onClick={() => setActiveTab(tab.key)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeTab === tab.key
+                ? "bg-slate-900 text-white shadow-lg"
+                : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300"
             }`}
           >
-            {tab}
+            {tab.label}
           </button>
         ))}
       </div>
 
       {(activeTab === "overview" || activeTab === "bookings") && (
-        <section className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-          <div className="flex flex-col gap-3 mb-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Bookings</h2>
-              <p className="text-sm text-slate-500">Review requests, open details, and assign them.</p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={bookingSearch}
-                onChange={(e) => setBookingSearch(e.target.value)}
-                placeholder="Search message"
-                className="px-3 py-2 text-sm border rounded-lg border-slate-200"
-              />
-              <select
-                value={bookingStatus}
-                onChange={(e) => setBookingStatus(e.target.value)}
-                className="px-3 py-2 text-sm border rounded-lg border-slate-200"
-              >
-                <option value="">All statuses</option>
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="CANCELLED">CANCELLED</option>
-              </select>
-            </div>
+        <SectionShell
+          title="Booking management"
+          description="Search requests, inspect booking details, and assign them instantly."
+        >
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+            <input
+              value={bookingSearch}
+              onChange={(e) => setBookingSearch(e.target.value)}
+              placeholder="Search message"
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            />
+            <select
+              value={bookingStatus}
+              onChange={(e) => setBookingStatus(e.target.value)}
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            >
+              <option value="">All statuses</option>
+              <option value="NEW">NEW</option>
+              <option value="CONTACTED">CONTACTED</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
           </div>
 
           {bookingsLoading ? (
-            <div className="py-8 text-sm text-slate-500">Loading bookings...</div>
+            <p className="py-8 text-sm text-slate-500">Loading bookings...</p>
           ) : bookings.length === 0 ? (
-            <div className="py-8 text-sm text-slate-500">No bookings found for the current filter.</div>
+            <p className="py-8 text-sm text-slate-500">No bookings found for the current filter.</p>
           ) : (
-            <div className="grid gap-4 xl:grid-cols-[1.5fr,1fr]">
-              <div className="overflow-x-auto border rounded-xl border-slate-200">
+            <div className="grid gap-4 xl:grid-cols-[1.55fr,1fr]">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50 text-slate-600">
                     <tr>
@@ -312,14 +388,14 @@ function AdminDashboard({ user }) {
                   </thead>
                   <tbody>
                     {bookings.map((booking) => (
-                      <tr key={booking._id} className="border-t border-slate-100">
+                      <tr key={booking._id} className="border-t border-slate-100 align-top">
                         <td className="px-4 py-3">
-                          <div className="font-medium text-slate-800">{booking.userId?.fullName || "Unknown"}</div>
-                          <div className="text-xs text-slate-500">{booking.userId?.email}</div>
+                          <p className="font-semibold text-slate-900">{booking.userId?.fullName || "Unknown"}</p>
+                          <p className="text-xs text-slate-500">{booking.userId?.email}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-slate-800">{booking.carId?.title || "Car"}</div>
-                          <div className="text-xs text-slate-500">{booking.bookingType}</div>
+                          <p className="font-semibold text-slate-900">{booking.carId?.title || "Car"}</p>
+                          <p className="text-xs text-slate-500">{booking.bookingType}</p>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusClasses(booking.status)}`}>
@@ -331,7 +407,7 @@ function AdminDashboard({ user }) {
                             <button
                               type="button"
                               onClick={() => setSelectedBookingId(booking._id)}
-                              className="px-3 py-1 text-xs font-medium border rounded-lg border-slate-200"
+                              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
                             >
                               View
                             </button>
@@ -339,7 +415,7 @@ function AdminDashboard({ user }) {
                               type="button"
                               onClick={() => handleAssignBooking(booking._id)}
                               disabled={assigningBooking}
-                              className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-lg"
+                              className="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
                             >
                               Assign to me
                             </button>
@@ -351,8 +427,10 @@ function AdminDashboard({ user }) {
                 </table>
               </div>
 
-              <div className="p-4 border rounded-xl border-slate-200 bg-slate-50/70">
-                <h3 className="mb-3 font-semibold text-slate-900">Booking details</h3>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Selected booking
+                </h3>
                 {!selectedBookingId ? (
                   <p className="text-sm text-slate-500">Select a booking to inspect full details.</p>
                 ) : bookingDetailsLoading ? (
@@ -360,11 +438,11 @@ function AdminDashboard({ user }) {
                 ) : bookingDetails ? (
                   <div className="space-y-3 text-sm text-slate-700">
                     <div>
-                      <p className="font-semibold">{bookingDetails.userId?.fullName}</p>
+                      <p className="font-semibold text-slate-900">{bookingDetails.userId?.fullName}</p>
                       <p>{bookingDetails.userId?.email}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{bookingDetails.carId?.title}</p>
+                      <p className="font-semibold text-slate-900">{bookingDetails.carId?.title}</p>
                       <p>{formatCurrency(bookingDetails.carId?.price)}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -392,20 +470,19 @@ function AdminDashboard({ user }) {
               </div>
             </div>
           )}
-        </section>
+        </SectionShell>
       )}
 
       {(activeTab === "overview" || activeTab === "cars") && (
-        <section className="grid gap-6 xl:grid-cols-[1.1fr,1.4fr]">
-          <div className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">
-              {selectedCar ? "Update car details" : "Create a new car"}
-            </h2>
-            <p className="mb-4 text-sm text-slate-500">
-              {selectedCar
-                ? "Update car details without touching the price."
-                : "Add a new vehicle to the active inventory."}
-            </p>
+        <div className="grid gap-6 xl:grid-cols-[1.05fr,1.4fr]">
+          <SectionShell
+            title={selectedCar ? "Edit car details" : "Create new listing"}
+            description={
+              selectedCar
+                ? "Update the vehicle details without changing the price."
+                : "Add a fresh car listing to the active inventory."
+            }
+          >
             <CarForm
               mode={selectedCar ? "edit" : "create"}
               carId={selectedCar?._id}
@@ -420,43 +497,39 @@ function AdminDashboard({ user }) {
               <button
                 type="button"
                 onClick={() => setSelectedCar(null)}
-                className="mt-3 text-sm font-medium text-slate-600"
+                className="mt-3 text-sm font-semibold text-slate-600"
               >
                 Cancel editing
               </button>
             )}
-          </div>
+          </SectionShell>
 
-          <div className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Inventory actions</h2>
-                <p className="text-sm text-slate-500">Update price, mark sold, edit, or remove cars.</p>
-              </div>
-            </div>
-
+          <SectionShell
+            title="Inventory actions"
+            description="Update prices, mark a car as sold, or remove it from the active catalog."
+          >
             {carsLoading ? (
-              <div className="py-8 text-sm text-slate-500">Loading cars...</div>
+              <p className="py-8 text-sm text-slate-500">Loading cars...</p>
             ) : cars.length === 0 ? (
-              <div className="py-8 text-sm text-slate-500">No active cars available.</div>
+              <p className="py-8 text-sm text-slate-500">No active cars available.</p>
             ) : (
               <div className="space-y-4">
                 {cars.map((car) => (
-                  <div key={car._id} className="p-4 border rounded-xl border-slate-200">
+                  <div key={car._id} className="rounded-2xl border border-slate-200 p-4">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div>
                         <h3 className="font-semibold text-slate-900">{car.title}</h3>
                         <p className="text-sm text-slate-500">
                           {car.variant} • {car.year} • {car.fuelType}
                         </p>
-                        <p className="mt-1 text-sm font-medium text-slate-700">{formatCurrency(car.price)}</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-700">{formatCurrency(car.price)}</p>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={() => setSelectedCar(car)}
-                          className="px-3 py-2 text-xs font-medium border rounded-lg border-slate-200"
+                          className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"
                         >
                           Edit details
                         </button>
@@ -464,7 +537,7 @@ function AdminDashboard({ user }) {
                           type="button"
                           onClick={() => handleMarkSold(car._id)}
                           disabled={sellingCar}
-                          className="px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg"
+                          className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"
                         >
                           Mark sold
                         </button>
@@ -472,14 +545,14 @@ function AdminDashboard({ user }) {
                           type="button"
                           onClick={() => handleDeleteCar(car._id)}
                           disabled={deletingCar}
-                          className="px-3 py-2 text-xs font-medium text-white bg-rose-600 rounded-lg"
+                          className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white"
                         >
                           Delete
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 mt-4 sm:flex-row">
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                       <input
                         type="number"
                         min="1"
@@ -487,13 +560,13 @@ function AdminDashboard({ user }) {
                         onChange={(e) =>
                           setPriceDrafts((prev) => ({ ...prev, [car._id]: e.target.value }))
                         }
-                        className="px-3 py-2 text-sm border rounded-lg border-slate-200"
+                        className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
                       />
                       <button
                         type="button"
                         onClick={() => handlePriceUpdate(car._id, car.price)}
                         disabled={updatingPrice}
-                        className="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg"
+                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
                       >
                         Update price
                       </button>
@@ -502,53 +575,50 @@ function AdminDashboard({ user }) {
                 ))}
               </div>
             )}
-          </div>
-        </section>
+          </SectionShell>
+        </div>
       )}
 
       {(activeTab === "overview" || activeTab === "users") && (
-        <section className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-          <div className="flex flex-col gap-3 mb-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Users</h2>
-              <p className="text-sm text-slate-500">Filter banned users and toggle access.</p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Search users"
-                className="px-3 py-2 text-sm border rounded-lg border-slate-200"
-              />
-              <div className="flex gap-2">
-                {[
-                  { label: "All", value: "all" },
-                  { label: "Banned", value: "banned" },
-                  { label: "Active", value: "active" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setUserFilter(item.value)}
-                    className={`rounded-lg px-3 py-2 text-sm ${
-                      userFilter === item.value
-                        ? "bg-slate-900 text-white"
-                        : "border border-slate-200 text-slate-600"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+        <SectionShell
+          title="User access control"
+          description="Search members, filter banned users, and update access in one click."
+        >
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <input
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="Search users"
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            />
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "All", value: "all" },
+                { label: "Banned", value: "banned" },
+                { label: "Active", value: "active" },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setUserFilter(item.value)}
+                  className={`rounded-full px-3 py-2 text-sm font-semibold ${
+                    userFilter === item.value
+                      ? "bg-slate-900 text-white"
+                      : "border border-slate-200 bg-white text-slate-600"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {usersLoading ? (
-            <div className="py-8 text-sm text-slate-500">Loading users...</div>
+            <p className="py-8 text-sm text-slate-500">Loading users...</p>
           ) : users.length === 0 ? (
-            <div className="py-8 text-sm text-slate-500">No users found.</div>
+            <p className="py-8 text-sm text-slate-500">No users found.</p>
           ) : (
-            <div className="overflow-x-auto border rounded-xl border-slate-200">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
@@ -562,14 +632,16 @@ function AdminDashboard({ user }) {
                   {users.map((person) => (
                     <tr key={person._id} className="border-t border-slate-100">
                       <td className="px-4 py-3">
-                        <div className="font-medium text-slate-800">{person.fullName || person.userName}</div>
-                        <div className="text-xs text-slate-500">{person.email}</div>
+                        <p className="font-semibold text-slate-900">{person.fullName || person.userName}</p>
+                        <p className="text-xs text-slate-500">{person.email}</p>
                       </td>
                       <td className="px-4 py-3">{person.role}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            person.isBanned ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
+                            person.isBanned
+                              ? "bg-rose-50 text-rose-700 ring-1 ring-rose-100"
+                              : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
                           }`}
                         >
                           {person.isBanned ? "BANNED" : "ACTIVE"}
@@ -580,9 +652,9 @@ function AdminDashboard({ user }) {
                           type="button"
                           onClick={() => handleToggleBan(person)}
                           disabled={togglingBan || person.role === "ADMIN"}
-                          className={`rounded-lg px-3 py-2 text-xs font-medium text-white ${
+                          className={`rounded-lg px-3 py-2 text-xs font-semibold text-white ${
                             person.isBanned ? "bg-emerald-600" : "bg-rose-600"
-                          } ${person.role === "ADMIN" ? "opacity-50 cursor-not-allowed" : ""}`}
+                          } ${person.role === "ADMIN" ? "cursor-not-allowed opacity-50" : ""}`}
                         >
                           {person.isBanned ? "Unban user" : "Ban user"}
                         </button>
@@ -593,22 +665,20 @@ function AdminDashboard({ user }) {
               </table>
             </div>
           )}
-        </section>
+        </SectionShell>
       )}
 
       {(activeTab === "overview" || activeTab === "wishlist") && (
-        <section className="p-5 bg-white border shadow-sm rounded-2xl border-slate-200">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Wishlist overview</h2>
-            <p className="text-sm text-slate-500">Monitor saved cars and inactive wishlist entries.</p>
-          </div>
-
+        <SectionShell
+          title="Wishlist activity"
+          description="Track saved cars and review items that became inactive after a status change."
+        >
           {wishlistLoading ? (
-            <div className="py-8 text-sm text-slate-500">Loading wishlist activity...</div>
+            <p className="py-8 text-sm text-slate-500">Loading wishlist activity...</p>
           ) : wishlistItems.length === 0 ? (
-            <div className="py-8 text-sm text-slate-500">No wishlist records found.</div>
+            <p className="py-8 text-sm text-slate-500">No wishlist records found.</p>
           ) : (
-            <div className="overflow-x-auto border rounded-xl border-slate-200">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
@@ -622,7 +692,7 @@ function AdminDashboard({ user }) {
                   {wishlistItems.slice(0, 20).map((item) => (
                     <tr key={item._id} className="border-t border-slate-100">
                       <td className="px-4 py-3">
-                        <div className="font-medium text-slate-800">{item.car?.title || "Unavailable car"}</div>
+                        <p className="font-semibold text-slate-900">{item.car?.title || "Unavailable car"}</p>
                       </td>
                       <td className="px-4 py-3">{formatCurrency(item.car?.price)}</td>
                       <td className="px-4 py-3">
@@ -637,130 +707,69 @@ function AdminDashboard({ user }) {
               </table>
             </div>
           )}
-        </section>
+        </SectionShell>
       )}
-    </div>
-  );
-}
 
-export default function Dashboard() {
-  const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user);
-  const isAdmin = user?.role === "ADMIN";
-
-  const { data: newestResponse, isLoading: newestLoading } = useGetCarsQuery({
-    page: 1,
-    limit: 6,
-    sortBy: "createdAt",
-    order: "desc",
-  });
-
-  const newestListings = newestResponse?.data ?? [];
-
-  const fuelQueries = FUEL_SECTIONS.map((fuel) =>
-    useGetCarsQuery({
-      fuelType: [fuel],
-      page: 1,
-      limit: LISTINGS_PER_FUEL,
-    })
-  );
-
-  const byFuel = FUEL_SECTIONS.map((fuel, index) => ({
-    fuel,
-    list: fuelQueries[index].data?.data ?? [],
-    loading: fuelQueries[index].isLoading,
-  })).filter((section) => section.list.length > 0);
-
-  return (
-    <div className="space-y-10 duration-500 animate-in fade-in">
-      {isAdmin && (
-        <section className="overflow-hidden rounded-4xl border border-slate-200 bg-linear-to-r from-slate-950 via-slate-900 to-indigo-900 p-6 text-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.85)]">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100">
-                <HiOutlineShieldCheck className="h-4 w-4" />
-                Admin access enabled
+      {activeTab === "overview" && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-600">
+                <HiOutlineTruck className="h-5 w-5" />
               </div>
-              <h2 className="text-2xl font-bold">Your premium admin center is ready</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">
-                Manage bookings, inventory, user access, and wishlist insights from the dedicated `/admin` workspace.
-              </p>
+              <div>
+                <h3 className="font-semibold text-slate-900">Fast booking response</h3>
+                <p className="text-sm text-slate-500">Stay on top of new leads.</p>
+              </div>
             </div>
             <button
-              onClick={() => navigate("/admin")}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900"
+              type="button"
+              onClick={() => setActiveTab("bookings")}
+              className="text-sm font-semibold text-indigo-600"
             >
-              Open admin center <HiOutlineArrowRight className="h-4 w-4" />
+              Review bookings →
             </button>
           </div>
-        </section>
-      )}
 
-      <section>
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Newest listings</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Recently added cars</p>
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="rounded-2xl bg-sky-50 p-3 text-sky-600">
+                <HiOutlineViewGrid className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Curate inventory</h3>
+                <p className="text-sm text-slate-500">Edit listings with premium control.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab("cars")}
+              className="text-sm font-semibold text-sky-600"
+            >
+              Manage cars →
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/cars-list")}
-            className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-          >
-            View all <HiOutlineArrowRight className="w-4 h-4" />
-          </button>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+                <HiOutlineUserCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">User security</h3>
+                <p className="text-sm text-slate-500">Moderate access with one click.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab("users")}
+              className="text-sm font-semibold text-emerald-600"
+            >
+              Open user controls →
+            </button>
+          </div>
         </div>
-
-        {newestLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(LISTINGS_PER_BLOCK)].map((_, i) => (
-              <div key={i} className="h-80 rounded-xl bg-slate-100 animate-pulse" />
-            ))}
-          </div>
-        ) : newestListings.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {newestListings.map((car) => (
-              <CarCard key={car._id} car={car} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-12 text-center text-slate-500 rounded-xl bg-slate-50">
-            No listings yet. Check back later.
-          </div>
-        )}
-      </section>
-
-      {byFuel.map(({ fuel, list, loading }) => (
-        <section key={fuel}>
-          <div className="flex items-end justify-between gap-4 mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">{fuel}</h2>
-              <p className="text-sm text-slate-500 mt-0.5">
-                {list.length} listing{list.length !== 1 ? "s" : ""} available
-              </p>
-            </div>
-            <button
-              onClick={() => navigate(`/cars-list?fuelType=${fuel}`)}
-              className="flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-            >
-              View all <HiOutlineArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(LISTINGS_PER_FUEL)].map((_, i) => (
-                <div key={i} className="h-80 rounded-xl bg-slate-100 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {list.map((car) => (
-                <CarCard key={car._id} car={car} />
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+      )}
     </div>
   );
 }

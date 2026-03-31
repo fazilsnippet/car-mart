@@ -76,10 +76,10 @@ export const getBookingById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Booking not found");
   }
 
-  if (
-    booking.userId._id.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
+  const isOwner = booking.userId?._id?.toString() === req.user?._id?.toString();
+  const isAdmin = req.user?.role === "ADMIN";
+
+  if (!isOwner && !isAdmin) {
     throw new ApiError(403, "Not authorized");
   }
 
@@ -155,6 +155,10 @@ export const getMyBookings = asyncHandler(async (req, res) => {
 
 
 export const getAllBookings = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    throw new ApiError(403, "Not authorized");
+  }
+
   const {
     page = 1,
     limit = 10,
@@ -163,26 +167,26 @@ export const getAllBookings = asyncHandler(async (req, res) => {
     search
   } = req.query;
 
-  const skip = (page - 1) * limit;
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
 
-  let query = {};
+  const query = {};
 
   if (status) query.status = status;
   if (bookingType) query.bookingType = bookingType;
 
   if (search) {
-    query.$or = [
-      { message: { $regex: search, $options: "i" } }
-    ];
+    query.$or = [{ message: { $regex: search, $options: "i" } }];
   }
 
   const bookings = await Booking.find(query)
-    .populate("carId", "title price")
+    .populate("carId", "title price images")
     .populate("userId", "fullName email phone")
-    .populate("handledBy", "fullName")
+    .populate("handledBy", "fullName email")
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(Number(limit));
+    .limit(limitNum);
 
   const total = await Booking.countDocuments(query);
 
@@ -190,8 +194,8 @@ export const getAllBookings = asyncHandler(async (req, res) => {
     new ApiResponse(200, {
       bookings,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / limit)
+      page: pageNum,
+      pages: Math.ceil(total / limitNum)
     })
   );
 });
@@ -237,6 +241,10 @@ export const updateBooking = asyncHandler(async (req, res) => {
 
 
 export const assignBooking = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    throw new ApiError(403, "Not authorized");
+  }
+
   const { id } = req.params;
   const { adminId } = req.body;
 
@@ -245,7 +253,7 @@ export const assignBooking = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Booking not found");
   }
 
-  booking.handledBy = adminId;
+  booking.handledBy = adminId || req.user._id;
   booking.status = "CONTACTED";
 
   await booking.save();

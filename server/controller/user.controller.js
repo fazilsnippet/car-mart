@@ -12,7 +12,8 @@ import { User } from "../models/User.model.js";
 import { createOtp } from "../utils/generateOtp.js";
 import { verifyOtp } from "../utils/generateOtp.js";
 
-
+const ACCESS_TOKEN_COOKIE_MAX_AGE = 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
 export const generateAccessTokenAndRefreshToken = async (userId) => {
   if (!userId) {
@@ -137,18 +138,18 @@ const registerUser = asyncHandler(async (req, res) => {
   // 🍪 Production-safe cookie config
   const cookieOptions = {
     httpOnly: true,
-    secure:false,
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
   });
 
   res.cookie("refreshToken", refreshToken, {
     ...cookieOptions,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
   });
 
   const createdUser = await User.findById(user._id).select("-password -refreshToken");
@@ -181,14 +182,20 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-  secure: true,
-  sameSite: "Strict"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, {
+      ...options,
+      maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+    })
+    .cookie("refreshToken", refreshToken, {
+      ...options,
+      maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
+    })
     .json({
       user: loggedInUser,
       accessToken,
@@ -203,9 +210,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-  secure: true,
-  sameSite: "Strict"
-
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
   return res
@@ -216,7 +222,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request please login");
@@ -233,15 +239,21 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
     const options = {
-    httpOnly: true,
-  secure: true,
-  sameSite: "Strict"
-  };
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    };
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, {
+        ...options,
+        maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
+      })
+      .cookie("refreshToken", refreshToken, {
+        ...options,
+        maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
+      })
       .json(
         new ApiResponse(
           200,
@@ -413,6 +425,116 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 
 
+const getAllUsers = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    throw new ApiError(403, "Access denied. Admins only");
+  }
+
+  const {
+    filter = "all",
+    search = "",
+    page = 1,
+    limit = 10,
+    isBanned,
+  } = req.query;
+
+  const parsedPage = Math.max(Number(page) || 1, 1);
+  const parsedLimit = Math.max(Number(limit) || 10, 1);
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  const query = {};
+  const trimmedSearch = String(search).trim();
+
+  if (filter === "banned" || isBanned === "true") {
+    query.isBanned = true;
+  } else if (filter === "active" || isBanned === "false") {
+    query.isBanned = false;
+  }
+
+  if (trimmedSearch) {
+    query.$or = [
+      { fullName: { $regex: trimmedSearch, $options: "i" } },
+      { userName: { $regex: trimmedSearch, $options: "i" } },
+      { email: { $regex: trimmedSearch, $options: "i" } },
+    ];
+  }
+
+  const [users, filteredTotal, totalUsers, bannedUsers] = await Promise.all([
+    User.find(query)
+      .select("-password -refreshToken")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parsedLimit),
+    User.countDocuments(query),
+    User.countDocuments(),
+    User.countDocuments({ isBanned: true }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        users,
+        pagination: {
+          page: parsedPage,
+          limit: parsedLimit,
+          totalPages: Math.ceil(filteredTotal / parsedLimit) || 1,
+          totalResults: filteredTotal,
+        },
+        counts: {
+          totalUsers,
+          bannedUsers,
+        },
+        filters: {
+          filter,
+          search: trimmedSearch,
+          isBanned: query.isBanned ?? null,
+        },
+      },
+      "Users fetched successfully"
+    )
+  );
+});
+
+const toggleUserBanStatus = asyncHandler(async (req, res) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    throw new ApiError(403, "Access denied. Admins only");
+  }
+
+  const { userId } = req.params;
+  const { isBanned } = req.body;
+
+  if (!userId) {
+    throw new ApiError(400, "User id is required");
+  }
+
+  if (typeof isBanned !== "boolean") {
+    throw new ApiError(400, "isBanned must be true or false");
+  }
+
+  if (req.user._id?.toString() === userId) {
+    throw new ApiError(400, "You cannot ban or unban yourself");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $set: { isBanned } },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      updatedUser,
+      `User ${isBanned ? "banned" : "unbanned"} successfully`
+    )
+  );
+});
+
 const userProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id).select("-password -refreshToken");
 
@@ -526,6 +648,8 @@ export {
   refreshAccessToken,
   changeCurrentPassword,
   updateAccountDetails,
+  getAllUsers,
+  toggleUserBanStatus,
   addRecentlyViewedCar,
   getRecentlyViewedCars,
 };

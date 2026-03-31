@@ -338,6 +338,7 @@
 
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   HiOutlineViewGrid,
   HiOutlineTruck,
@@ -349,11 +350,12 @@ import {
   HiOutlineMenuAlt2,
   HiOutlineUserCircle,
   HiOutlineQuestionMarkCircle,
+  HiOutlineShieldCheck,
   HiOutlineX,
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
 
-const navGroups = [
+const baseNavGroups = [
   {
     title: "Explore",
     items: [
@@ -371,6 +373,19 @@ const navGroups = [
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+  const isAdmin = user?.role === "ADMIN";
+  const navGroups = [
+    ...baseNavGroups,
+    ...(isAdmin
+      ? [
+          {
+            title: "Administration",
+            items: [{ to: "/admin", label: "Admin Center", icon: HiOutlineShieldCheck }],
+          },
+        ]
+      : []),
+  ];
 
   const [searchText, setSearchText] = useState("");
 
@@ -584,6 +599,16 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-4">
 
+            {isAdmin && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 sm:inline-flex"
+              >
+                <HiOutlineShieldCheck className="h-4 w-4" />
+                Admin Center
+              </button>
+            )}
+
             <button className="relative p-2 rounded-lg hover:bg-slate-100">
                    <NotificationBell  className="w-5 h-5" />
             </button>
@@ -594,7 +619,9 @@ export default function DashboardLayout() {
             >
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold">My Account</p>
-                <p className="text-[10px] text-slate-500">Profile & settings</p>
+                <p className="text-[10px] text-slate-500">
+                  {isAdmin ? "Admin & profile access" : "Profile & settings"}
+                </p>
               </div>
 
               <div className="flex items-center justify-center rounded-full w-9 h-9 bg-slate-200">

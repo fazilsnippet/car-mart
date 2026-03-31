@@ -8,7 +8,10 @@ const onlineUsers = new Map();
 
 export const initSocket = (server) => {
   const io = new Server(server, {
-    cors: { origin: "*" }
+    cors: {
+      origin: "http://localhost:5173",
+      credentials: true,
+    },
   });
 
   io.on("connection", (socket) => {
