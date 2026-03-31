@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/errorHandler.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiResponse } from "../utils/responseHandler.js";
 dotenv.config("../../.env");
 import { uploadOnCloudinary, deleteFromCloudinary, cleanupUploadsFolder } from "../utils/cloudinary.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
