@@ -1,5 +1,5 @@
 import { User } from "../models/User.model";
-
+import { ApiError } from "../utils/errorHandler.js";
 export const authorize = (...roles) => {
   return async (req, res, next) => {
     const user = await User.findById(req.user.id);
