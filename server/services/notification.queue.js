@@ -1,8 +1,6 @@
 // file: queue/notification.queue.js
-import dotenv from "dotenv";
 import { Queue } from "bullmq";
 
-dotenv.config({ path: "./.env" });
 
 const redisConnection = {
   host: process.env.REDIS_HOST || "127.0.0.1",
