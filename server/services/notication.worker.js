@@ -1,13 +1,26 @@
 
+import dotenv from "dotenv";
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
 import { Notification } from "../models/Notification.model.js";
 import { Booking } from "../models/Booking.model.js";
 import { Conversation } from "../models/Conversation.model.js";
 import { Wishlist } from "../models/wishlist.model.js";
+
+dotenv.config({ path: "./.env" });
 console.log("✅ Notification Worker Started...");
 
 const ADMIN_ID = process.env.ADMIN_ID;
+const redisConnection = {
+  host: red-d75vf8adbo4c73blfl5g || "127.0.0.1",
+  port:  6379,
+  // ...(process.env.REDIS_USERNAME
+  //   ? { username: process.env.REDIS_USERNAME }
+  //   : {}),
+  // ...(process.env.REDIS_PASSWORD
+  //   ? { password: process.env.REDIS_PASSWORD }
+  //   : {}),
+};
 
 export const notificationWorker = new Worker(
   "notifications",
@@ -133,7 +146,7 @@ export const notificationWorker = new Worker(
     }
   },
   {
-    connection: { host: "127.0.0.1", port: 6379 }
+    connection: redisConnection,
   }
 );
 
