@@ -368,7 +368,7 @@ const handleStartChat = async () => {
                   {(car.location?.city || car.location?.state) && (
                     <div className="flex justify-between">
                       <span className="text-slate-500">Location</span>
-                      <span className="text-slate-900">
+                      <span className="overflow-x-hidden text-slate-900">
                         {[car.location?.city, car.location?.state].filter(Boolean).join(", ")}
                       </span>
                     </div>
