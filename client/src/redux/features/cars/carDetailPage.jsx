@@ -110,7 +110,7 @@ const handleStartChat = async () => {
 
   return (
     <>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen overflow-x-hidden bg-white">
         {/* Breadcrumbs */}
         <div className="bg-white border-b border-slate-200">
           <div className="px-4 py-3 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -366,11 +366,11 @@ const handleStartChat = async () => {
                     </div>
                   )}
                   {(car.location?.city || car.location?.state) && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Location</span>
-                      <span className="overflow-x-hidden text-slate-900">
-                        {[car.location?.city, car.location?.state].filter(Boolean).join(", ")}
-                      </span>
+                 <div className="flex justify-between gap-4">
+  <span className="text-slate-500 shrink-0">Location</span>
+  <span className="text-slate-900 text-right truncate max-w-37.5">
+  {[car.location?.city, car.location?.state].filter(Boolean).join(", ")}
+</span>
                     </div>
                   )}
                 </div>
