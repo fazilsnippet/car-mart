@@ -3,7 +3,7 @@ import { Queue } from "bullmq";
 
 
 const redisConnection = {
-  host: process.env.REDIS_HOST || "127.0.0.1",
+  host: process.env.REDIS_HOST ,
   port: Number(process.env.REDIS_PORT) || 6379,
   // ...(process.env.REDIS_USERNAME
   //   ? { username: process.env.REDIS_USERNAME }
