@@ -366,11 +366,11 @@ const handleStartChat = async () => {
                     </div>
                   )}
                   {(car.location?.city || car.location?.state) && (
-                 <div className="flex justify-between gap-4">
-  <span className="text-slate-500 shrink-0">Location</span>
-  <span className="text-slate-900 text-right truncate max-w-37.5">
-  {[car.location?.city, car.location?.state].filter(Boolean).join(", ")}
-</span>
+                    <div className="flex justify-between min-w-0 gap-4">
+                      <span className="text-slate-500 shrink-0">Location</span>
+                      <span className="text-slate-900 text-right truncate max-w-[60%]">
+                        {[car.location?.city, car.location?.state].filter(Boolean).join(", ")}
+                      </span>
                     </div>
                   )}
                 </div>
