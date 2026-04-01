@@ -137,7 +137,7 @@ const handleStartChat = async () => {
         </div>
 
         <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-12">
+          <div className="grid max-w-full gap-8 overflow-hidden lg:grid-cols-12">
             {/* ================= LEFT — IMAGE GALLERY (OLX-style) ================= */}
             <div className="lg:col-span-7 xl:col-span-8">
               {total > 0 ? (
@@ -244,8 +244,8 @@ const handleStartChat = async () => {
             </div>
 
             {/* ================= RIGHT — DETAILS SIDEBAR ================= */}
-            <div className="lg:col-span-5 xl:col-span-4">
-              <div className="space-y-6 lg:sticky lg:top-6">
+            <div className="min-w-0 lg:col-span-5 xl:col-span-4">
+              <div className="min-w-0 space-y-6 lg:sticky lg:top-6">
                 <h1 className="text-2xl font-semibold leading-tight text-slate-900">
                   {car.title}
                   {car.year && (
