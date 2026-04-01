@@ -354,6 +354,7 @@ import {
   HiOutlineX,
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
+import logo from "../assets/carmartH.png";
 
 const baseNavGroups = [
   {
@@ -538,17 +539,17 @@ export default function DashboardLayout() {
       >
         <div className="flex items-center h-16 px-6 border-b border-slate-100">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center bg-indigo-600 rounded-lg w-9 h-9">
+            {/* <div className="flex items-center justify-center bg-indigo-600 rounded-lg w-9 h-9">
               <HiOutlineTruck className="w-5 h-5 text-white" />
-            </div>
+            </div> */}
 
-            <span
-              className={`text-xl font-bold transition-opacity ${
-                isSidebarOpen ? "opacity-100" : "opacity-0 w-0"
-              }`}
-            >
-              Car<span className="text-indigo-600">Mart</span>
-            </span>
+           <img
+  src={logo}
+  alt="CarMart"
+  className={`h-9 pl-4 transition-all duration-300 ${
+    isSidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+  }`}
+/>
           </Link>
         </div>
 
@@ -604,7 +605,7 @@ export default function DashboardLayout() {
                 onClick={() => navigate("/admin")}
                 className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 sm:inline-flex"
               >
-                <HiOutlineShieldCheck className="h-4 w-4" />
+                <HiOutlineShieldCheck className="w-4 h-4" />
                 Admin Center
               </button>
             )}
