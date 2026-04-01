@@ -17,7 +17,7 @@ const redisConnection = {
   //   : {}),
   // ...(process.env.REDIS_PASSWORD
   //   ? { password: process.env.REDIS_PASSWORD }
-  //   : {}),
+  //   : {}),  redis://red-d76ggkffte5s73ejdbj0:6379
 };
 
 export const notificationWorker = new Worker(
