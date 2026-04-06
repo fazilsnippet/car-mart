@@ -318,6 +318,60 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Reset OTP sent to email"));
 });
 
+// const updateAccountDetails = asyncHandler(async (req, res) => {
+//   const userId = req.user?._id;
+
+//   if (!userId) {
+//     throw new ApiError(401, "Unauthorized. Please login.");
+//   }
+
+//   const { fullName } = req.body;
+
+//   if (!fullName || !fullName.trim()) {
+//     throw new ApiError(400, "Full name is required");
+//   }
+
+//   const user = await User.findById(userId);
+
+//   if (!user) {
+//     throw new ApiError(404, "User not found");
+//   }
+
+//   // ✅ Update full name
+//   user.fullName = fullName.trim();
+
+//   // ✅ If new avatar uploaded
+//   if (req.file) {
+//     const uploadResult = await uploadOnCloudinary(req.file.path);
+
+//     if (!uploadResult?.secure_url || !uploadResult?.public_id) {
+//       throw new ApiError(500, "Failed to upload avatar");
+//     }
+
+//     // 🔥 Delete old avatar if exists
+//     if (user.avatar?.public_id) {
+//       await deleteFromCloudinary(user.avatar.public_id);
+//     }
+
+//     // ✅ Save new avatar
+//     user.avatar = {
+//       url: uploadResult.secure_url,
+//       public_id: uploadResult.public_id,
+//     };
+
+//     // Clean up the uploads folder after processing
+//     cleanupUploadsFolder();
+//   }
+
+//   await user.save();
+
+//   const updatedUser = await User.findById(userId).select("-password");
+
+//   return res.status(200).json(
+//     new ApiResponse(200, updatedUser, "Profile updated successfully")
+//   );
+// });
+
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
@@ -325,11 +379,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized. Please login.");
   }
 
-  const { fullName } = req.body;
-
-  if (!fullName || !fullName.trim()) {
-    throw new ApiError(400, "Full name is required");
-  }
+  const { fullName, email } = req.body;
 
   const user = await User.findById(userId);
 
@@ -337,10 +387,16 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  // ✅ Update full name
-  user.fullName = fullName.trim();
+  // ✅ Update only if provided
+  if (fullName && fullName.trim()) {
+    user.fullName = fullName.trim();
+  }
 
-  // ✅ If new avatar uploaded
+  if (email && email.trim()) {
+    user.email = email.trim();
+  }
+
+  // ✅ Avatar handling
   if (req.file) {
     const uploadResult = await uploadOnCloudinary(req.file.path);
 
@@ -348,18 +404,15 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
       throw new ApiError(500, "Failed to upload avatar");
     }
 
-    // 🔥 Delete old avatar if exists
     if (user.avatar?.public_id) {
       await deleteFromCloudinary(user.avatar.public_id);
     }
 
-    // ✅ Save new avatar
     user.avatar = {
       url: uploadResult.secure_url,
       public_id: uploadResult.public_id,
     };
 
-    // Clean up the uploads folder after processing
     cleanupUploadsFolder();
   }
 
@@ -371,7 +424,6 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     new ApiResponse(200, updatedUser, "Profile updated successfully")
   );
 });
-
 
 
 

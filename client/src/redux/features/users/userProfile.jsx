@@ -192,8 +192,7 @@ const MyProfile = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-                src={preview || user?.profilePicture}
-                alt="avatar"
+src={preview || user?.avatar?.url}                alt="avatar"
                 className="object-cover w-20 h-20 rounded-full"
               />
               <label className="absolute top-0 right-0 px-2 py-1 text-xs rounded-full cursor-pointer bg-slate-100">
