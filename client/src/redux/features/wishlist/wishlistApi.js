@@ -24,11 +24,13 @@ export const wishlistApi = baseApi.injectEndpoints({
     // -------------------------
     // Toggle Wishlist
     // -------------------------
-  toggleWishlist: builder.mutation({
+toggleWishlist: builder.mutation({
   query: (carId) => ({
-    url: `/wishlist/${carId}`,
+    url: "/wishlist/toggle",
     method: "POST",
+    body: { carId },
   }),
+
 
   async onQueryStarted(carId, { dispatch, queryFulfilled }) {
     const patchResult = dispatch(
