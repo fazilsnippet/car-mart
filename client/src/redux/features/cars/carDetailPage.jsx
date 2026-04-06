@@ -1,8 +1,6 @@
-
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetCarBySlugQuery } from "./carApi";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
@@ -31,6 +29,9 @@ const CarDetailPage = () => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const isSaved = wishlist.some((i) => i.car?._id === car?._id);
 
@@ -80,16 +81,46 @@ const CarDetailPage = () => {
   const next = () => setActiveIndex((i) => (i + 1) % total);
   const prev = () => setActiveIndex((i) => (i === 0 ? total - 1 : i - 1));
 
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 50) next();
+    if (diff < -50) prev();
+  };
+
   return (
-    <>
-      <div className="px-4 py-6 mx-auto max-w-7xl">
+    <div className="px-4 py-6 mx-auto font-sans max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT */}
         <div className="space-y-4 lg:col-span-7">
-          <div className="relative overflow-hidden group rounded-2xl bg-slate-100">
+          <div
+            className="relative overflow-hidden group rounded-2xl bg-slate-100"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* MOBILE WISHLIST BUTTON */}
+            <button
+              onClick={handleToggle}
+              className="absolute z-10 p-2 rounded-full shadow top-3 right-3 bg-white/90 backdrop-blur md:hidden"
+            >
+              <HiOutlineHeart
+                className={`w-5 h-5 ${
+                  isSaved ? "text-red-500 fill-red-500" : "text-slate-700"
+                }`}
+              />
+            </button>
+
             <img
               src={images[activeIndex]?.url}
-              className="w-full h-[260px] sm:h-[400px] lg:h-[500px] object-contain cursor-zoom-in"
+              className="w-full h-[260px] sm:h-[420px] lg:h-[520px] object-contain cursor-zoom-in"
               onClick={() => setIsOpen(true)}
             />
 
@@ -131,20 +162,20 @@ const CarDetailPage = () => {
 
         {/* RIGHT */}
         <div className="space-y-5 lg:col-span-5">
-          <div className="p-5 space-y-4 bg-white shadow rounded-2xl">
-            <h1 className="text-xl font-semibold sm:text-2xl">
+          <div className="p-5 space-y-5 bg-white shadow rounded-2xl">
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-slate-900">
               {car.title} {car.year && `(${car.year})`}
             </h1>
 
-            <p className="text-2xl font-bold text-indigo-600">
+            <p className="text-3xl font-bold text-indigo-600">
               ₹ {car.price?.toLocaleString("en-IN")}
             </p>
 
             {/* ACTIONS */}
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={handleBook}
-                className="flex items-center justify-center gap-2 py-2 text-white bg-indigo-600 rounded-xl"
+                className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-white bg-indigo-600 rounded-xl"
               >
                 <CalendarDays size={18} /> Book
               </button>
@@ -152,16 +183,17 @@ const CarDetailPage = () => {
               <button
                 onClick={handleStartChat}
                 disabled={isStartingChat}
-                className="flex items-center justify-center gap-2 py-2 border rounded-xl"
+                className="flex items-center justify-center gap-2 py-3 text-sm font-medium border rounded-xl"
               >
                 <HiOutlineChatAlt2 />
                 {isStartingChat ? "Opening..." : "Chat"}
               </button>
 
+              {/* DESKTOP WISHLIST */}
               <button
                 onClick={handleToggle}
                 disabled={isTogglingWishlist}
-                className="flex items-center justify-center gap-2 py-2 border col-span-full rounded-xl"
+                className="items-center justify-center hidden gap-2 py-3 text-sm font-medium border md:flex col-span-full rounded-xl"
               >
                 <HiOutlineHeart
                   className={isSaved ? "text-red-500 fill-red-500" : ""}
@@ -175,48 +207,48 @@ const CarDetailPage = () => {
             </div>
 
             {/* DETAILS */}
-            <div className="grid grid-cols-2 gap-3 pt-3 text-sm border-t">
+            <div className="grid grid-cols-2 gap-4 pt-4 text-sm border-t">
               {car.brand?.name && (
                 <div>
-                  <p className="text-slate-500">Brand</p>
-                  <p className="font-medium">{car.brand.name}</p>
+                  <p className="text-xs text-slate-500">Brand</p>
+                  <p className="text-base font-medium">{car.brand.name}</p>
                 </div>
               )}
               {car.variant && (
                 <div>
-                  <p className="text-slate-500">Variant</p>
-                  <p>{car.variant}</p>
+                  <p className="text-xs text-slate-500">Variant</p>
+                  <p className="text-base">{car.variant}</p>
                 </div>
               )}
               {car.fuelType && (
                 <div>
-                  <p className="text-slate-500">Fuel</p>
-                  <p>{car.fuelType}</p>
+                  <p className="text-xs text-slate-500">Fuel</p>
+                  <p className="text-base">{car.fuelType}</p>
                 </div>
               )}
               {car.transmission && (
                 <div>
-                  <p className="text-slate-500">Transmission</p>
-                  <p>{car.transmission}</p>
+                  <p className="text-xs text-slate-500">Transmission</p>
+                  <p className="text-base">{car.transmission}</p>
                 </div>
               )}
               {car.kmDriven != null && (
                 <div>
-                  <p className="text-slate-500">KM</p>
-                  <p>{car.kmDriven}</p>
+                  <p className="text-xs text-slate-500">KM</p>
+                  <p className="text-base">{car.kmDriven}</p>
                 </div>
               )}
               {car.ownerCount != null && (
                 <div>
-                  <p className="text-slate-500">Owners</p>
-                  <p>{car.ownerCount}</p>
+                  <p className="text-xs text-slate-500">Owners</p>
+                  <p className="text-base">{car.ownerCount}</p>
                 </div>
               )}
             </div>
 
             {/* FEATURES */}
             {Array.isArray(car.features) && car.features.length > 0 && (
-              <div className="pt-3 border-t">
+              <div className="pt-4 border-t">
                 <h3 className="mb-2 text-sm font-semibold text-slate-700">
                   Features
                 </h3>
@@ -239,7 +271,12 @@ const CarDetailPage = () => {
 
       {/* LIGHTBOX */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <button
             className="absolute text-white top-4 right-4"
             onClick={() => setIsOpen(false)}
@@ -272,10 +309,7 @@ const CarDetailPage = () => {
         </div>
       )}
     </div>
-      
-    </>
   );
 };
-
 
 export default CarDetailPage;
