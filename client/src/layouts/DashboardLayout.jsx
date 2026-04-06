@@ -352,6 +352,7 @@ import {
   HiOutlineQuestionMarkCircle,
   HiOutlineShieldCheck,
   HiOutlineX,
+  HiOutlineHeart
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
 import logo from "../assets/carmartH.png";
@@ -362,12 +363,15 @@ const baseNavGroups = [
     items: [
       { to: "/", label: "Home", icon: HiOutlineViewGrid },
       { to: "/cars-list", label: "Browse Cars", icon: HiOutlineViewList },
-      { to: "/brandList", label: "Brands", icon: HiOutlineClipboardList },
+      // { to: "/brandList", label: "Brands", icon: HiOutlineClipboardList },
     ],
   },
   {
     title: "My activity",
     items: [{ to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck }],
+  },{
+  title: "My Wishlist",
+  items: [{ to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart }],
   },
 ];
 
