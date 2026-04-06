@@ -47,10 +47,9 @@ export const userApi = baseApi.injectEndpoints({
     }),
 
     updateAccountDetails: builder.mutation({
-      query: ({ fullName, email, avatar }) => {
+      query: ({ fullName, avatar }) => {
         const formData = new FormData();
         formData.append("fullName", fullName);
-        formData.append("email", email);
         if (avatar) formData.append("avatar", avatar);
 
         return {

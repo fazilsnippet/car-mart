@@ -24,6 +24,10 @@ const Input = ({ value, onChange, type = "text", placeholder }) => (
   />
 );
 
+const Label = ({ children }) => (
+  <label className="text-xs text-slate-500">{children}</label>
+);
+
 const PrimaryButton = ({ children, loading, disabled, ...props }) => (
   <button
     {...props}
@@ -57,7 +61,7 @@ const MyProfile = () => {
 
   const user = data?.data;
 
-  const { data: recentCars } = useGetRecentlyViewedCarsQuery(undefined, {
+  useGetRecentlyViewedCarsQuery(undefined, {
     skip: !user,
   });
 
@@ -75,7 +79,6 @@ const MyProfile = () => {
 
   const [accountForm, setAccountForm] = useState({
     fullName: "",
-    email: "",
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -100,7 +103,6 @@ const MyProfile = () => {
     if (user != null) {
       setAccountForm({
         fullName: user.fullName || "",
-        email: user.email || "",
       });
 
       setForgotForm((prev) => ({
@@ -118,15 +120,20 @@ const MyProfile = () => {
     }
   };
 
+  // ✅ change detection
+  const isChanged =
+    accountForm.fullName !== user?.fullName || avatar !== null;
+
   const handleAccountUpdate = async () => {
     try {
       await updateAccount({
         fullName: accountForm.fullName,
-        email: accountForm.email,
         avatar,
       }).unwrap();
+
+      setAvatar(null);
       refetch();
-    } catch (err) {}
+    } catch {}
   };
 
   const handlePasswordUpdate = async () => {
@@ -192,13 +199,23 @@ const MyProfile = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-src={preview || user?.avatar?.url}                alt="avatar"
+                src={preview || user?.avatar?.url}
+                alt="avatar"
                 className="object-cover w-20 h-20 rounded-full"
               />
+
+              {/* overlay edit */}
               <label className="absolute top-0 right-0 px-2 py-1 text-xs rounded-full cursor-pointer bg-slate-100">
                 Edit
                 <input type="file" hidden onChange={handleAvatarChange} />
               </label>
+
+              {/* unsaved badge */}
+              {preview && (
+                <span className="absolute bottom-0 right-0 px-2 py-1 text-xs text-white bg-indigo-600 rounded-full">
+                  New
+                </span>
+              )}
             </div>
 
             <div className="flex-1">
@@ -213,21 +230,32 @@ src={preview || user?.avatar?.url}                alt="avatar"
 
           {/* CONTENT */}
           <div className="grid gap-4 pt-4 border-t md:grid-cols-2">
-            <Input
-              value={accountForm.fullName}
-              onChange={(e) =>
-                setAccountForm({ ...accountForm, fullName: e.target.value })
-              }
-              placeholder="Full Name"
-            />
-            <Input
-              type="email"
-              value={accountForm.email}
-              onChange={(e) =>
-                setAccountForm({ ...accountForm, email: e.target.value })
-              }
-              placeholder="Email"
-            />
+
+            {/* Full Name */}
+            <div className="flex flex-col gap-2">
+              <Label>Full Name</Label>
+              <Input
+                value={accountForm.fullName}
+                onChange={(e) =>
+                  setAccountForm({
+                    ...accountForm,
+                    fullName: e.target.value,
+                  })
+                }
+                placeholder="Full Name"
+              />
+            </div>
+
+            {/* Email (READ ONLY) */}
+            <div className="flex flex-col gap-2">
+              <Label>Email</Label>
+              <div className="p-3 text-base rounded-xl bg-slate-100 text-slate-700">
+                {user?.email || "—"}
+              </div>
+              <p className="text-xs text-slate-500">
+                Email cannot be changed right now
+              </p>
+            </div>
           </div>
 
           {/* FOOTER */}
@@ -235,18 +263,17 @@ src={preview || user?.avatar?.url}                alt="avatar"
             <PrimaryButton
               onClick={handleAccountUpdate}
               loading={updatingAccount}
+              disabled={!isChanged}
             >
-              Save Changes
+              Save Profile
             </PrimaryButton>
           </div>
         </Card>
 
         {/* ================= PASSWORD CARD ================= */}
         <Card>
-          {/* HEADER */}
           <h3 className="text-lg font-medium">Change Password</h3>
 
-          {/* CONTENT */}
           <div className="grid gap-4 pt-4 border-t md:grid-cols-2">
             <Input
               type="password"
@@ -272,7 +299,6 @@ src={preview || user?.avatar?.url}                alt="avatar"
             />
           </div>
 
-          {/* FOOTER */}
           <div className="flex gap-4 pt-4 border-t">
             <PrimaryButton
               onClick={handlePasswordUpdate}
@@ -288,7 +314,6 @@ src={preview || user?.avatar?.url}                alt="avatar"
             <LogoutButton />
           </div>
 
-          {/* FORGOT FLOW */}
           {showForgot && (
             <div className="flex flex-col gap-4 pt-4 border-t">
               {step === "email" && (
@@ -355,9 +380,7 @@ src={preview || user?.avatar?.url}                alt="avatar"
                 </>
               )}
 
-              {error && (
-                <p className="text-xs text-red-500">{error}</p>
-              )}
+              {error && <p className="text-xs text-red-500">{error}</p>}
             </div>
           )}
         </Card>

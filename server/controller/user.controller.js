@@ -379,7 +379,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized. Please login.");
   }
 
-  const { fullName, email } = req.body;
+  const { fullName } = req.body;
 
   const user = await User.findById(userId);
 
@@ -392,9 +392,9 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     user.fullName = fullName.trim();
   }
 
-  if (email && email.trim()) {
-    user.email = email.trim();
-  }
+  // if (email && email.trim()) {
+  //   user.email = email.trim();
+  // }
 
   // ✅ Avatar handling
   if (req.file) {
@@ -418,7 +418,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  const updatedUser = await User.findById(userId).select("-password");
+  const updatedUser = await User.findById(userId).select("-password -email");
 
   return res.status(200).json(
     new ApiResponse(200, updatedUser, "Profile updated successfully")
