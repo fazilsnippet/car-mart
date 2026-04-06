@@ -81,7 +81,8 @@ const CarDetailPage = () => {
   const prev = () => setActiveIndex((i) => (i === 0 ? total - 1 : i - 1));
 
   return (
-    <div className="px-4 py-6 mx-auto max-w-7xl">
+    <>
+      <div className="px-4 py-6 mx-auto max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT */}
         <div className="space-y-4 lg:col-span-7">
@@ -235,9 +236,8 @@ const CarDetailPage = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+
+      {/* LIGHTBOX */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
           <button
@@ -272,7 +272,10 @@ const CarDetailPage = () => {
         </div>
       )}
     </div>
+      
+    </>
   );
 };
+
 
 export default CarDetailPage;
