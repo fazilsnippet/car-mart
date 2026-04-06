@@ -112,6 +112,24 @@ const MyProfile = () => {
       isError("Failed");
     }
   };
+  const handleAccountUpdate = async () => {
+  if (!avatar && accountForm.fullName === user?.fullName) return;
+
+  try {
+    await updateAccount({
+      fullName: accountForm.fullName,
+      avatar,
+    }).unwrap();
+
+    console.log("UPDATED ✅");
+
+    setAvatar(null);
+    setPreview(null);
+    refetch();
+  } catch (err) {
+    console.log("UPDATE ERROR ❌", err);
+  }
+};
 const [avatar, setAvatar] = useState(null);
 const [preview, setPreview] = useState(null);
   const handleResetPassword = async () => {
