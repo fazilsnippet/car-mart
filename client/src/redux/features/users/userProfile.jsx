@@ -103,23 +103,24 @@ const MyProfile = () => {
   };
 
   const handleSendOtp = async () => {
-    if (!forgotForm.email) return setError("Email required");
-    setError("");
+    if (!forgotForm.email) return isError("Email required");
+    isError("");
     try {
       await forgotPassword(forgotForm.email).unwrap();
       setStep("otp");
     } catch {
-      setError("Failed");
+      isError("Failed");
     }
   };
-
+const [avatar, setAvatar] = useState(null);
+const [preview, setPreview] = useState(null);
   const handleResetPassword = async () => {
     if (
       !forgotForm.otp ||
       !forgotForm.newPassword ||
       forgotForm.newPassword !== forgotForm.confirmPassword
     ) {
-      return setError("Invalid input");
+      return isError("Invalid input");
     }
 
     try {
@@ -132,7 +133,7 @@ const MyProfile = () => {
       setShowForgot(false);
       setStep("email");
     } catch {
-      setError("Failed");
+      isError("Failed");
     }
   };
 
@@ -354,7 +355,7 @@ const MyProfile = () => {
                 </>
               )}
 
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              {isError && <p className="text-xs text-red-500">{error}</p>}
             </div>
           )}
         </Card>
