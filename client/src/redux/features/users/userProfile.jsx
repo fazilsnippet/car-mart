@@ -56,7 +56,7 @@ const Card = ({ children }) => (
 const MyProfile = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-  const { data, isLoading, isError, refetch } =
+  const { data, isLoading, setError, refetch } =
     useGetUserProfileQuery(undefined);
 
   const user = data?.data;
@@ -103,13 +103,13 @@ const MyProfile = () => {
   };
 
   const handleSendOtp = async () => {
-    if (!forgotForm.email) return isError("Email required");
-    isError("");
+    if (!forgotForm.email) return setError("Email required");
+    setError("");
     try {
       await forgotPassword(forgotForm.email).unwrap();
       setStep("otp");
     } catch {
-      isError("Failed");
+      setError("Failed");
     }
   };
   const handleAccountUpdate = async () => {
@@ -130,6 +130,18 @@ const MyProfile = () => {
     console.log("UPDATE ERROR ❌", err);
   }
 };
+const [error, setError] = useState("");
+const [showForgot, setShowForgot] = useState(false);
+const [step, setStep] = useState("email");
+
+const isChanged =
+  accountForm.fullName !== user?.fullName || avatar !== null;
+
+useEffect(() => {
+  if (user) {
+    setAccountForm({ fullName: user.fullName || "" });
+  }
+}, [user]);
 const [avatar, setAvatar] = useState(null);
 const [preview, setPreview] = useState(null);
   const handleResetPassword = async () => {
@@ -138,7 +150,7 @@ const [preview, setPreview] = useState(null);
       !forgotForm.newPassword ||
       forgotForm.newPassword !== forgotForm.confirmPassword
     ) {
-      return isError("Invalid input");
+      return setError("Invalid input");
     }
 
     try {
@@ -151,7 +163,7 @@ const [preview, setPreview] = useState(null);
       setShowForgot(false);
       setStep("email");
     } catch {
-      isError("Failed");
+      setError("Failed");
     }
   };
 
@@ -163,7 +175,7 @@ const [preview, setPreview] = useState(null);
     );
   }
 
-  if (isError || !isAuthenticated) {
+  if (setError || !isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   const handleAvatarChange = (e) => {
@@ -373,7 +385,7 @@ const [preview, setPreview] = useState(null);
                 </>
               )}
 
-              {isError && <p className="text-xs text-red-500">{error}</p>}
+              {setError && <p className="text-xs text-red-500">{error}</p>}
             </div>
           )}
         </Card>
