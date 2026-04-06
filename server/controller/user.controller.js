@@ -418,11 +418,7 @@ user.avatar = {
     public_id: uploadResult.public_id,
   };
 
-  // // ✅ MOVE THIS SAFELY
-  // setTimeout(() => {
-  //   cleanupUploadsFolder();
-  // }, 2000);
-    }
+ 
 
 await user.save();
 
