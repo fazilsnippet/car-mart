@@ -9,14 +9,13 @@ import { setUser, logout } from "./redux/features/auth/authSlice";
 import { connectSocket } from "./utils/socket.js";
 import PrivateRoute from "./utils/private.jsx";
 
-const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
-const CarCreate = lazy(() => import("./redux/features/cars/CarCreate"));
-const BookingCreate = lazy(() => import("./redux/features/bookings/BookingCreate"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const CarList = lazy(() => import("./redux/features/cars/carList"));
-const BrandCreation = lazy(() => import("./redux/features/brands/brandCreation"));
+// const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
+// const Dashboard = lazy(() => import("./pages/Dashboard"));
+import DashboardLayout from "./layouts/DashboardLayout";
+import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import CarCreate from "./redux/features/cars/CarCreate";
+import BrandCreation from "./redux/features/brands/brandCreation";
 const BrandList = lazy(() => import("./redux/features/brands/bradnList"));
 const CarDetailPage = lazy(() => import("./redux/features/cars/carDetailPage"));
 const Login = lazy(() => import("./redux/features/auth/login.jsx"));
@@ -87,7 +86,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Suspense fallback={<div>Loading page...</div>}>
+      <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
@@ -170,7 +169,6 @@ function App() {
               }
             />
           </Route>
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

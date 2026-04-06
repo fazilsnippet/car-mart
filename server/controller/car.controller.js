@@ -235,7 +235,102 @@ export const getCarBySlug = async (req, res, next) => {
   }
 };
 
+export const getCarById = async (req, res, next) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
 
+    const car = await Car.findById(req.params.id)
+      .populate("brand", "name")
+      .lean();
+
+    if (!car) {
+      return res.status(404).json({ success: false, message: "Car not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: car
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+// export const getCar = async (req, res, next) => {
+//   try {
+//     const { identifier } = req.params;
+
+//     let query = [
+//       { slug: identifier.toLowerCase() }
+//     ];
+
+//     if (mongoose.Types.ObjectId.isValid(identifier)) {
+//       query.push({ _id: identifier });
+//     }
+
+//     const car = await Car.findOne({
+//       $or: query,
+//       lifecycleStatus: "ACTIVE",
+//     })
+//       .populate("brand", "name")
+//       .lean();
+
+//     if (!car) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Car not found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       data: car,
+//     });
+
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+// export const getCar = async (req, res, next) => {
+//   try {
+//     const { identifier } = req.params;
+
+//     let query = [
+//       { slug: identifier.toLowerCase() }
+//     ];
+
+//     if (mongoose.Types.ObjectId.isValid(identifier)) {
+//       query.push({ _id: identifier });
+//     }
+
+//     const car = await Car.findOne({
+//       $or: query,
+//       lifecycleStatus: "ACTIVE",
+//     })
+//       .populate("brand", "name")
+//       .lean();
+
+//     if (!car) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Car not found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       data: car,
+//     });
+
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 export const createCar = async (req, res, next) => {
   try {
     const value = req.validatedData;
@@ -380,6 +475,7 @@ export const updateCarPrice = async (req, res) => {
 };
 
 
+
 export const deleteCar = async (req, res, next) => {
   try {
     const carId = req.params.id;
@@ -446,9 +542,9 @@ export const markCarAsSold = async (req, res) => {
       if (!isValidObjectId(carId)) {
         throw new Error("Invalid carId");
       }
-
-     const car = await Car.findOneAndUpdate(
-  {
+      
+      const car = await Car.findOneAndUpdate(
+        {
     _id: carId,
     lifecycleStatus: { $ne: "SOLD" },
   },
@@ -475,26 +571,3 @@ if (!car) {
   }
 };
 
-export const getCarById = async (req, res, next) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: "Invalid ID" });
-    }
-
-    const car = await Car.findById(req.params.id)
-      .populate("brand", "name")
-      .lean();
-
-    if (!car) {
-      return res.status(404).json({ success: false, message: "Car not found" });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: car
-    });
-
-  } catch (error) {
-    next(error);
-  }
-};
