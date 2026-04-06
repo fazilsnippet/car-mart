@@ -130,7 +130,6 @@ const MyProfile = () => {
     console.log("UPDATE ERROR ❌", err);
   }
 };
-const [error, setError] = useState("");
 const [showForgot, setShowForgot] = useState(false);
 const [step, setStep] = useState("email");
 
