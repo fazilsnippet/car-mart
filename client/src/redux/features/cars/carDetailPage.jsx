@@ -446,10 +446,9 @@
 // };
 
 // export default CarDetailPage;
-
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGetCarBySlugQuery } from "./carApi";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
@@ -478,11 +477,11 @@ const CarDetailPage = () => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const thumbRef = useRef(null);
 
   const isSaved = wishlist.some((i) => i.car?._id === car?._id);
 
   const handleToggle = async () => {
+    if (!car?._id) return;
     try {
       await toggleWishlist(car._id).unwrap();
     } catch (err) {
@@ -492,11 +491,28 @@ const CarDetailPage = () => {
 
   const handleStartChat = async () => {
     try {
+      if (!car?._id) return;
       const convo = await startConversation({ carId: car._id }).unwrap();
       navigate(`/chat/${convo._id}`);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleBook = () => {
+    if (!car?._id) return;
+    navigate("/booking", {
+      state: {
+        carId: car._id,
+        carSnapshot: {
+          title: car?.title,
+          brand: car?.brand?.name,
+          price: car?.price,
+          year: car?.year,
+          image: car?.images?.[0]?.url,
+        },
+      },
+    });
   };
 
   if (isLoading)
@@ -512,11 +528,9 @@ const CarDetailPage = () => {
 
   return (
     <div className="px-4 py-6 mx-auto max-w-7xl">
-      {/* GRID */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT */}
         <div className="space-y-4 lg:col-span-7">
-          {/* MAIN IMAGE */}
           <div className="relative overflow-hidden group rounded-2xl bg-slate-100">
             <img
               src={images[activeIndex]?.url}
@@ -528,13 +542,13 @@ const CarDetailPage = () => {
               <>
                 <button
                   onClick={prev}
-                  className="absolute p-2 -translate-y-1/2 rounded-full shadow left-3 top-1/2 bg-white/90 hover:scale-105"
+                  className="absolute p-2 -translate-y-1/2 rounded-full shadow left-3 top-1/2 bg-white/90"
                 >
                   <HiOutlineChevronLeft />
                 </button>
                 <button
                   onClick={next}
-                  className="absolute p-2 -translate-y-1/2 rounded-full shadow right-3 top-1/2 bg-white/90 hover:scale-105"
+                  className="absolute p-2 -translate-y-1/2 rounded-full shadow right-3 top-1/2 bg-white/90"
                 >
                   <HiOutlineChevronRight />
                 </button>
@@ -542,15 +556,14 @@ const CarDetailPage = () => {
             )}
           </div>
 
-          {/* THUMBS */}
           {total > 1 && (
-            <div className="flex gap-2 overflow-x-auto" ref={thumbRef}>
+            <div className="flex gap-2 overflow-x-auto">
               {images.map((img, i) => (
                 <img
                   key={i}
                   src={img.url}
                   onClick={() => setActiveIndex(i)}
-                  className={`h-16 w-24 object-cover rounded-lg border cursor-pointer transition ${
+                  className={`h-16 w-24 object-cover rounded-lg border cursor-pointer ${
                     i === activeIndex
                       ? "border-blue-500"
                       : "border-transparent"
@@ -565,7 +578,7 @@ const CarDetailPage = () => {
         <div className="space-y-5 lg:col-span-5">
           <div className="p-5 space-y-4 bg-white shadow rounded-2xl">
             <h1 className="text-xl font-semibold sm:text-2xl">
-              {car.title}
+              {car.title} {car.year && `(${car.year})`}
             </h1>
 
             <p className="text-2xl font-bold text-indigo-600">
@@ -575,6 +588,7 @@ const CarDetailPage = () => {
             {/* ACTIONS */}
             <div className="grid gap-2 sm:grid-cols-2">
               <button
+                onClick={handleBook}
                 className="flex items-center justify-center gap-2 py-2 text-white bg-indigo-600 rounded-xl"
               >
                 <CalendarDays size={18} /> Book
@@ -582,28 +596,41 @@ const CarDetailPage = () => {
 
               <button
                 onClick={handleStartChat}
+                disabled={isStartingChat}
                 className="flex items-center justify-center gap-2 py-2 border rounded-xl"
               >
-                <HiOutlineChatAlt2 /> Chat
+                <HiOutlineChatAlt2 />
+                {isStartingChat ? "Opening..." : "Chat"}
               </button>
 
               <button
                 onClick={handleToggle}
+                disabled={isTogglingWishlist}
                 className="flex items-center justify-center gap-2 py-2 border col-span-full rounded-xl"
               >
                 <HiOutlineHeart
-                  className={isSaved ? "text-red-500" : ""}
+                  className={isSaved ? "text-red-500 fill-red-500" : ""}
                 />
-                {isSaved ? "Saved" : "Save"}
+                {isTogglingWishlist
+                  ? "..."
+                  : isSaved
+                  ? "Saved"
+                  : "Save"}
               </button>
             </div>
 
             {/* DETAILS */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-3 pt-3 text-sm border-t">
               {car.brand?.name && (
                 <div>
                   <p className="text-slate-500">Brand</p>
                   <p className="font-medium">{car.brand.name}</p>
+                </div>
+              )}
+              {car.variant && (
+                <div>
+                  <p className="text-slate-500">Variant</p>
+                  <p>{car.variant}</p>
                 </div>
               )}
               {car.fuelType && (
@@ -624,6 +651,12 @@ const CarDetailPage = () => {
                   <p>{car.kmDriven}</p>
                 </div>
               )}
+              {car.ownerCount && (
+                <div>
+                  <p className="text-slate-500">Owners</p>
+                  <p>{car.ownerCount}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -639,10 +672,28 @@ const CarDetailPage = () => {
             <HiOutlineX size={28} />
           </button>
 
+          {total > 1 && (
+            <button
+              onClick={prev}
+              className="absolute p-3 text-white rounded-full left-4 bg-white/10"
+            >
+              <HiOutlineChevronLeft size={28} />
+            </button>
+          )}
+
           <img
             src={images[activeIndex]?.url}
             className="max-h-[90%] max-w-[90%] object-contain"
           />
+
+          {total > 1 && (
+            <button
+              onClick={next}
+              className="absolute p-3 text-white rounded-full right-4 bg-white/10"
+            >
+              <HiOutlineChevronRight size={28} />
+            </button>
+          )}
         </div>
       )}
     </div>
