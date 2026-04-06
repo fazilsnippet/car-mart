@@ -5,14 +5,11 @@ import {
   useGetUserProfileQuery,
   useUpdateAccountDetailsMutation,
   useChangePasswordMutation,
-  useGetRecentlyViewedCarsQuery,
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "./userApi";
-import LogoutButton from "../auth/logout";
-import Loader from "../ui/loader";
 
-/* ================== REUSABLE UI ================== */
+/* ================== SHARED UI ================== */
 
 const Input = ({ value, onChange, type = "text", placeholder }) => (
   <input
@@ -20,375 +17,236 @@ const Input = ({ value, onChange, type = "text", placeholder }) => (
     value={value || ""}
     onChange={onChange}
     placeholder={placeholder}
-    className="w-full p-3 text-base border rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    className="w-full p-3 border rounded-xl"
   />
 );
 
-const Label = ({ children }) => (
-  <label className="text-xs text-slate-500">{children}</label>
-);
-
-const PrimaryButton = ({ children, loading, disabled, ...props }) => (
+const Button = ({ children, loading, ...props }) => (
   <button
     {...props}
-    disabled={disabled || loading}
-    className="px-5 py-2 text-white transition bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    disabled={loading}
+    className="px-4 py-2 text-white bg-indigo-600 rounded-xl disabled:opacity-50"
   >
     {loading ? "..." : children}
   </button>
 );
 
-const SecondaryButton = ({ children, ...props }) => (
-  <button
-    {...props}
-    className="px-5 py-2 transition border rounded-xl hover:bg-slate-100"
-  >
-    {children}
-  </button>
-);
+/* ================== PROFILE INFO ================== */
 
-const Card = ({ children }) => (
-  <div className="p-5 bg-white shadow rounded-2xl">{children}</div>
-);
+const ProfileInfo = ({ user, refetch }) => {
+  const [updateAccount, { isLoading }] = useUpdateAccountDetailsMutation();
 
-/* ================== MAIN ================== */
+  const [form, setForm] = useState({ fullName: "" });
+  const [avatar, setAvatar] = useState(null);
+  const [preview, setPreview] = useState(null);
 
-const MyProfile = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  useEffect(() => {
+    if (user) setForm({ fullName: user.fullName || "" });
+  }, [user]);
 
-  const { data, isLoading, setError, refetch } =
-    useGetUserProfileQuery(undefined);
+  useEffect(() => {
+    return () => preview && URL.revokeObjectURL(preview);
+  }, [preview]);
 
-  const user = data?.data;
+  const isChanged = form.fullName !== user?.fullName || avatar;
 
-  useGetRecentlyViewedCarsQuery(undefined, {
-    skip: !user,
-  });
+  const handleUpdate = async () => {
+    if (!isChanged) return;
 
-  const [updateAccount, { isLoading: updatingAccount }] =
-    useUpdateAccountDetailsMutation();
+    await updateAccount({ fullName: form.fullName, avatar }).unwrap();
+    setAvatar(null);
+    setPreview(null);
+    refetch();
+  };
 
-  const [changePassword, { isLoading: updatingPassword }] =
-    useChangePasswordMutation();
+  return (
+    <div className="p-4 bg-white shadow rounded-xl">
+      <h2 className="text-xl font-semibold">Profile</h2>
 
-  const [forgotPassword, { isLoading: sendingOtp }] =
-    useForgotPasswordMutation();
+      <div className="flex gap-4 mt-4">
+        <img
+          src={preview || user?.avatar?.url}
+          className="object-cover w-20 h-20 rounded-full"
+        />
 
-  const [resetPassword, { isLoading: resettingPassword }] =
-    useResetPasswordMutation();
+        <input
+          type="file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setAvatar(file);
+            setPreview(URL.createObjectURL(file));
+          }}
+        />
+      </div>
 
-  const [accountForm, setAccountForm] = useState({
-    fullName: "",
-  });
+      <div className="mt-4">
+        <Input
+          value={form.fullName}
+          onChange={(e) =>
+            setForm({ ...form, fullName: e.target.value })
+          }
+          placeholder="Full Name"
+        />
+      </div>
 
-  const [passwordForm, setPasswordForm] = useState({
-    oldPassword: "",
-    newPassword: "",
-  });
+      <Button onClick={handleUpdate} loading={isLoading}>
+        Save
+      </Button>
+    </div>
+  );
+};
 
-  const [forgotForm, setForgotForm] = useState({
+/* ================== CHANGE PASSWORD ================== */
+
+const ChangePassword = () => {
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+
+  const [form, setForm] = useState({ oldPassword: "", newPassword: "" });
+
+  const handleSubmit = async () => {
+    await changePassword(form).unwrap();
+    setForm({ oldPassword: "", newPassword: "" });
+  };
+
+  return (
+    <div className="p-4 bg-white shadow rounded-xl">
+      <h2 className="text-xl font-semibold">Change Password</h2>
+
+      <div className="mt-4 space-y-2">
+        <Input
+          type="password"
+          placeholder="Old Password"
+          value={form.oldPassword}
+          onChange={(e) =>
+            setForm({ ...form, oldPassword: e.target.value })
+          }
+        />
+        <Input
+          type="password"
+          placeholder="New Password"
+          value={form.newPassword}
+          onChange={(e) =>
+            setForm({ ...form, newPassword: e.target.value })
+          }
+        />
+      </div>
+
+      <Button onClick={handleSubmit} loading={isLoading}>
+        Update Password
+      </Button>
+    </div>
+  );
+};
+
+/* ================== FORGOT PASSWORD ================== */
+
+const ForgotPassword = () => {
+  const [forgotPassword] = useForgotPasswordMutation();
+  const [resetPassword] = useResetPasswordMutation();
+
+  const [step, setStep] = useState("email");
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
     email: "",
     otp: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-
-
-  const handlePasswordUpdate = async () => {
-    try {
-      await changePassword(passwordForm).unwrap();
-      setPasswordForm({ oldPassword: "", newPassword: "" });
-    } catch {}
+  const sendOtp = async () => {
+    if (!form.email) return setError("Email required");
+    await forgotPassword({ email: form.email }).unwrap();
+    setStep("otp");
   };
 
-  const handleSendOtp = async () => {
-    if (!forgotForm.email) return setError("Email required");
-    setError("");
-    try {
-      await forgotPassword(forgotForm.email).unwrap();
-      setStep("otp");
-    } catch {
-      setError("Failed");
+  const reset = async () => {
+    if (form.newPassword !== form.confirmPassword) {
+      return setError("Passwords mismatch");
     }
-  };
-  const handleAccountUpdate = async () => {
-  if (!avatar && accountForm.fullName === user?.fullName) return;
 
-  try {
-    await updateAccount({
-      fullName: accountForm.fullName,
-      avatar,
+    await resetPassword({
+      email: form.email,
+      otp: form.otp,
+      newPassword: form.newPassword,
     }).unwrap();
 
-    console.log("UPDATED ✅");
-
-    setAvatar(null);
-    setPreview(null);
-    refetch();
-  } catch (err) {
-    console.log("UPDATE ERROR ❌", err);
-  }
-};
-const [showForgot, setShowForgot] = useState(false);
-const [step, setStep] = useState("email");
-
-const isChanged =
-  accountForm.fullName !== user?.fullName || avatar !== null;
-
-useEffect(() => {
-  if (user) {
-    setAccountForm({ fullName: user.fullName || "" });
-  }
-}, [user]);
-const [avatar, setAvatar] = useState(null);
-const [preview, setPreview] = useState(null);
-  const handleResetPassword = async () => {
-    if (
-      !forgotForm.otp ||
-      !forgotForm.newPassword ||
-      forgotForm.newPassword !== forgotForm.confirmPassword
-    ) {
-      return setError("Invalid input");
-    }
-
-    try {
-      await resetPassword({
-        email: forgotForm.email,
-        otp: forgotForm.otp,
-        newPassword: forgotForm.newPassword,
-      }).unwrap();
-
-      setShowForgot(false);
-      setStep("email");
-    } catch {
-      setError("Failed");
-    }
+    setStep("email");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader />
-      </div>
-    );
-  }
+  return (
+    <div className="p-4 bg-white shadow rounded-xl">
+      <h2 className="text-xl font-semibold">Forgot Password</h2>
 
-  if (setError || !isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  const handleAvatarChange = (e) => {
-  console.log("FILES:", e.target.files);
+      {step === "email" && (
+        <>
+          <Input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <Button onClick={sendOtp}>Send OTP</Button>
+        </>
+      )}
 
-  const file = e.target.files?.[0];
+      {step === "otp" && (
+        <>
+          <Input
+            placeholder="OTP"
+            value={form.otp}
+            onChange={(e) => setForm({ ...form, otp: e.target.value })}
+          />
+          <Button onClick={() => setStep("reset")}>Verify</Button>
+        </>
+      )}
 
-  if (!file) {
-    console.log("NO FILE SELECTED ❌");
-    return;
-  }
+      {step === "reset" && (
+        <>
+          <Input
+            type="password"
+            placeholder="New Password"
+            value={form.newPassword}
+            onChange={(e) =>
+              setForm({ ...form, newPassword: e.target.value })
+            }
+          />
+          <Input
+            type="password"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
+          />
+          <Button onClick={reset}>Reset</Button>
+        </>
+      )}
 
-  console.log("FILE SELECTED ✅", file);
-
-  setAvatar(file);
-  setPreview(URL.createObjectURL(file));
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+  );
 };
 
+/* ================== MAIN ================== */
+
+const MyProfile = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  const { data, isLoading, isError, refetch } =
+    useGetUserProfileQuery();
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError || !isAuthenticated)
+    return <Navigate to="/login" replace />;
+
+  const user = data?.data;
+
   return (
-    <div className="min-h-screen p-4 bg-slate-100">
-      <div className="flex flex-col max-w-5xl gap-6 mx-auto">
-
-        {/* ================= PROFILE CARD ================= */}
-        <Card>
-          {/* HEADER */}
-          <div className="flex items-center gap-4">
-           <div className="relative">
-  <img
-    src={preview || user?.avatar?.url}
-    alt="avatar"
-    className="object-cover w-20 h-20 rounded-full"
-  />
-
-  <input
-    id="avatarInput"
-    type="file"
-    accept="image/*"
-    className="hidden"
-    onChange={handleAvatarChange}
-  />
-
-  <label
-    htmlFor="avatarInput"
-    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-full cursor-pointer bg-slate-100"
-  >
-    Edit
-  </label>
-</div>
-
-            <div className="flex-1">
-              <h2 className="text-2xl font-semibold sm:text-3xl text-slate-900">
-                My Profile
-              </h2>
-              <p className="text-base text-slate-700">
-                Manage your account details
-              </p>
-            </div>
-          </div>
-
-          {/* CONTENT */}
-          <div className="grid gap-4 pt-4 border-t md:grid-cols-2">
-
-            {/* Full Name */}
-            <div className="flex flex-col gap-2">
-              <Label>Full Name</Label>
-              <Input
-                value={accountForm.fullName}
-                onChange={(e) =>
-                  setAccountForm({
-                    ...accountForm,
-                    fullName: e.target.value,
-                  })
-                }
-                placeholder="Full Name"
-              />
-            </div>
-
-            {/* Email (READ ONLY) */}
-            <div className="flex flex-col gap-2">
-              <Label>Email</Label>
-              <div className="p-3 text-base rounded-xl bg-slate-100 text-slate-700">
-                {user?.email || "—"}
-              </div>
-             
-            </div>
-          </div>
-
-          {/* FOOTER */}
-          <div className="flex gap-4 pt-4 border-t">
-            <PrimaryButton
-              onClick={handleAccountUpdate}
-              loading={updatingAccount}
-              disabled={!isChanged}
-            >
-              Save Profile
-            </PrimaryButton>
-          </div>
-        </Card>
-
-        {/* ================= PASSWORD CARD ================= */}
-        <Card>
-          <h3 className="text-lg font-medium">Change Password</h3>
-
-          <div className="grid gap-4 pt-4 border-t md:grid-cols-2">
-            <Input
-              type="password"
-              value={passwordForm.oldPassword}
-              onChange={(e) =>
-                setPasswordForm({
-                  ...passwordForm,
-                  oldPassword: e.target.value,
-                })
-              }
-              placeholder="Old Password"
-            />
-            <Input
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(e) =>
-                setPasswordForm({
-                  ...passwordForm,
-                  newPassword: e.target.value,
-                })
-              }
-              placeholder="New Password"
-            />
-          </div>
-
-          <div className="flex gap-4 pt-4 border-t">
-            <PrimaryButton
-              onClick={handlePasswordUpdate}
-              loading={updatingPassword}
-            >
-              Update Password
-            </PrimaryButton>
-
-            <SecondaryButton onClick={() => setShowForgot(!showForgot)}>
-              Forgot?
-            </SecondaryButton>
-
-            <LogoutButton />
-          </div>
-
-          {showForgot && (
-            <div className="flex flex-col gap-4 pt-4 border-t">
-              {step === "email" && (
-                <>
-                  <Input
-                    type="email"
-                    value={forgotForm.email}
-                    onChange={(e) =>
-                      setForgotForm({ ...forgotForm, email: e.target.value })
-                    }
-                    placeholder="Email"
-                  />
-                  <PrimaryButton onClick={handleSendOtp} loading={sendingOtp}>
-                    Send OTP
-                  </PrimaryButton>
-                </>
-              )}
-
-              {step === "otp" && (
-                <>
-                  <Input
-                    value={forgotForm.otp}
-                    onChange={(e) =>
-                      setForgotForm({ ...forgotForm, otp: e.target.value })
-                    }
-                    placeholder="OTP"
-                  />
-                  <PrimaryButton onClick={() => setStep("reset")}>
-                    Verify
-                  </PrimaryButton>
-                </>
-              )}
-
-              {step === "reset" && (
-                <>
-                  <Input
-                    type="password"
-                    placeholder="New Password"
-                    value={forgotForm.newPassword}
-                    onChange={(e) =>
-                      setForgotForm({
-                        ...forgotForm,
-                        newPassword: e.target.value,
-                      })
-                    }
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={forgotForm.confirmPassword}
-                    onChange={(e) =>
-                      setForgotForm({
-                        ...forgotForm,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                  />
-                  <PrimaryButton
-                    onClick={handleResetPassword}
-                    loading={resettingPassword}
-                  >
-                    Reset
-                  </PrimaryButton>
-                </>
-              )}
-
-              {setError && <p className="text-xs text-red-500">{error}</p>}
-            </div>
-          )}
-        </Card>
-      </div>
+    <div className="max-w-4xl p-4 mx-auto space-y-6">
+      <ProfileInfo user={user} refetch={refetch} />
+      <ChangePassword />
+      <ForgotPassword />
     </div>
   );
 };
