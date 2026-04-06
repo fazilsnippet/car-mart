@@ -147,6 +147,21 @@ const MyProfile = () => {
   if (isError || !isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+  const handleAvatarChange = (e) => {
+  console.log("FILES:", e.target.files);
+
+  const file = e.target.files?.[0];
+
+  if (!file) {
+    console.log("NO FILE SELECTED ❌");
+    return;
+  }
+
+  console.log("FILE SELECTED ✅", file);
+
+  setAvatar(file);
+  setPreview(URL.createObjectURL(file));
+};
 
   return (
     <div className="min-h-screen p-4 bg-slate-100">
@@ -156,26 +171,28 @@ const MyProfile = () => {
         <Card>
           {/* HEADER */}
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <img
-                src={preview || user?.avatar?.url}
-                alt="avatar"
-                className="object-cover w-20 h-20 rounded-full"
-              />
+           <div className="relative">
+  <img
+    src={preview || user?.avatar?.url}
+    alt="avatar"
+    className="object-cover w-20 h-20 rounded-full"
+  />
 
-              {/* overlay edit */}
-              <label className="absolute top-0 right-0 px-2 py-1 text-xs rounded-full cursor-pointer bg-slate-100">
-                Edit
-                <input type="file" hidden onChange={handleAvatarChange} />
-              </label>
+  <input
+    id="avatarInput"
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={handleAvatarChange}
+  />
 
-              {/* unsaved badge */}
-              {preview && (
-                <span className="absolute bottom-0 right-0 px-2 py-1 text-xs text-white bg-indigo-600 rounded-full">
-                  New
-                </span>
-              )}
-            </div>
+  <label
+    htmlFor="avatarInput"
+    className="absolute top-0 right-0 px-2 py-1 text-xs rounded-full cursor-pointer bg-slate-100"
+  >
+    Edit
+  </label>
+</div>
 
             <div className="flex-1">
               <h2 className="text-2xl font-semibold sm:text-3xl text-slate-900">
