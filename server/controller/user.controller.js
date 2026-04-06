@@ -413,11 +413,11 @@ user.avatar = {
     await deleteFromCloudinary(user.avatar.public_id);
   }
 
-  user.avatar = {
-    url: uploadResult.secure_url,
-    public_id: uploadResult.public_id,
-  };
-
+  
+user.avatar = {
+  url: uploadResult.url, // ✅ THIS IS THE FIX
+  public_id: uploadResult.public_id,
+};
  
 
 await user.save();
