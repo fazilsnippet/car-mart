@@ -93,48 +93,7 @@ const MyProfile = () => {
     confirmPassword: "",
   });
 
-  const [step, setStep] = useState("email");
-  const [error, setError] = useState("");
-  const [avatar, setAvatar] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [showForgot, setShowForgot] = useState(false);
 
-  useEffect(() => {
-    if (user != null) {
-      setAccountForm({
-        fullName: user.fullName || "",
-      });
-
-      setForgotForm((prev) => ({
-        ...prev,
-        email: user.email || "",
-      }));
-    }
-  }, [user]);
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatar(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  // ✅ change detection
-  const isChanged =
-    accountForm.fullName !== user?.fullName || avatar !== null;
-
-  const handleAccountUpdate = async () => {
-    try {
-      await updateAccount({
-        fullName: accountForm.fullName,
-        avatar,
-      }).unwrap();
-
-      setAvatar(null);
-      refetch();
-    } catch {}
-  };
 
   const handlePasswordUpdate = async () => {
     try {
@@ -252,9 +211,7 @@ const MyProfile = () => {
               <div className="p-3 text-base rounded-xl bg-slate-100 text-slate-700">
                 {user?.email || "—"}
               </div>
-              <p className="text-xs text-slate-500">
-                Email cannot be changed right now
-              </p>
+             
             </div>
           </div>
 

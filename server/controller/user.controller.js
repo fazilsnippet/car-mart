@@ -392,26 +392,30 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     user.fullName = fullName.trim();
   }
 
-  // if (email && email.trim()) {
-  //   user.email = email.trim();
-  // }
+
 
   // ✅ Avatar handling
-  if (req.file) {
-    const uploadResult = await uploadOnCloudinary(req.file.path);
+if (req.file) {
+  const uploadResult = await uploadOnCloudinary(req.file.path);
 
-    if (!uploadResult?.secure_url || !uploadResult?.public_id) {
-      throw new ApiError(500, "Failed to upload avatar");
-    }
+  if (!uploadResult?.secure_url || !uploadResult?.public_id) {
+    throw new ApiError(500, "Failed to upload avatar");
+  }
 
-    if (user.avatar?.public_id) {
-      await deleteFromCloudinary(user.avatar.public_id);
-    }
+  if (user.avatar?.public_id) {
+    await deleteFromCloudinary(user.avatar.public_id);
+  }
 
-    user.avatar = {
-      url: uploadResult.secure_url,
-      public_id: uploadResult.public_id,
-    };
+  user.avatar = {
+    url: uploadResult.secure_url,
+    public_id: uploadResult.public_id,
+  };
+
+  // ✅ MOVE THIS SAFELY
+  setTimeout(() => {
+    cleanupUploadsFolder();
+  }, 2000);
+}
 
     cleanupUploadsFolder();
   }

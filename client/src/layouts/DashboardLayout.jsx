@@ -369,9 +369,7 @@ const baseNavGroups = [
   {
     title: "My activity",
     items: [{ to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck }],
-  },{
-  title: "My Wishlist",
-  items: [{ to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart }],
+    items: [{ to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart }],
   },
 ];
 
