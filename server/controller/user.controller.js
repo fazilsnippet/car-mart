@@ -396,7 +396,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   // ✅ Avatar handling
 if (req.file) {
-  const uploadResult = await uploadOnCloudinary(req.file.path);
+  const uploadResult = await uploadOnCloudinary(req.file?.path);
 
   if (!uploadResult?.secure_url || !uploadResult?.public_id) {
     throw new ApiError(500, "Failed to upload avatar");
@@ -415,12 +415,9 @@ if (req.file) {
   setTimeout(() => {
     cleanupUploadsFolder();
   }, 2000);
-}
+    }
 
-    cleanupUploadsFolder();
-  }
-
-  await user.save();
+await user.save();
 
   const updatedUser = await User.findById(userId).select("-password -email");
 
@@ -428,6 +425,7 @@ if (req.file) {
     new ApiResponse(200, updatedUser, "Profile updated successfully")
   );
 });
+
 
 
 
