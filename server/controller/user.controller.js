@@ -398,9 +398,10 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 if (req.file) {
   const uploadResult = await uploadOnCloudinary(req.file?.path);
 
-  if (!uploadResult?.secure_url || !uploadResult?.public_id) {
-    throw new ApiError(500, "Failed to upload avatar");
-  }
+ 
+  if (!uploadResult?.url || !uploadResult?.public_id) {
+  throw new ApiError(500, "Failed to upload avatar");
+}
 
   if (user.avatar?.public_id) {
     await deleteFromCloudinary(user.avatar.public_id);
@@ -411,10 +412,10 @@ if (req.file) {
     public_id: uploadResult.public_id,
   };
 
-  // ✅ MOVE THIS SAFELY
-  setTimeout(() => {
-    cleanupUploadsFolder();
-  }, 2000);
+  // // ✅ MOVE THIS SAFELY
+  // setTimeout(() => {
+  //   cleanupUploadsFolder();
+  // }, 2000);
     }
 
 await user.save();
