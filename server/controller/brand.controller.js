@@ -1,7 +1,6 @@
 import slugify from "slugify";
 import { Brand } from "../models/Brand.model.js";
 import { createBrandSchema } from "../utils/validators/brand.validator.js";
-import { uploadOnCloudinary, cleanupUploadsFolder } from "../utils/cloudinary.js";
 
 export const getBrands = async (req, res, next) => {
   try {
@@ -59,26 +58,11 @@ export const createBrand = async (req, res, next) => {
     //   }
     // }
 
-    let uploadedLogo;
 
-if (req.file) {
-  const result = await uploadOnCloudinary(req.file.path);
-
-  if (result) {
-    uploadedLogo = {
-      url: result.secure_url,
-      publicId: result.public_id
-    };
-  }
-
-  // Clean up the uploads folder after processing
-  cleanupUploadsFolder();
-}
 
 const brand = await Brand.create({
   name: value.name,
   slug,
-  ...(uploadedLogo && { logo: uploadedLogo })
 });
 
     // // 5️⃣ Create brand

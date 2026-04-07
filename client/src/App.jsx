@@ -22,6 +22,7 @@ const BookingCreate = lazy(() =>
 );
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const newDashboard = lazy(() => import("./pages/newDashboard"));
 const CarList = lazy(() => import("./redux/features/cars/carList"));
 const BrandCreation = lazy(() =>
   import("./redux/features/brands/brandCreation")
@@ -112,10 +113,10 @@ function App() {
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}
         <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
+          {/* <Route index element={<Dashboard />} /> */}
 
           {/* 🔒 Admin */}
-          <Route
+          {/* <Route
             path="/admin"
             element={
               <Suspense fallback={<div>Loading...</div>}>
@@ -124,7 +125,17 @@ function App() {
                 </PrivateRoute>
               </Suspense>
             }
-          />
+          /> */}
+           <Route
+        index
+        element={
+          <Suspense fallback={<div>Loading...</div>}>
+            <PrivateRoute>
+              <newDashboard />
+            </PrivateRoute>
+          </Suspense>
+        }
+      />
 
           {/* 🚗 Cars */}
           <Route

@@ -16,6 +16,8 @@ import {
   useGetAllUsersQuery,
   useToggleBanUserMutation,
 } from "../redux/features/users/userApi";
+import BrandCreation from "../redux/features/brands/brandCreation";
+import ChatPage from "../redux/features/chats/chatPage";
 import CarForm from "../redux/features/cars/CarForm";
 import {
   HiOutlineArrowRight,
@@ -34,6 +36,8 @@ const ADMIN_TABS = [
   { key: "cars", label: "Cars" },
   { key: "users", label: "Users" },
   { key: "wishlist", label: "Wishlist" },
+  { key: "chatPage", label: "Chats" },
+  {key: "brands", label: "Brands" },
 ];
 
 const formatCurrency = (value) =>
@@ -69,9 +73,9 @@ function StatCard({ icon: Icon, label, value, helper, accent }) {
     <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_45px_-24px_rgba(15,23,42,0.45)]">
       <div className={`h-1.5 w-full ${accent}`} />
       <div className="p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
-            <Icon className="h-5 w-5" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="p-3 rounded-2xl bg-slate-100 text-slate-700">
+            <Icon className="w-5 h-5" />
           </div>
           <span className="text-xs font-medium text-slate-500">{helper}</span>
         </div>
@@ -231,8 +235,8 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-4xl bg-linear-to-br from-slate-950 via-slate-900 to-indigo-900 p-6 text-white shadow-[0_25px_80px_-35px_rgba(15,23,42,0.9)] sm:p-8">
-        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-400/20 blur-3xl" />
-        <div className="absolute -bottom-10 left-0 h-32 w-32 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="absolute w-40 h-40 rounded-full -right-12 -top-12 bg-indigo-400/20 blur-3xl" />
+        <div className="absolute left-0 w-32 h-32 rounded-full -bottom-10 bg-cyan-400/10 blur-3xl" />
 
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.5fr,1fr] lg:items-end">
           <div>
@@ -242,22 +246,22 @@ export default function AdminDashboard() {
             <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
               Welcome back, {user?.fullName || user?.userName}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+            <p className="max-w-2xl mt-3 text-sm text-slate-300 sm:text-base">
               Review bookings, curate inventory, monitor wishlists, and manage access from a dedicated control center.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 mt-5">
               <button
                 type="button"
                 onClick={() => setActiveTab("bookings")}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white rounded-full text-slate-900"
               >
-                Open bookings <HiOutlineArrowRight className="h-4 w-4" />
+                Open bookings <HiOutlineArrowRight className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("cars")}
-                className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/90"
+                className="px-4 py-2 text-sm font-semibold border rounded-full border-white/20 text-white/90"
               >
                 Manage inventory
               </button>
@@ -265,19 +269,19 @@ export default function AdminDashboard() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+            <div className="p-4 border rounded-2xl border-white/10 bg-white/10 backdrop-blur">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Inventory</p>
               <p className="mt-2 text-2xl font-bold">{totalCars}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+            <div className="p-4 border rounded-2xl border-white/10 bg-white/10 backdrop-blur">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Bookings</p>
               <p className="mt-2 text-2xl font-bold">{bookingTotal}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+            <div className="p-4 border rounded-2xl border-white/10 bg-white/10 backdrop-blur">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Users</p>
               <p className="mt-2 text-2xl font-bold">{counts.totalUsers}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+            <div className="p-4 border rounded-2xl border-white/10 bg-white/10 backdrop-blur">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Wishlists</p>
               <p className="mt-2 text-2xl font-bold">{activeWishlistCount}</p>
             </div>
@@ -350,17 +354,17 @@ export default function AdminDashboard() {
           title="Booking management"
           description="Search requests, inspect booking details, and assign them instantly."
         >
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2 mb-4 sm:flex-row">
             <input
               value={bookingSearch}
               onChange={(e) => setBookingSearch(e.target.value)}
               placeholder="Search message"
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="px-3 py-2 text-sm border rounded-xl border-slate-200"
             />
             <select
               value={bookingStatus}
               onChange={(e) => setBookingStatus(e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="px-3 py-2 text-sm border rounded-xl border-slate-200"
             >
               <option value="">All statuses</option>
               <option value="NEW">NEW</option>
@@ -376,7 +380,7 @@ export default function AdminDashboard() {
             <p className="py-8 text-sm text-slate-500">No bookings found for the current filter.</p>
           ) : (
             <div className="grid gap-4 xl:grid-cols-[1.55fr,1fr]">
-              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <div className="overflow-x-auto border rounded-2xl border-slate-200">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50 text-slate-600">
                     <tr>
@@ -388,7 +392,7 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody>
                     {bookings.map((booking) => (
-                      <tr key={booking._id} className="border-t border-slate-100 align-top">
+                      <tr key={booking._id} className="align-top border-t border-slate-100">
                         <td className="px-4 py-3">
                           <p className="font-semibold text-slate-900">{booking.userId?.fullName || "Unknown"}</p>
                           <p className="text-xs text-slate-500">{booking.userId?.email}</p>
@@ -407,7 +411,7 @@ export default function AdminDashboard() {
                             <button
                               type="button"
                               onClick={() => setSelectedBookingId(booking._id)}
-                              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+                              className="px-3 py-1 text-xs font-semibold border rounded-lg border-slate-200 text-slate-700"
                             >
                               View
                             </button>
@@ -415,7 +419,7 @@ export default function AdminDashboard() {
                               type="button"
                               onClick={() => handleAssignBooking(booking._id)}
                               disabled={assigningBooking}
-                              className="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
+                              className="px-3 py-1 text-xs font-semibold text-white rounded-lg bg-slate-900"
                             >
                               Assign to me
                             </button>
@@ -427,7 +431,7 @@ export default function AdminDashboard() {
                 </table>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="p-4 border rounded-2xl border-slate-200 bg-slate-50">
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                   Selected booking
                 </h3>
@@ -472,7 +476,14 @@ export default function AdminDashboard() {
           )}
         </SectionShell>
       )}
-
+{activeTab === "chatPage" && (
+  <SectionShell
+    title="chats"
+    description="Mannage Messages."
+  >
+    <ChatPage />
+  </SectionShell>
+)}
       {(activeTab === "overview" || activeTab === "cars") && (
         <div className="grid gap-6 xl:grid-cols-[1.05fr,1.4fr]">
           <SectionShell
@@ -515,7 +526,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {cars.map((car) => (
-                  <div key={car._id} className="rounded-2xl border border-slate-200 p-4">
+                  <div key={car._id} className="p-4 border rounded-2xl border-slate-200">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div>
                         <h3 className="font-semibold text-slate-900">{car.title}</h3>
@@ -529,7 +540,7 @@ export default function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setSelectedCar(car)}
-                          className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"
+                          className="px-3 py-2 text-xs font-semibold border rounded-lg border-slate-200 text-slate-700"
                         >
                           Edit details
                         </button>
@@ -537,7 +548,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => handleMarkSold(car._id)}
                           disabled={sellingCar}
-                          className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"
+                          className="px-3 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg"
                         >
                           Mark sold
                         </button>
@@ -545,14 +556,14 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => handleDeleteCar(car._id)}
                           disabled={deletingCar}
-                          className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white"
+                          className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-rose-600"
                         >
                           Delete
                         </button>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <div className="flex flex-col gap-2 mt-4 sm:flex-row">
                       <input
                         type="number"
                         min="1"
@@ -560,13 +571,13 @@ export default function AdminDashboard() {
                         onChange={(e) =>
                           setPriceDrafts((prev) => ({ ...prev, [car._id]: e.target.value }))
                         }
-                        className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                        className="px-3 py-2 text-sm border rounded-xl border-slate-200"
                       />
                       <button
                         type="button"
                         onClick={() => handlePriceUpdate(car._id, car.price)}
                         disabled={updatingPrice}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                        className="px-4 py-2 text-sm font-semibold text-white rounded-xl bg-slate-900"
                       >
                         Update price
                       </button>
@@ -584,12 +595,12 @@ export default function AdminDashboard() {
           title="User access control"
           description="Search members, filter banned users, and update access in one click."
         >
-          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 mb-4 md:flex-row md:items-center md:justify-between">
             <input
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="Search users"
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="px-3 py-2 text-sm border rounded-xl border-slate-200"
             />
             <div className="flex flex-wrap gap-2">
               {[
@@ -618,7 +629,7 @@ export default function AdminDashboard() {
           ) : users.length === 0 ? (
             <p className="py-8 text-sm text-slate-500">No users found.</p>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            <div className="overflow-x-auto border rounded-2xl border-slate-200">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
@@ -668,6 +679,16 @@ export default function AdminDashboard() {
         </SectionShell>
       )}
 
+{activeTab === "brands" && (
+  <SectionShell
+    title="Brand management"
+    description="Create and manage car brands."
+  >
+    <BrandCreation />
+  </SectionShell>
+)}
+
+
       {(activeTab === "overview" || activeTab === "wishlist") && (
         <SectionShell
           title="Wishlist activity"
@@ -678,7 +699,7 @@ export default function AdminDashboard() {
           ) : wishlistItems.length === 0 ? (
             <p className="py-8 text-sm text-slate-500">No wishlist records found.</p>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            <div className="overflow-x-auto border rounded-2xl border-slate-200">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
@@ -712,10 +733,10 @@ export default function AdminDashboard() {
 
       {activeTab === "overview" && (
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-600">
-                <HiOutlineTruck className="h-5 w-5" />
+          <div className="p-5 bg-white border shadow-sm rounded-3xl border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 text-indigo-600 rounded-2xl bg-indigo-50">
+                <HiOutlineTruck className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900">Fast booking response</h3>
@@ -731,10 +752,10 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="rounded-2xl bg-sky-50 p-3 text-sky-600">
-                <HiOutlineViewGrid className="h-5 w-5" />
+          <div className="p-5 bg-white border shadow-sm rounded-3xl border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-2xl bg-sky-50 text-sky-600">
+                <HiOutlineViewGrid className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900">Curate inventory</h3>
@@ -750,10 +771,10 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                <HiOutlineUserCircle className="h-5 w-5" />
+          <div className="p-5 bg-white border shadow-sm rounded-3xl border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600">
+                <HiOutlineUserCircle className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900">User security</h3>

@@ -8,11 +8,7 @@ const brandSchema = new mongoose.Schema(
       unique: true,
       trim: true
     },
-logo
-: {
-  url: String,
-  publicId: String
-},
+
     slug: {
       type: String,
       required: true,

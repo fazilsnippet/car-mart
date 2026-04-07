@@ -37,22 +37,7 @@ export default function BrandList() {
           <div
             key={brand._id}
             className="p-4 transition border shadow rounded-xl hover:shadow-lg"
-          >
-            {/* Logo */}
-            {brand.logo?.url ? (
-              <img
-                src={brand.logo.url}
-                alt={brand.name}
-                className="object-contain w-full h-32 mb-4"
-              />
-              
-            ) : (
-              <div className="flex items-center justify-center w-full h-32 mb-4 bg-gray-100 rounded">
-                <span className="text-sm text-gray-400">
-                  No Logo
-                </span>
-              </div>
-            )}
+          >          
 
             {/* Name */}
             <h3 className="text-lg font-medium text-center">
