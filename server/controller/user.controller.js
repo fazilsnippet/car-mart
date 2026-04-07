@@ -386,40 +386,38 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  // ✅ Update only if provided
+  // ✅ Update name
   if (fullName && fullName.trim()) {
     user.fullName = fullName.trim();
   }
 
+  // ✅ Avatar update (only if new file exists)
+  if (req.file) {
+    // 1. Upload new avatar
+    const uploadResult = await uploadOnCloudinary(req.file.path, "avatars");
 
+    if (!uploadResult?.url || !uploadResult?.public_id) {
+      throw new ApiError(500, "Avatar upload failed");
+    }
 
-  // ✅ Avatar handling
-if (req.file) {
-const cloudinaryResult = await uploadOnCloudinary(req.file.path);
+    const oldPublicId = user.avatar?.public_id;
 
-if (!cloudinaryResult?.url || !cloudinaryResult?.public_id) {
-  throw new ApiError(500, "Avatar upload failed");
-}
+    // 2. Save new avatar FIRST
+    user.avatar = {
+      url: uploadResult.url,
+      public_id: uploadResult.public_id,
+    };
 
-avatar = {
-  url: cloudinaryResult.url,
-  public_id: cloudinaryResult.public_id,
-};
+    await user.save();
 
-}
-
-  if (user.avatar?.public_id) {
-    await deleteFromCloudinary(user.avatar.public_id);
+    // 3. Delete old avatar AFTER successful save
+    if (oldPublicId) {
+      await deleteFromCloudinary(oldPublicId);
+    }
+  } else {
+    // If no avatar update, just save other changes
+    await user.save();
   }
-
-  
-user.avatar = {
-  url: cloudinaryResult.url, // ✅ THIS IS THE FIX
-  public_id: cloudinaryResult.public_id,
-};
- 
-
-await user.save();
 
   const updatedUser = await User.findById(userId).select("-password -email");
 
