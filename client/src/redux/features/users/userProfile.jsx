@@ -65,9 +65,13 @@ const ProfileInfo = ({ user, refetch }) => {
 
       <div className="flex gap-4 mt-4">
         <img
-          src={preview || user?.avatar?.url}
-          className="object-cover w-20 h-20 rounded-full"
-        />
+  src={
+    preview ||
+    user?.avatar?.url ||
+    "/default-avatar.png"
+  }
+  className="object-cover w-20 h-20 rounded-full"
+/>
 
         <input
           type="file"
