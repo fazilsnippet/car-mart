@@ -395,15 +395,15 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   // ✅ Avatar handling
 if (req.file) {
-  const uploadResult = await uploadOnCloudinary(req.file?.path,  "cars");
- 
-if (!uploadResult?.url || !uploadResult?.public_id) {
-  throw new ApiError(500, "Invalid upload response");
+const cloudinaryResult = await uploadOnCloudinary(req.file.path);
+
+if (!cloudinaryResult?.url || !cloudinaryResult?.public_id) {
+  throw new ApiError(500, "Avatar upload failed");
 }
 
-user.avatar = {
-  url: uploadResult.url,
-  public_id: uploadResult.public_id,
+avatar = {
+  url: cloudinaryResult.url,
+  public_id: cloudinaryResult.public_id,
 };
 
 }
@@ -414,8 +414,8 @@ user.avatar = {
 
   
 user.avatar = {
-  url: uploadResult.url, // ✅ THIS IS THE FIX
-  public_id: uploadResult.public_id,
+  url: cloudinaryResult.url, // ✅ THIS IS THE FIX
+  public_id: cloudinaryResult.public_id,
 };
  
 
