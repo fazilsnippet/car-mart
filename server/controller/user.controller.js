@@ -599,7 +599,7 @@ const userProfile = asyncHandler(async (req, res) => {
     fullName: user?.fullName,
     email: user?.email,
     userName: user?.userName,
-    profilePicture: user?.avatar,
+    avatar: user?.avatar,
     address: user?.address,
     bookings: user?.bookingHistory || []
     
