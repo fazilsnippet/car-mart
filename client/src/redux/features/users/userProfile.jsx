@@ -8,7 +8,7 @@ import {
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "./userApi";
-
+import LogoutButton from "../auth/logout";
 /* ================== SHARED UI ================== */
 
 const Input = ({ value, onChange, type = "text", placeholder }) => (
@@ -251,6 +251,7 @@ const MyProfile = () => {
       <ProfileInfo user={user} refetch={refetch} />
       <ChangePassword />
       <ForgotPassword />
+      <LogoutButton />
     </div>
   );
 };
