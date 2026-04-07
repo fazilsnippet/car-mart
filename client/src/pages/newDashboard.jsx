@@ -3,24 +3,29 @@ import { useSelector } from "react-redux";
 import { HiOutlineArrowRight } from "react-icons/hi";
 
 // 🔹 Lazy-loaded modules
-const AdminBookings = lazy(() => import("./modules/bookings/AdminBookings"));
-const AdminCars = lazy(() => import("./modules/cars/AdminCars"));
-const AdminUsers = lazy(() => import("./modules/users/AdminUsers"));
-const AdminWishlist = lazy(() => import("./modules/wishlist/AdminWishlist"));
-const AdminChats = lazy(() => import("./modules/chats/AdminChats"));
-const AdminBrands = lazy(() => import("./modules/brands/AdminBrands"));
-
-const UserListings = lazy(() => import("./modules/user/UserListings"));
+const AdminBookings = lazy(() => import("../redux/features/bookings/adminBookings.jsx"));
+const AdminCars = lazy(() => import("../redux/features/cars/carList.jsx"));
+const AdminUsers = lazy(() => import("../redux/features/users/allUsers.jsx"));
+const AdminChatPage = lazy(() => import("../redux/features/chats/adminChatPage.jsx"));
+const AdminBrands = lazy(() => import("../redux/features/brands/adminBrand.jsx"));
 
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "bookings", label: "Bookings", admin: true },
   { key: "cars", label: "Cars", admin: true },
   { key: "users", label: "Users", admin: true },
-  { key: "wishlist", label: "Wishlist", admin: true },
   { key: "chat", label: "Chats", admin: true },
   { key: "brands", label: "Brands", admin: true },
 ];
+
+// 🔹 Component map (clean pattern)
+const TAB_COMPONENTS = {
+  bookings: AdminBookings,
+  cars: AdminCars,
+  users: AdminUsers,
+  chat: AdminChatPage,
+  brands: AdminBrands,
+};
 
 function TabButton({ active, onClick, children }) {
   return (
@@ -39,70 +44,19 @@ function Loading() {
   return <div className="py-10 text-sm text-slate-500">Loading...</div>;
 }
 
-export default function newDashboard() {
+export default function Dashboard() {
   const user = useSelector((state) => state.auth.user);
   const isAdmin = user?.role === "ADMIN";
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  // 🔹 Memoized visible tabs
+  // ✅ Correct useMemo (this is a good use-case)
   const visibleTabs = useMemo(() => {
     return TABS.filter((tab) => (tab.admin ? isAdmin : true));
   }, [isAdmin]);
 
-  // 🔹 Memoized tab renderer
-  const renderTab = useMemo(() => {
-    switch (activeTab) {
-      case "bookings":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminBookings />
-          </Suspense>
-        );
-
-      case "cars":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminCars />
-          </Suspense>
-        );
-
-      case "users":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminUsers />
-          </Suspense>
-        );
-
-      case "wishlist":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminWishlist />
-          </Suspense>
-        );
-
-      case "chat":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminChats />
-          </Suspense>
-        );
-
-      case "brands":
-        return (
-          <Suspense fallback={<Loading />}>
-            <AdminBrands />
-          </Suspense>
-        );
-
-      default:
-        return (
-          <Suspense fallback={<Loading />}>
-            <UserListings />
-          </Suspense>
-        );
-    }
-  }, [activeTab]);
+  // ✅ Clean renderer (no misuse of useMemo)
+  const ActiveComponent = TAB_COMPONENTS[activeTab];
 
   return (
     <div className="space-y-6">
@@ -144,7 +98,15 @@ export default function newDashboard() {
 
       {/* Content */}
       <div className="p-5 bg-white border rounded-2xl border-slate-200">
-        {renderTab}
+        {activeTab === "overview" ? (
+          <div className="text-sm text-slate-500">
+            Overview content
+          </div>
+        ) : ActiveComponent ? (
+          <Suspense fallback={<Loading />}>
+            <ActiveComponent />
+          </Suspense>
+        ) : null}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import slugify from "slugify";
 import { Brand } from "../models/Brand.model.js";
-import { createBrandSchema } from "../utils/validators/brand.validator.js";
+import { createBrandSchema, updateBrandSchema } from "../utils/validators/brand.validator.js";
 
 export const getBrands = async (req, res, next) => {
   try {
@@ -58,12 +58,10 @@ export const createBrand = async (req, res, next) => {
     //   }
     // }
 
-
-
-const brand = await Brand.create({
-  name: value.name,
-  slug,
-});
+    const brand = await Brand.create({
+      name: value.name,
+      slug,
+    });
 
     // // 5️⃣ Create brand
     // const brand = await Brand.create({
@@ -78,6 +76,80 @@ const brand = await Brand.create({
       data: brand
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBrand = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { value, error } = updateBrandSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    if (value.name) {
+      const existingBrand = await Brand.findOne({
+        _id: { $ne: id },
+        name: { $regex: `^${value.name}$`, $options: "i" }
+      });
+
+      if (existingBrand) {
+        return res.status(400).json({
+          success: false,
+          message: "Brand already exists"
+        });
+      }
+
+      value.slug = slugify(value.name, {
+        lower: true,
+        strict: true
+      });
+    }
+
+    const updatedBrand = await Brand.findByIdAndUpdate(id, value, {
+      new: true
+    });
+
+    if (!updatedBrand) {
+      return res.status(404).json({
+        success: false,
+        message: "Brand not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Brand updated successfully",
+      data: updatedBrand
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteBrand = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const deletedBrand = await Brand.findByIdAndDelete(id);
+
+    if (!deletedBrand) {
+      return res.status(404).json({
+        success: false,
+        message: "Brand not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Brand deleted successfully",
+      data: deletedBrand
+    });
   } catch (error) {
     next(error);
   }

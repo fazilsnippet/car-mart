@@ -13,7 +13,7 @@ import PrivateRoute from "./utils/private.jsx";
 
 /* ✅ NON-LAZY (CRITICAL ROUTES) */
 import DashboardLayout from "./layouts/DashboardLayout";
-import Dashboard from "./pages/Dashboard";
+// import Dashboard from "./pages/Dashboard";
 
 /* ✅ LAZY (NON-CRITICAL ROUTES) */
 const CarCreate = lazy(() => import("./redux/features/cars/CarCreate"));
@@ -22,7 +22,7 @@ const BookingCreate = lazy(() =>
 );
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const newDashboard = lazy(() => import("./pages/newDashboard"));
+const Dashboard = lazy(() => import("./pages/newDashboard"));
 const CarList = lazy(() => import("./redux/features/cars/carList"));
 const BrandCreation = lazy(() =>
   import("./redux/features/brands/brandCreation")
@@ -131,7 +131,7 @@ function App() {
         element={
           <Suspense fallback={<div>Loading...</div>}>
             <PrivateRoute>
-              <newDashboard />
+              <Dashboard />
             </PrivateRoute>
           </Suspense>
         }
