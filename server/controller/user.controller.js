@@ -105,21 +105,20 @@ const registerUser = asyncHandler(async (req, res) => {
   // Avatar upload (optional)
   let avatar = null;
 
-  if (req.file) {
-    const cloudinaryResult = await uploadOnCloudinary(req.file.path);
+ if (req.file) {
+  const cloudinaryResult = await uploadOnCloudinary(req.file.path);
 
-    if (!cloudinaryResult?.secure_url || !cloudinaryResult?.public_id) {
-      throw new ApiError(500, "Avatar upload failed");
-    }
-
-    avatar = {
-      url: cloudinaryResult.secure_url,
-      publicId: cloudinaryResult.public_id,
-    };
-
-    // Clean up the uploads folder after processing
-    cleanupUploadsFolder();
+  if (!cloudinaryResult?.url || !cloudinaryResult?.public_id) {
+    throw new ApiError(500, "Avatar upload failed");
   }
+
+  avatar = {
+    url: cloudinaryResult.url,
+    public_id: cloudinaryResult.public_id,
+  };
+
+  cleanupUploadsFolder();
+}
 
   // Create user (password auto-hashed in model)
   const user = await User.create({
@@ -396,7 +395,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   // ✅ Avatar handling
 if (req.file) {
-  const uploadResult = await uploadOnCloudinary(req.file?.path,  "avatars");
+  const uploadResult = await uploadOnCloudinary(req.file?.path,  "cars");
  
 if (!uploadResult?.url || !uploadResult?.public_id) {
   throw new ApiError(500, "Invalid upload response");
