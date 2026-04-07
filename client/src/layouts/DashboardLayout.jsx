@@ -363,13 +363,14 @@ const baseNavGroups = [
     items: [
       { to: "/", label: "Home", icon: HiOutlineViewGrid },
       { to: "/cars-list", label: "Browse Cars", icon: HiOutlineViewList },
-      // { to: "/brandList", label: "Brands", icon: HiOutlineClipboardList },
     ],
   },
   {
     title: "My activity",
-    items: [{ to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck }],
-    items: [{ to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart }],
+    items: [
+      { to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck },
+      { to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart },
+    ],
   },
 ];
 
