@@ -12,13 +12,7 @@ import LogoutButton from "../auth/logout.jsx";
 import { useTheme } from "../../../utils/theme.jsx";
 
 import {
-  User,
-  Heart,
-  Calendar,
-  Lock,
-  HelpCircle,
-  MessageCircle,
-  Info,
+
   ArrowLeft,
   Pencil,
   Sun,
