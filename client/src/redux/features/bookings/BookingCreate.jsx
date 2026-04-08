@@ -54,7 +54,7 @@ export default function BookingCreate() {
   };
 
   return (
-    <div className="max-w-xl p-6 mx-auto bg-white shadow rounded-xl">
+    <div className="max-w-xl p-6 mx-auto bg-white shadow rounded-xl bg-background text-foreground">
       <h2 className="mb-4 text-xl font-semibold">Create Booking</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -96,7 +96,7 @@ export default function BookingCreate() {
 
         {/* Booking Type */}
         <div>
-          <label className="block text-sm font-medium">Booking Type</label>
+          <label className="block text-sm font-medium bg-background text-foreground">Booking Type</label>
           <select
             {...register("bookingType")}
             className="w-full p-2 border rounded"
@@ -112,7 +112,7 @@ export default function BookingCreate() {
         {bookingType === "TEST_DRIVE" && (
           <>
             <div>
-              <label className="block text-sm font-medium">Preferred Date</label>
+              <label className="block text-sm font-medium bg-background text-foreground">Preferred Date</label>
               <input
                 type="date"
                 {...register("preferredDate")}
@@ -145,7 +145,7 @@ export default function BookingCreate() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full p-2 text-white bg-black rounded hover:opacity-90"
+          className="w-full p-2 text-white bg-black rounded hover:opacity-90 bg-background text-foreground"
         >
           {isLoading ? "Submitting..." : "Book Now"}
         </button>

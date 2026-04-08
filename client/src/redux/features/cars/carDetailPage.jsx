@@ -72,7 +72,7 @@ const CarDetailPage = () => {
   };
 
   if (isLoading)
-    return <div className="p-6 text-center"><Loading/></div>;
+    return <div className="flex items-center justify-center flex-1"><Loading/></div>;
   if (isError || !car)
     return <div className="p-6 text-center bg-background text-foreground">Car not found</div>;
 
