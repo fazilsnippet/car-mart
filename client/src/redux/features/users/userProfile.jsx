@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   useGetUserProfileQuery,
   useUpdateAccountDetailsMutation,
@@ -9,18 +9,23 @@ import {
   useResetPasswordMutation,
 } from "./userApi";
 import LogoutButton from "../auth/logout";
+import { useTheme } from "../ThemeContext";
 
 import {
   User,
+  Heart,
+  Calendar,
   Lock,
   HelpCircle,
+  MessageCircle,
+  Info,
   ArrowLeft,
+  Pencil,
   Sun,
   Moon,
-  Pencil,
 } from "lucide-react";
 
-/* ================== SHARED UI ================== */
+/* ================== SHARED ================== */
 
 const Input = ({ value, onChange, type = "text", placeholder }) => (
   <input
@@ -42,7 +47,36 @@ const Button = ({ children, loading, ...props }) => (
   </button>
 );
 
-/* ================== PROFILE INFO ================== */
+/* ================== BOTTOM SHEET ================== */
+
+const BottomSheet = ({ open, onClose, title, children }) => {
+  return (
+    <div
+      className={`fixed inset-0 z-50 transition ${
+        open ? "visible" : "invisible"
+      }`}
+    >
+      <div
+        className={`absolute inset-0 bg-black/40 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+        onClick={onClose}
+      />
+
+      <div
+        className={`absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-5 transition-transform duration-300 ${
+          open ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="w-12 h-1.5 bg-muted mx-auto mb-4 rounded-full" />
+        <h2 className="text-lg font-semibold mb-4">{title}</h2>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/* ================== PROFILE ================== */
 
 const ProfileInfo = ({ user, refetch }) => {
   const [updateAccount, { isLoading }] = useUpdateAccountDetailsMutation();
@@ -55,15 +89,10 @@ const ProfileInfo = ({ user, refetch }) => {
     if (user) setForm({ fullName: user.fullName || "" });
   }, [user]);
 
-  useEffect(() => {
-    return () => preview && URL.revokeObjectURL(preview);
-  }, [preview]);
-
   const isChanged = form.fullName !== user?.fullName || avatar;
 
   const handleUpdate = async () => {
     if (!isChanged) return;
-
     await updateAccount({ fullName: form.fullName, avatar }).unwrap();
     setAvatar(null);
     setPreview(null);
@@ -71,18 +100,13 @@ const ProfileInfo = ({ user, refetch }) => {
   };
 
   return (
-    <div className="bg-card rounded-xl shadow p-6">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <User className="w-5 h-5" /> Profile
-      </h2>
-
+    <div>
       <div className="flex items-center gap-4">
         <div className="relative">
           <img
             src={preview || user?.avatar?.url || "/default-avatar.png"}
             className="w-24 h-24 rounded-full object-cover border border-border"
           />
-
           <label className="absolute bottom-1 right-1 bg-primary text-primary-foreground p-1 rounded-full cursor-pointer">
             <Pencil className="w-4 h-4" />
             <input
@@ -106,10 +130,9 @@ const ProfileInfo = ({ user, refetch }) => {
             }
             placeholder="Full Name"
           />
-
           <div className="mt-3">
             <Button onClick={handleUpdate} loading={isLoading}>
-              Save Changes
+              Save
             </Button>
           </div>
         </div>
@@ -118,11 +141,10 @@ const ProfileInfo = ({ user, refetch }) => {
   );
 };
 
-/* ================== CHANGE PASSWORD ================== */
+/* ================== PASSWORD ================== */
 
 const ChangePassword = () => {
   const [changePassword, { isLoading }] = useChangePasswordMutation();
-
   const [form, setForm] = useState({ oldPassword: "", newPassword: "" });
 
   const handleSubmit = async () => {
@@ -131,48 +153,37 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="bg-card rounded-xl shadow p-6">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Lock className="w-5 h-5" /> Change Password
-      </h2>
-
-      <div className="space-y-3">
-        <Input
-          type="password"
-          placeholder="Old Password"
-          value={form.oldPassword}
-          onChange={(e) =>
-            setForm({ ...form, oldPassword: e.target.value })
-          }
-        />
-        <Input
-          type="password"
-          placeholder="New Password"
-          value={form.newPassword}
-          onChange={(e) =>
-            setForm({ ...form, newPassword: e.target.value })
-          }
-        />
-      </div>
-
-      <div className="mt-4">
-        <Button onClick={handleSubmit} loading={isLoading}>
-          Update Password
-        </Button>
-      </div>
+    <div className="space-y-3">
+      <Input
+        type="password"
+        placeholder="Old Password"
+        value={form.oldPassword}
+        onChange={(e) =>
+          setForm({ ...form, oldPassword: e.target.value })
+        }
+      />
+      <Input
+        type="password"
+        placeholder="New Password"
+        value={form.newPassword}
+        onChange={(e) =>
+          setForm({ ...form, newPassword: e.target.value })
+        }
+      />
+      <Button onClick={handleSubmit} loading={isLoading}>
+        Update Password
+      </Button>
     </div>
   );
 };
 
-/* ================== FORGOT PASSWORD ================== */
+/* ================== FORGOT ================== */
 
 const ForgotPassword = () => {
   const [forgotPassword] = useForgotPasswordMutation();
   const [resetPassword] = useResetPasswordMutation();
 
   const [step, setStep] = useState("email");
-  const [error, setError] = useState("");
-
   const [form, setForm] = useState({
     email: "",
     otp: "",
@@ -181,84 +192,60 @@ const ForgotPassword = () => {
   });
 
   const sendOtp = async () => {
-    if (!form.email) return setError("Email required");
     await forgotPassword({ email: form.email }).unwrap();
     setStep("otp");
   };
 
   const reset = async () => {
-    if (form.newPassword !== form.confirmPassword) {
-      return setError("Passwords mismatch");
-    }
-
     await resetPassword({
       email: form.email,
       otp: form.otp,
       newPassword: form.newPassword,
     }).unwrap();
-
     setStep("email");
   };
 
   return (
-    <div className="bg-card rounded-xl shadow p-6">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <HelpCircle className="w-5 h-5" /> Forgot Password
-      </h2>
+    <div className="space-y-3 mt-4">
+      {step === "email" && (
+        <>
+          <Input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) =>
+              setForm({ ...form, email: e.target.value })
+            }
+          />
+          <Button onClick={sendOtp}>Send OTP</Button>
+        </>
+      )}
 
-      <div className="space-y-3">
-        {step === "email" && (
-          <>
-            <Input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
-            />
-            <Button onClick={sendOtp}>Send OTP</Button>
-          </>
-        )}
+      {step === "otp" && (
+        <>
+          <Input
+            placeholder="OTP"
+            value={form.otp}
+            onChange={(e) =>
+              setForm({ ...form, otp: e.target.value })
+            }
+          />
+          <Button onClick={() => setStep("reset")}>Verify</Button>
+        </>
+      )}
 
-        {step === "otp" && (
-          <>
-            <Input
-              placeholder="OTP"
-              value={form.otp}
-              onChange={(e) =>
-                setForm({ ...form, otp: e.target.value })
-              }
-            />
-            <Button onClick={() => setStep("reset")}>Verify</Button>
-          </>
-        )}
-
-        {step === "reset" && (
-          <>
-            <Input
-              type="password"
-              placeholder="New Password"
-              value={form.newPassword}
-              onChange={(e) =>
-                setForm({ ...form, newPassword: e.target.value })
-              }
-            />
-            <Input
-              type="password"
-              placeholder="Confirm Password"
-              value={form.confirmPassword}
-              onChange={(e) =>
-                setForm({ ...form, confirmPassword: e.target.value })
-              }
-            />
-            <Button onClick={reset}>Reset</Button>
-          </>
-        )}
-
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
-      </div>
+      {step === "reset" && (
+        <>
+          <Input
+            type="password"
+            placeholder="New Password"
+            value={form.newPassword}
+            onChange={(e) =>
+              setForm({ ...form, newPassword: e.target.value })
+            }
+          />
+          <Button onClick={reset}>Reset</Button>
+        </>
+      )}
     </div>
   );
 };
@@ -266,20 +253,22 @@ const ForgotPassword = () => {
 /* ================== MAIN ================== */
 
 const MyProfile = () => {
+  const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
-
   const { data, isLoading, isError, refetch } =
     useGetUserProfileQuery();
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+
+  const [activeSheet, setActiveSheet] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDarkMode]);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   if (isLoading) return <p>Loading...</p>;
   if (isError || !isAuthenticated)
@@ -287,72 +276,82 @@ const MyProfile = () => {
 
   const user = data?.data;
 
+  const menuItems = [
+    { label: "Edit Profile Information", action: "edit-profile" },
+    { label: "My Wishlist", action: "wishlist", mobileOnly: true },
+    { label: "My Bookings", action: "bookings", mobileOnly: true },
+    { label: "Passwords", action: "passwords" },
+    { label: "Help & Supports", action: "help" },
+    { label: "Contact Us", action: "contact" },
+    { label: "About Us", action: "about" },
+  ];
+
+  const handleClick = (action) => {
+    if (action === "edit-profile" || action === "passwords") {
+      setActiveSheet(action);
+    } else {
+      navigate(`/${action}`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors py-8 px-4">
-      {/* Header */}
-      <div className="max-w-3xl mx-auto mb-6 flex justify-between">
-        <button
-          onClick={() => window.history.back()}
-          className="bg-card p-2 rounded-full shadow"
-        >
-          <ArrowLeft className="w-5 h-5" />
+    <div className="min-h-screen bg-background text-foreground p-4">
+      {/* HEADER */}
+      <div className="flex justify-between mb-6">
+        <button onClick={() => window.history.back()}>
+          <ArrowLeft />
         </button>
 
-        <button
-          onClick={() => setIsDarkMode((prev) => !prev)}
-          className="bg-card p-2 rounded-full shadow"
-        >
-          {isDarkMode ? (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          ) : (
-            <Moon className="w-5 h-5" />
-          )}
+        <button onClick={toggleTheme}>
+          {theme === "dark" ? <Sun /> : <Moon />}
         </button>
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-6">
+      {/* PROFILE CARD */}
+      <div className="bg-card p-6 rounded-xl shadow mb-6 text-center">
+        <img
+          src={user?.avatar?.url || "/default-avatar.png"}
+          className="w-24 h-24 mx-auto rounded-full"
+        />
+        <p className="mt-3">{user?.email}</p>
+        <p className="font-semibold">@{user?.userName}</p>
+      </div>
+
+      {/* MENU */}
+      <div className="space-y-3">
+        {menuItems
+          .filter((item) => (isMobile ? true : !item.mobileOnly))
+          .map((item) => (
+            <button
+              key={item.action}
+              onClick={() => handleClick(item.action)}
+              className="w-full bg-card p-4 rounded-xl shadow flex justify-between"
+            >
+              {item.label}
+              <span>›</span>
+            </button>
+          ))}
+      </div>
+
+      <LogoutButton />
+
+      {/* BOTTOM SHEETS */}
+      <BottomSheet
+        open={activeSheet === "edit-profile"}
+        onClose={() => setActiveSheet(null)}
+        title="Edit Profile"
+      >
         <ProfileInfo user={user} refetch={refetch} />
+      </BottomSheet>
+
+      <BottomSheet
+        open={activeSheet === "passwords"}
+        onClose={() => setActiveSheet(null)}
+        title="Passwords"
+      >
         <ChangePassword />
         <ForgotPassword />
-        <LogoutButton />
-      </div>
-
-      {/* THEME SYSTEM */}
-      <style jsx global>{`
-        :root {
-          --background: #ffffff;
-          --foreground: #111827;
-          --card: #ffffff;
-          --muted: #f3f4f6;
-          --muted-foreground: #6b7280;
-          --primary: #111827;
-          --primary-foreground: #ffffff;
-          --destructive: #dc2626;
-          --border: rgba(0, 0, 0, 0.1);
-        }
-
-        .dark {
-          --background: #0f172a;
-          --foreground: #f9fafb;
-          --card: #1e293b;
-          --muted: #334155;
-          --muted-foreground: #94a3b8;
-          --primary: #f9fafb;
-          --primary-foreground: #0f172a;
-          --destructive: #ef4444;
-          --border: #334155;
-        }
-
-        .bg-background { background: var(--background); }
-        .text-foreground { color: var(--foreground); }
-        .bg-card { background: var(--card); }
-        .text-muted-foreground { color: var(--muted-foreground); }
-        .bg-muted { background: var(--muted); }
-        .bg-primary { background: var(--primary); }
-        .text-primary-foreground { color: var(--primary-foreground); }
-        .text-destructive { color: var(--destructive); }
-        .border-border { border-color: var(--border); }
-      `}</style>
+      </BottomSheet>
     </div>
   );
 };
