@@ -19,7 +19,6 @@ import {
   Moon,
 } from "lucide-react";
 
-/* ================== SHARED ================== */
 
 const Input = ({ value, onChange, type = "text", placeholder }) => (
   <input
@@ -27,7 +26,7 @@ const Input = ({ value, onChange, type = "text", placeholder }) => (
     value={value || ""}
     onChange={onChange}
     placeholder={placeholder}
-    className="w-full p-3 rounded-xl bg-card border border-border text-foreground"
+    className="w-full p-3 border rounded-xl bg-card border-border text-foreground"
   />
 );
 
@@ -63,7 +62,7 @@ const BottomSheet = ({ open, onClose, title, children }) => {
         }`}
       >
         <div className="w-12 h-1.5 bg-muted mx-auto mb-4 rounded-full" />
-        <h2 className="text-lg font-semibold mb-4">{title}</h2>
+        <h2 className="mb-4 text-lg font-semibold">{title}</h2>
         {children}
       </div>
     </div>
@@ -99,9 +98,9 @@ const ProfileInfo = ({ user, refetch }) => {
         <div className="relative">
           <img
             src={preview || user?.avatar?.url || "/default-avatar.png"}
-            className="w-24 h-24 rounded-full object-cover border border-border"
+            className="object-cover w-24 h-24 border rounded-full border-border"
           />
-          <label className="absolute bottom-1 right-1 bg-primary text-primary-foreground p-1 rounded-full cursor-pointer">
+          <label className="absolute p-1 rounded-full cursor-pointer bottom-1 right-1 bg-primary text-primary-foreground">
             <Pencil className="w-4 h-4" />
             <input
               type="file"
@@ -200,7 +199,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="space-y-3 mt-4">
+    <div className="mt-4 space-y-3">
       {step === "email" && (
         <>
           <Input
@@ -289,7 +288,7 @@ const MyProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4">
+    <div className="min-h-screen p-4 bg-background text-foreground">
       {/* HEADER */}
       <div className="flex justify-between mb-6">
         <button onClick={() => window.history.back()}>
@@ -302,7 +301,7 @@ const MyProfile = () => {
       </div>
 
       {/* PROFILE CARD */}
-      <div className="bg-card p-6 rounded-xl shadow mb-6 text-center">
+      <div className="p-6 mb-6 text-center shadow bg-card rounded-xl">
         <img
           src={user?.avatar?.url || "/default-avatar.png"}
           className="w-24 h-24 mx-auto rounded-full"
@@ -319,7 +318,7 @@ const MyProfile = () => {
             <button
               key={item.action}
               onClick={() => handleClick(item.action)}
-              className="w-full bg-card p-4 rounded-xl shadow flex justify-between"
+              className="flex justify-between w-full p-4 shadow bg-card rounded-xl"
             >
               {item.label}
               <span>›</span>
