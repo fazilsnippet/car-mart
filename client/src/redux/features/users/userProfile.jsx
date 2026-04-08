@@ -279,7 +279,7 @@ const MyProfile = () => {
   const menuItems = [
     { label: "Edit Profile Information", action: "edit-profile" },
     { label: "My Wishlist", action: "wishlist", mobileOnly: true },
-    { label: "My Bookings", action: "bookings", mobileOnly: true },
+    { label: "My Bookings", action: "myBooking", mobileOnly: true },
     { label: "Passwords", action: "passwords" },
     { label: "Help & Supports", action: "help" },
     { label: "Contact Us", action: "contact" },
