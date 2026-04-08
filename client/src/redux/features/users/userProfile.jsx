@@ -8,8 +8,8 @@ import {
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "./userApi";
-import LogoutButton from "../auth/logout";
-import { useTheme } from "../ThemeContext";
+import LogoutButton from "../auth/logout.jsx";
+import { useTheme } from "../../../utils/theme.jsx";
 
 import {
   User,
