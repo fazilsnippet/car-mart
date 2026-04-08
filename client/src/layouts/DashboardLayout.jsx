@@ -446,7 +446,7 @@ export default function DashboardLayout() {
 
   const navContent = (
     <>
-      <nav className="flex-1 p-4 py-6 space-y-8 overflow-y-auto">
+      <nav className="flex-1 p-4 py-6 space-y-8 overflow-y-auto bg-background text-foreground">
         {navGroups.map((group) => (
           <div key={group.title}>
             <h3 className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -489,7 +489,7 @@ export default function DashboardLayout() {
         ))}
       </nav>
 
-      <div className="p-4 space-y-1 border-t border-slate-100">
+      <div className="p-4 space-y-1 border-t border-slate-100 bg-background text-foreground">
         <Link
           to="/settings"
           onClick={closeMobileMenu}
@@ -508,7 +508,7 @@ export default function DashboardLayout() {
   );
 
   return (
-    <div className="flex min-h-screen font-sans bg-slate-50/50 text-slate-900">
+    <div className="flex min-h-screen font-sans bg-slate-50/50 text-slate-900 bg-background text-foreground">
 
       {/* MOBILE MENU */}
 
@@ -536,7 +536,7 @@ export default function DashboardLayout() {
       {/* SIDEBAR */}
 
       <aside
-        className={`hidden lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-slate-200 lg:bg-white transition-[width] duration-300 ${
+        className={`hidden lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-slate-200 lg:bg-white transition-[width] duration-300 bg-background text-foreground${
           isSidebarOpen ? "lg:w-64" : "lg:w-20"
         }`}
       >
@@ -561,7 +561,7 @@ export default function DashboardLayout() {
 
       {/* MAIN AREA */}
 
-      <div className="flex flex-col flex-1 min-h-screen">
+      <div className="flex flex-col flex-1 min-h-screen bg-background text-foreground">
 
         {/* HEADER */}
 
@@ -606,7 +606,7 @@ export default function DashboardLayout() {
             {isAdmin && (
               <button
                 onClick={() => navigate("/admin")}
-                className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 sm:inline-flex"
+                className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 sm:inline-flex bg-background text-foreground"
               >
                 <HiOutlineShieldCheck className="w-4 h-4" />
                 Admin Center
