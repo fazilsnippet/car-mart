@@ -5,7 +5,7 @@ import CarCard from "./carCard";
 import CarFilters from "./CarFilters";
 import { useSearchParams } from "react-router-dom";
 import { HiOutlineAdjustments, HiOutlineX } from "react-icons/hi";
-
+import Loader from "../ui/loader.jsx"
 export default function CarList() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -70,15 +70,15 @@ const filters = useMemo(() => ({
 
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-gray-600">
-        Loading cars...
+      <div className="flex items-center justify-center flex-1 ">
+       <Loader/>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="flex items-center justify-center flex-1 text-center text-red-500 ">
         {error?.data?.message || "Failed to load cars"}
       </div>
     );
@@ -117,7 +117,7 @@ const updateFilters = (newFilters) => {
 };
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
       {/* Mobile Drawer */}
       {isFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -138,7 +138,7 @@ const updateFilters = (newFilters) => {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl bg-background text-foreground">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -152,7 +152,7 @@ const updateFilters = (newFilters) => {
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-white border lg:hidden rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-white border lg:hidden rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 bg-background text-foreground"
           >
             <HiOutlineAdjustments className="w-5 h-5" />
             Filters
@@ -171,14 +171,14 @@ const updateFilters = (newFilters) => {
           </div>
 
           {/* Results */}
-          <div className="col-span-12 lg:col-span-8 xl:col-span-9">
+          <div className="col-span-12 lg:col-span-8 xl:col-span-9 bg-background text-foreground">
             {cars.length === 0 ? (
               <div className="p-10 text-center bg-white border shadow-sm text-slate-500 rounded-2xl border-slate-100">
                 No cars match your filters.
                 <div className="mt-4">
                   <button
                     onClick={() => updateFilters(initialFilters)}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 bg-background text-foreground"
                   >
                     <HiOutlineX className="w-4 h-4" />
                     Clear filters
@@ -187,7 +187,7 @@ const updateFilters = (newFilters) => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 bg-background text-foreground">
                   {cars.map((car) => (
                     <CarCard key={car._id} car={car} />
                   ))}

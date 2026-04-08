@@ -8,6 +8,7 @@ import {
   HiOutlineHeart,
   HiOutlineChatAlt2,
 } from "react-icons/hi";
+import Loading from "../ui/loader.jsx";
 import { CalendarDays } from "lucide-react";
 import {
   useGetWishlistQuery,
@@ -71,9 +72,9 @@ const CarDetailPage = () => {
   };
 
   if (isLoading)
-    return <div className="p-6 text-center">Loading...</div>;
+    return <div className="p-6 text-center"><Loading/></div>;
   if (isError || !car)
-    return <div className="p-6 text-center">Car not found</div>;
+    return <div className="p-6 text-center bg-background text-foreground">Car not found</div>;
 
   const images = car.images || [];
   const total = images.length;
@@ -96,10 +97,10 @@ const CarDetailPage = () => {
   };
 
   return (
-    <div className="px-4 py-6 mx-auto font-sans max-w-7xl">
-      <div className="grid gap-6 lg:grid-cols-12">
+    <div className="px-4 py-6 mx-auto font-sans max-w-7xl bg-background text-foreground">
+      <div className="grid gap-6 lg:grid-cols-12 bg-background text-foreground">
         {/* LEFT */}
-        <div className="space-y-4 lg:col-span-7">
+        <div className="space-y-4 lg:col-span-7 bg-background text-foreground">
           <div
             className="relative overflow-hidden group rounded-2xl bg-slate-100"
             onTouchStart={handleTouchStart}
@@ -143,7 +144,7 @@ const CarDetailPage = () => {
           </div>
 
           {total > 1 && (
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex gap-2 overflow-x-auto bg-background text-foreground">
               {images.map((img, i) => (
                 <img
                   key={i}
@@ -161,7 +162,7 @@ const CarDetailPage = () => {
         </div>
 
         {/* RIGHT */}
-        <div className="space-y-5 lg:col-span-5">
+        <div className="space-y-5 lg:col-span-5 bg-background text-foreground">
           <div className="p-5 space-y-5 bg-white shadow rounded-2xl">
             <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-slate-900">
               {car.title} {car.year && `(${car.year})`}
@@ -272,7 +273,7 @@ const CarDetailPage = () => {
       {/* LIGHTBOX */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 bg-background text-foreground"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -301,7 +302,7 @@ const CarDetailPage = () => {
           {total > 1 && (
             <button
               onClick={next}
-              className="absolute p-3 text-white rounded-full right-4 bg-white/10"
+              className="absolute p-3 text-white rounded-full right-4 bg-white/10 bg-background text-foreground"
             >
               <HiOutlineChevronRight size={28} />
             </button>
