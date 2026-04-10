@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import { Car } from "../models/Car.model.js";
-import { querySchema , updateSchema, createSchema} from "../utils/validators/car.validators.js";
+// import { querySchema , updateSchema, createSchema} from "../utils/validators/car.validators.js";
 import { uploadOnCloudinary, deleteFromCloudinary, cleanupUploadsFolder } from "../utils/cloudinary.js";
 import slugify from "slugify";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import Joi from "joi";
 
 
