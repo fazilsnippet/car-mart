@@ -44,6 +44,7 @@ const NotificationsPage = lazy(
   () => import("./redux/features/notification/notifications.page.jsx"),
 );
 const ChatPage = lazy(() => import("./redux/features/chats/chatPage.jsx"));
+import Home from "./pages/homePage.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -283,6 +284,14 @@ function App() {
             element={
               <Suspense fallback={<div>Loading...</div>}>
                 <Login />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <Register />
               </Suspense>
             }
           />
