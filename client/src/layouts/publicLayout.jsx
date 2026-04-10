@@ -1,8 +1,11 @@
 import { Outlet, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-
+import { useTheme } from "../utils/theme.jsx";
+import { Sun, Moon } from "lucide-react";
 export default function PublicLayout() {
   const user = useSelector((state) => state.auth.user);
+    const { theme, toggleTheme } = useTheme();
+  
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -22,6 +25,9 @@ export default function PublicLayout() {
               <Link to="/register">Signup</Link>
             </>
           )}
+              <button onClick={toggleTheme}>
+                        {theme === "dark" ? <Sun /> : <Moon />}
+                      </button>
         </div>
       </header>
 
