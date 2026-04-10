@@ -22,7 +22,7 @@ const MobileDrawer = ({ open, onClose }) => {
 
         <div className="flex flex-col gap-4">
           <Link to="/wishlist" onClick={onClose}>Wishlist</Link>
-          <Link to="/mBooking" onClick={onClose}>Bookings</Link>
+          <Link to="/myBooking" onClick={onClose}>Bookings</Link>
           {/* <Link to="/sell" onClick={onClose}>Sell Your Car</Link> */}
         </div>
       </div>

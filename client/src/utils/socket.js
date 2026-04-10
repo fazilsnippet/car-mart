@@ -8,7 +8,7 @@ export const connectSocket = (userId) => {
     return socket;
   }
 
-  socket = io("https://car-mart-backend.onrender.com", {
+  socket = io(process.env.REACT_APP_SOCKET_URL, {
     transports: ["websocket", "polling"],
     withCredentials: true,
     reconnection: true,

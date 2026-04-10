@@ -19,7 +19,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://car-mart-client.onrender.com", 
+    origin: process.env.CORS_ORIGIN, 
     credentials: true,
   })
 );

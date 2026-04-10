@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import dotenv from "dotenv";
 
 import {
   useLazyGetMeQuery,
@@ -13,39 +14,46 @@ import PrivateRoute from "./utils/private.jsx";
 
 /* ✅ NON-LAZY (CRITICAL ROUTES) */
 import DashboardLayout from "./layouts/DashboardLayout";
-import UserLayout from "./layouts/userLayout.jsx";
-import PublicLayout from "./layouts/publicLayout.jsx";
 // import Dashboard from "./pages/Dashboard";
 
 /* ✅ LAZY (NON-CRITICAL ROUTES) */
 const CarCreate = lazy(() => import("./redux/features/cars/CarCreate"));
-const BookingCreate = lazy(
-  () => import("./redux/features/bookings/BookingCreate"),
+const BookingCreate = lazy(() =>
+  import("./redux/features/bookings/BookingCreate")
 );
 const NotFound = lazy(() => import("./pages/NotFound"));
 // const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Dashboard = lazy(() => import("./pages/newDashboard"));
 const CarList = lazy(() => import("./redux/features/cars/carList"));
-const BrandCreation = lazy(
-  () => import("./redux/features/brands/brandCreation"),
+const BrandCreation = lazy(() =>
+  import("./redux/features/brands/brandCreation")
 );
-const BrandList = lazy(() => import("./redux/features/brands/bradnList"));
-const CarDetailPage = lazy(() => import("./redux/features/cars/carDetailPage"));
+const BrandList = lazy(() =>
+  import("./redux/features/brands/bradnList")
+);
+const CarDetailPage = lazy(() =>
+  import("./redux/features/cars/carDetailPage")
+);
 const Login = lazy(() => import("./redux/features/auth/login.jsx"));
 const Register = lazy(() => import("./redux/features/auth/register.jsx"));
-const MyProfile = lazy(() => import("./redux/features/users/userProfile.jsx"));
-const MyBookings = lazy(
-  () => import("./redux/features/bookings/myBooking.jsx"),
+const MyProfile = lazy(() =>
+  import("./redux/features/users/userProfile.jsx")
 );
-const GetWishlists = lazy(
-  () => import("./redux/features/wishlist/GetWishlists.jsx"),
+const MyBookings = lazy(() =>
+  import("./redux/features/bookings/myBooking.jsx")
 );
-const NotificationsPage = lazy(
-  () => import("./redux/features/notification/notifications.page.jsx"),
+const GetWishlists = lazy(() =>
+  import("./redux/features/wishlist/GetWishlists.jsx")
 );
-const ChatPage = lazy(() => import("./redux/features/chats/chatPage.jsx"));
-import Home from "./pages/homePage.jsx";
+const NotificationsPage = lazy(() =>
+  import("./redux/features/notification/notifications.page.jsx")
+);
+import Header from "./layouts/header.jsx";
+const ChatPage = lazy(() =>
+  import("./redux/features/chats/chatPage.jsx")
+);
 
+dotenv.config();
 function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -107,7 +115,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}
-        {/* <Route path="/" element={<DashboardLayout />}> */}
+        <Header/>
+        <Route path="/" element={<DashboardLayout />}>
           {/* <Route index element={<Dashboard />} /> */}
 
           {/* 🔒 Admin */}
@@ -121,27 +130,7 @@ function App() {
               </Suspense>
             }
           />
-        <Route
-          path="/brandCreation"
-          element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute adminOnly>
-                <BrandCreation />
-              </PrivateRoute>
-            </Suspense>
-          }
-        />
-        <Route
-          path="/car"
-          element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute adminOnly>
-                <CarCreate />
-              </PrivateRoute>
-            </Suspense>
-          }
-        />
-          {/* <Route
+           {/* <Route
         index
         element={
           <Suspense fallback={<div>Loading...</div>}>
@@ -153,17 +142,35 @@ function App() {
       /> */}
 
           {/* 🚗 Cars */}
+          <Route
+            path="/car"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute adminOnly>
+                  <CarCreate />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
 
-          {/* <Route
+          <Route
             path="/cars-list"
             element={
               <Suspense fallback={<div>Loading...</div>}>
                 <CarList />
               </Suspense>
             }
-          /> */}
+          />
 
-  <Route element={<PrivateRoute><UserLayout /></PrivateRoute>}>
+          <Route
+            path="/car/:slug"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <CarDetailPage />
+              </Suspense>
+            }
+          />
+
           {/* 📦 Booking */}
           <Route
             path="/booking"
@@ -173,11 +180,66 @@ function App() {
               </Suspense>
             }
           />
-        <Route
+
+          <Route
+            path="/myBooking"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
+                  <MyBookings />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
+
+          {/* 🏷️ Brands */}
+          <Route
+            path="/brandCreation"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute adminOnly>
+                  <BrandCreation />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
+
+          <Route
+            path="/brandList"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <BrandList />
+              </Suspense>
+            }
+          />
+
+          {/* 👤 Auth */}
+          <Route
+            path="/login"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <Login />
+              </Suspense>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <Register />
+              </Suspense>
+            }
+          />
+
+          {/* 🙍 User */}
+          <Route
             path="/myProfile"
             element={
               <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
                   <MyProfile />
+                </PrivateRoute>
               </Suspense>
             }
           />
@@ -186,7 +248,9 @@ function App() {
             path="/wishlist"
             element={
               <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
                   <GetWishlists />
+                </PrivateRoute>
               </Suspense>
             }
           />
@@ -196,7 +260,9 @@ function App() {
             path="/notifications"
             element={
               <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
                   <NotificationsPage />
+                </PrivateRoute>
               </Suspense>
             }
           />
@@ -206,7 +272,9 @@ function App() {
             path="/chat"
             element={
               <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
                   <ChatPage />
+                </PrivateRoute>
               </Suspense>
             }
           />
@@ -215,73 +283,14 @@ function App() {
             path="/chat/:conversationId"
             element={
               <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
                   <ChatPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/myBooking"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                  <MyBookings />
-              </Suspense>
-            }
-            />
-            </Route>
-
-       
-
-        <Route element={<PublicLayout />}>
-          <Route
-            path="/"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Home />
-              </Suspense>
-            }
-          />
-            
-                      <Route
-                        path="/brandList"
-                        element={
-                          <Suspense fallback={<div>Loading...</div>}>
-                            <BrandList />
-                          </Suspense>
-                        }
-                      />
-          <Route
-            path="/cars-list"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <CarList />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/car/:slug"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <CarDetailPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Login />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Register />
+                </PrivateRoute>
               </Suspense>
             }
           />
         </Route>
+
         {/* ❌ 404 */}
         <Route
           path="*"

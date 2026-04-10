@@ -1,46 +1,81 @@
-// components/Header.jsx
-import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Bell } from "lucide-react";
-
+import { ChevronDown, Phone, User, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  const { user, isLoading } = useSelector((state) => state.auth);
 
   return (
-    <header className="flex items-center justify-between w-full h-16 px-6 text-white bg-black">
-      
-      {/* Logo */}
-      <Link to="/" className="text-xl font-bold">
-        CarZone
-      </Link>
+    <>
+      <header className="fixed top-0 left-0 z-50 w-full bg-white border-b">
+        <div className="flex items-center justify-between h-16 px-6 mx-auto max-w-7xl">
 
-      {/* Right Side */}
-      <div className="flex items-center gap-4">
+          {/* LEFT */}
+          <div className="flex items-center gap-8">
+            <div className="text-xl font-bold text-blue-600">
+              Cars24
+            </div>
 
-        {/* Theme Toggle */}
-        <button className="px-2 py-1 bg-gray-700 rounded">
-          🌙
-        </button>
+            <nav className="flex items-center gap-6 text-sm font-medium text-gray-700">
+              <div className="cursor-pointer hover:text-black">Buy used car</div>
+              <div className="cursor-pointer hover:text-black">Sell car</div>
+              <div className="cursor-pointer hover:text-black">Car finance</div>
+              <div className="cursor-pointer hover:text-black">New cars</div>
+              <div className="cursor-pointer hover:text-black">Car services</div>
+            </nav>
+          </div>
 
-        {user ? (
-          <>
-            {/* Notification */}
-            <button className="relative">
-              <Bell size={22} />
-              <span className="absolute px-1 text-xs bg-red-500 rounded -top-1 -right-1">
-                3
-              </span>
+          {/* RIGHT */}
+          <div className="flex items-center gap-4">
+
+            {/* CALL BUTTON */}
+            <button className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-black rounded-lg">
+              <Phone size={16} />
+              Call us
             </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
-      </div>
-    </header>
+
+            {/* AUTH SECTION */}
+            {isLoading ? (
+              <div className="text-sm text-gray-400">...</div>
+            ) : !user ? (
+              <button
+                onClick={() => navigate("/login")}
+                className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100"
+              >
+                Login
+              </button>
+            ) : (
+              <div className="flex items-center gap-4">
+
+                {/* NOTIFICATIONS */}
+                <div className="relative cursor-pointer">
+                  <Bell size={20} />
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1 rounded-full">
+                    3
+                  </span>
+                </div>
+
+                {/* PROFILE */}
+                <div
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center gap-1 text-sm font-medium cursor-pointer"
+                >
+                  <User size={18} />
+                  {user?.name || "Profile"}
+                  <ChevronDown size={14} />
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </header>
+
+      {/* SPACER */}
+      <div className="h-16"></div>
+    </>
   );
 };
 

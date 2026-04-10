@@ -9,7 +9,7 @@ const onlineUsers = new Map();
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "https://car-mart-client.onrender.com",
+      origin: process.env.CORS_ORIGIN,
       credentials: true,
     },
   });

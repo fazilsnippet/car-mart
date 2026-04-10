@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import ChatWindow from "./chatwindow";
 import { useGetConversationsQuery } from "./chatApi.js";
-
+import { ArrowLeft } from "lucide-react";
 export default function ChatPage() {
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -14,7 +14,9 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100vh-60px)]">
-      
+      <button onClick={() => window.history.back()}>
+          <ArrowLeft />
+        </button>
       {/* =========================
           LEFT: Conversations
       ========================= */}

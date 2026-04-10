@@ -1,6 +1,7 @@
 import { useGetBookingsQuery, useUpdateBookingMutation } from "./bookingApi";
 import { useState } from "react";
-import { Car, IndianRupee, Tag, Edit3, Save } from "lucide-react";
+import { Car, IndianRupee, Tag, Edit3, Save, ArrowLeft } from "lucide-react";
+
 
 export default function MyBookings() {
   const [page, setPage] = useState(1);
@@ -33,6 +34,9 @@ export default function MyBookings() {
 
   return (
     <div>
+      <button onClick={() => window.history.back()}>
+          <ArrowLeft />
+        </button>
       {bookings.map((booking) => {
         const imageUrl = booking.car?.image?.url?.replace(
           "/upload/",
