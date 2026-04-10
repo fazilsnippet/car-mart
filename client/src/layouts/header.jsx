@@ -1,6 +1,8 @@
 import { useSelector } from "react-redux";
 import { ChevronDown, Phone, User, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+
 
 const Header = () => {
   const navigate = useNavigate();
@@ -14,9 +16,21 @@ const Header = () => {
 
           {/* LEFT */}
           <div className="flex items-center gap-8">
-            <div className="text-xl font-bold text-blue-600">
-              Cars24
-            </div>
+            <div className="flex items-center h-16 px-6 border-b border-slate-100">
+          <Link to="/" className="flex items-center gap-3">
+            {/* <div className="flex items-center justify-center bg-indigo-600 rounded-lg w-9 h-9">
+              <HiOutlineTruck className="w-5 h-5 text-white" />
+            </div> */}
+
+           <img
+  src={logo}
+  alt="CarMart"
+  className="object-contain w-24 h-auto"
+  onClick={() => navigate("/")}
+  style={{ cursor: "pointer" }}
+/>
+          </Link>
+        </div>
 
             <nav className="flex items-center gap-6 text-sm font-medium text-gray-700">
               <div className="cursor-pointer hover:text-black">Buy used car</div>

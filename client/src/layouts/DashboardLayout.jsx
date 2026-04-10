@@ -22,22 +22,22 @@ import logo from "../assets/carmartH.png";
 import HeaderWrapper from "../utils/headerwrapper";
 // import Header from "./header";
 
-const baseNavGroups = [
-  {
-    title: "Explore",
-    items: [
-      { to: "/", label: "Home", icon: HiOutlineViewGrid },
-      { to: "/cars-list", label: "Browse Cars", icon: HiOutlineViewList },
-    ],
-  },
-  {
-    title: "My activity",
-    items: [
-      { to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck },
-      { to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart },
-    ],
-  },
-];
+// const baseNavGroups = [
+//   {
+//     title: "Explore",
+//     items: [
+//       { to: "/", label: "Home", icon: HiOutlineViewGrid },
+//       { to: "/cars-list", label: "Browse Cars", icon: HiOutlineViewList },
+//     ],
+//   },
+//   {
+//     title: "My activity",
+//     items: [
+//       { to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck },
+//       { to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart },
+//     ],
+//   },
+// ];
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -45,7 +45,7 @@ export default function DashboardLayout() {
   const user = useSelector((state) => state.auth.user);
   const isAdmin = user?.role === "ADMIN";
   const navGroups = [
-    ...baseNavGroups,
+    // ...baseNavGroups,
     ...(isAdmin
       ? [
           {
@@ -205,21 +205,7 @@ export default function DashboardLayout() {
           isSidebarOpen ? "lg:w-64" : "lg:w-20"
         }`}
       >
-        <div className="flex items-center h-16 px-6 border-b border-slate-100">
-          <Link to="/" className="flex items-center gap-3">
-            {/* <div className="flex items-center justify-center bg-indigo-600 rounded-lg w-9 h-9">
-              <HiOutlineTruck className="w-5 h-5 text-white" />
-            </div> */}
-
-           <img
-  src={logo}
-  alt="CarMart"
-  className={`h-9 pl-4 transition-all duration-300 ${
-    isSidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
-  }`}
-/>
-          </Link>
-        </div>
+       
 
         {navContent}
       </aside>
