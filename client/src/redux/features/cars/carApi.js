@@ -88,7 +88,7 @@ export const carApi = baseApi.injectEndpoints({
     );
 
     return {
-      url: "/cars", // ✅ fixed endpoint
+      url: "/car", // ✅ fixed endpoint
       params: cleanedParams, // ✅ let RTK handle query string
     };
   },
