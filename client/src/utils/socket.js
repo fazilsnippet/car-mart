@@ -8,7 +8,8 @@ export const connectSocket = (userId) => {
     return socket;
   }
 
-  socket = io(process.env.REACT_APP_SOCKET_URL, {
+  const socketUrl = import.meta.env.VITE_SOCKET_URL ?? import.meta.env.REACT_APP_SOCKET_URL;
+  socket = io(socketUrl || "", {
     transports: ["websocket", "polling"],
     withCredentials: true,
     reconnection: true,

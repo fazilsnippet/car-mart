@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import dotenv from "dotenv";
 
 import {
   useLazyGetMeQuery,
@@ -53,7 +52,6 @@ const ChatPage = lazy(() =>
   import("./redux/features/chats/chatPage.jsx")
 );
 
-dotenv.config();
 function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);

@@ -1,11 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logout } from "../features/auth/authSlice";
-import dotenv from "dotenv";
-dotenv.config();
 
-let url = process.env.REACT_APP_API_URL;
+const url = import.meta.env.VITE_API_URL ?? import.meta.env.REACT_APP_API_URL;
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: url,
+  baseUrl: url || "",
   credentials: "include", // 🔥 cookies only
 });
 
