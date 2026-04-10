@@ -107,7 +107,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}
-        <Route path="/" element={<DashboardLayout />}>
+        {/* <Route path="/" element={<DashboardLayout />}> */}
           {/* <Route index element={<Dashboard />} /> */}
 
           {/* 🔒 Admin */}
@@ -173,7 +173,7 @@ function App() {
               </Suspense>
             }
           />
-   <Route
+        <Route
             path="/myProfile"
             element={
               <Suspense fallback={<div>Loading...</div>}>
@@ -241,8 +241,6 @@ function App() {
             }
           />
 
-          {/* 🏷️ Brands */}
-          </Route>
        
 
         <Route element={<PublicLayout />}>
