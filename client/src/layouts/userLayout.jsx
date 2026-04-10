@@ -1,6 +1,6 @@
 // layouts/UserLayout.jsx
 import { Outlet } from "react-router-dom";
-import Header from "./header.jsx";
+import Header from "./header";
 import Sidebar from "./sidebar";
 
 const UserLayout = () => {
@@ -9,6 +9,7 @@ const UserLayout = () => {
       <Header />
       <div className="flex">
         <Sidebar />
+
         <main className="flex-1 p-4">
           <Outlet />
         </main>
