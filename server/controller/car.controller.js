@@ -6,182 +6,377 @@ import slugify from "slugify";
 import Joi from "joi";
 
 
+// export const buildMatch = (filters, excludeField) => {
+//   const match = {
+//     lifecycleStatus: "ACTIVE"
+//   };
+
+//   if (filters.title) {
+//     match.title = { $regex: filters.title, $options: "i" };
+//   }
+
+//   if (filters.brand && excludeField !== "brand") {
+//   match.brand = {
+//     $in: filters.brand.map((id) => new mongoose.Types.ObjectId(id))
+//   };
+// }
+
+//   if (filters.fuelType && excludeField !== "fuelType") {
+//     match.fuelType = { $in: filters.fuelType };
+//   }
+
+//   if (filters.transmission && excludeField !== "transmission") {
+//     match.transmission = { $in: filters.transmission };
+//   }
+
+//   if (filters.ownerCount) {
+//     match.ownerCount = filters.ownerCount;
+//   }
+
+//   // Year range
+//   if (filters.minYear || filters.maxYear) {
+//     match.year = {};
+//     if (filters.minYear) match.year.$gte = filters.minYear;
+//     if (filters.maxYear) match.year.$lte = filters.maxYear;
+//   }
+
+//   // KM range
+//   if (filters.minKm || filters.maxKm) {
+//     match.kmDriven = {};
+//     if (filters.minKm) match.kmDriven.$gte = filters.minKm;
+//     if (filters.maxKm) match.kmDriven.$lte = filters.maxKm;
+//   }
+
+//   // Price bucket
+//   if (filters.priceBucket && excludeField !== "price") {
+//     const bucketMap = {
+//       "0-5": [0, 500000],
+//       "5-10": [500000, 1000000],
+//       "10-15": [1000000, 1500000],
+//       "15-20": [1500000, 2000000],
+//       "20+": [2000000, Infinity]
+//     };
+
+//     const [min, max] = bucketMap[filters.priceBucket];
+
+//     match.price = {};
+//     if (min !== undefined) match.price.$gte = min;
+//     if (max !== Infinity) match.price.$lte = max;
+//   }
+
+//   return match;
+// };
+import mongoose from "mongoose";
+
 export const buildMatch = (filters, excludeField) => {
   const match = {
-    lifecycleStatus: "ACTIVE"
+    lifecycleStatus: "ACTIVE",
   };
 
-  if (filters.title) {
-    match.title = { $regex: filters.title, $options: "i" };
+  // 🔍 GLOBAL SEARCH (better than title-only)
+  if (filters.q) {
+    match.$or = [
+      { title: { $regex: filters.q, $options: "i" } },
+      { description: { $regex: filters.q, $options: "i" } },
+    ];
   }
 
+  // 🏷️ BRAND
   if (filters.brand && excludeField !== "brand") {
-  match.brand = {
-    $in: filters.brand.map((id) => new mongoose.Types.ObjectId(id))
-  };
-}
+    const validIds = filters.brand
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
 
+    if (validIds.length) {
+      match.brand = { $in: validIds };
+    }
+  }
+
+  // ⛽ FUEL
   if (filters.fuelType && excludeField !== "fuelType") {
     match.fuelType = { $in: filters.fuelType };
   }
 
+  // ⚙️ TRANSMISSION
   if (filters.transmission && excludeField !== "transmission") {
     match.transmission = { $in: filters.transmission };
   }
 
+  // 👤 OWNER
   if (filters.ownerCount) {
     match.ownerCount = filters.ownerCount;
   }
 
-  // Year range
+  // 📅 YEAR RANGE
   if (filters.minYear || filters.maxYear) {
     match.year = {};
-    if (filters.minYear) match.year.$gte = filters.minYear;
-    if (filters.maxYear) match.year.$lte = filters.maxYear;
+    if (filters.minYear) match.year.$gte = Number(filters.minYear);
+    if (filters.maxYear) match.year.$lte = Number(filters.maxYear);
   }
 
-  // KM range
+  // 🚗 KM RANGE
   if (filters.minKm || filters.maxKm) {
     match.kmDriven = {};
-    if (filters.minKm) match.kmDriven.$gte = filters.minKm;
-    if (filters.maxKm) match.kmDriven.$lte = filters.maxKm;
+    if (filters.minKm) match.kmDriven.$gte = Number(filters.minKm);
+    if (filters.maxKm) match.kmDriven.$lte = Number(filters.maxKm);
   }
 
-  // Price bucket
+  // 💰 PRICE BUCKET
   if (filters.priceBucket && excludeField !== "price") {
     const bucketMap = {
       "0-5": [0, 500000],
       "5-10": [500000, 1000000],
       "10-15": [1000000, 1500000],
       "15-20": [1500000, 2000000],
-      "20+": [2000000, Infinity]
+      "20+": [2000000, null], // 🔥 no Infinity
     };
 
-    const [min, max] = bucketMap[filters.priceBucket];
+    const [min, max] = bucketMap[filters.priceBucket] || [];
 
     match.price = {};
     if (min !== undefined) match.price.$gte = min;
-    if (max !== Infinity) match.price.$lte = max;
+    if (max !== null) match.price.$lte = max;
   }
 
   return match;
 };
 
-export const getCars = async (req, res, next) => {
-  try {
-    const { value, error } = querySchema.validate(req.query, {
-      convert: true
-    });
+// export const getCars = async (req, res, next) => {
+//   try {
+//     const { value, error } = querySchema.validate(req.query, {
+//       convert: true
+//     });
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message
-      });
+//     if (error) {
+//       return res.status(400).json({
+//         success: false,
+//         message: error.details[0].message
+//       });
+//     }
+
+//     const { sortBy, order, page, limit } = value;
+
+//     const safePage = Math.max(1, page);
+
+//     const sortStage = {
+//       [sortBy]: order === "asc" ? 1 : -1
+//     };
+
+//     const baseMatch = buildMatch(value);
+
+//     const result = await Car.aggregate([
+//       {
+//         $facet: {
+//           filtered: [
+//             { $match: baseMatch },
+//             { $sort: sortStage },
+//             { $skip: (safePage - 1) * limit },
+//             { $limit: limit }
+//           ],
+
+//           totalCount: [
+//             { $match: baseMatch },
+//             { $count: "count" }
+//           ],
+
+//           priceBuckets: [
+//             { $match: buildMatch(value, "price") },
+//             {
+//               $bucket: {
+//                 groupBy: "$price",
+//                 boundaries: [
+//                   0, 500000, 1000000, 1500000, 2000000, 10000000
+//                 ],
+//                 default: "Other",
+//                 output: { count: { $sum: 1 } }
+//               }
+//             }
+//           ],
+
+//           fuelTypes: [
+//             { $match: buildMatch(value, "fuelType") },
+//             { $group: { _id: "$fuelType", count: { $sum: 1 } } },
+//             { $sort: { count: -1 } }
+//           ],
+
+//           transmissions: [
+//             { $match: buildMatch(value, "transmission") },
+//             { $group: { _id: "$transmission", count: { $sum: 1 } } },
+//             { $sort: { count: -1 } }
+//           ],
+
+//           brands: [
+//             { $match: buildMatch(value, "brand") },
+//             { $group: { _id: "$brand", count: { $sum: 1 } } },
+//             { $sort: { count: -1 } }
+//           ],
+
+//           newest: [
+//             { $match: { lifecycleStatus: "ACTIVE" } },
+//             { $sort: { createdAt: -1 } },
+//             { $limit: 8 }
+//           ]
+//         }
+//       }
+//     ]);
+
+//     const output = result[0];
+//     const total = output.totalCount[0]?.count || 0;
+
+//     let similarItems = [];
+
+//     if (total > 0 && total < 3 && value.brand?.length) {
+//       similarItems = await Car.find({
+//         lifecycleStatus: "ACTIVE",
+//         brand: { $in: value.brand }
+//       })
+//         .sort({ createdAt: -1 })
+//         .limit(6);
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       total,
+//       page: safePage,
+//       totalPages: Math.ceil(total / limit),
+
+//       filters: {
+//         priceBuckets: output.priceBuckets,
+//         fuelTypes: output.fuelTypes,
+//         transmissions: output.transmissions,
+//         brands: output.brands
+//       },
+
+//       data: output.filtered,
+//       similarItems,
+//       newest: output.newest
+//     });
+
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+
+export const getCars = asyncHandler(async (req, res) => {
+  const {
+    q,
+    sortBy = "createdAt",
+    order = "desc",
+    page = 1,
+    limit = 10,
+    ...filters
+  } = req.query;
+
+  // 🔒 SAFE PAGINATION
+  const safePage = Math.max(1, Number(page));
+  const safeLimit = Math.min(20, Number(limit));
+  const skip = (safePage - 1) * safeLimit;
+
+  // 🔒 SAFE SORTING
+  const allowedSortFields = ["price", "createdAt", "year"];
+  const sortField = allowedSortFields.includes(sortBy)
+    ? sortBy
+    : "createdAt";
+
+  const sortStage = {
+    [sortField]: order === "asc" ? 1 : -1,
+  };
+
+  // 🔥 MATCH CACHE (avoid recomputation)
+  const matchCache = {};
+
+  const getMatch = (exclude) => {
+    if (!matchCache[exclude || "base"]) {
+      matchCache[exclude || "base"] = buildMatch(
+        { q, ...filters },
+        exclude
+      );
     }
+    return matchCache[exclude || "base"];
+  };
 
-    const { sortBy, order, page, limit } = value;
+  const result = await Car.aggregate([
+    {
+      $facet: {
+        data: [
+          { $match: getMatch() },
+          { $sort: sortStage },
+          { $skip: skip },
+          { $limit: safeLimit },
+        ],
 
-    const safePage = Math.max(1, page);
+        totalCount: [
+          { $match: getMatch() },
+          { $count: "count" },
+        ],
 
-    const sortStage = {
-      [sortBy]: order === "asc" ? 1 : -1
-    };
+        // 💰 PRICE BUCKETS
+        priceBuckets: [
+          { $match: getMatch("price") },
+          {
+            $bucket: {
+              groupBy: "$price",
+              boundaries: [
+                0, 500000, 1000000, 1500000, 2000000, 10000000,
+              ],
+              default: "Other",
+              output: { count: { $sum: 1 } },
+            },
+          },
+        ],
 
-    const baseMatch = buildMatch(value);
+        // ⛽ FUEL TYPES
+        fuelTypes: [
+          { $match: getMatch("fuelType") },
+          { $group: { _id: "$fuelType", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ],
 
-    const result = await Car.aggregate([
-      {
-        $facet: {
-          filtered: [
-            { $match: baseMatch },
-            { $sort: sortStage },
-            { $skip: (safePage - 1) * limit },
-            { $limit: limit }
-          ],
+        // ⚙️ TRANSMISSIONS
+        transmissions: [
+          { $match: getMatch("transmission") },
+          { $group: { _id: "$transmission", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ],
 
-          totalCount: [
-            { $match: baseMatch },
-            { $count: "count" }
-          ],
+        // 🏷️ BRANDS
+        brands: [
+          { $match: getMatch("brand") },
+          { $group: { _id: "$brand", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ],
 
-          priceBuckets: [
-            { $match: buildMatch(value, "price") },
-            {
-              $bucket: {
-                groupBy: "$price",
-                boundaries: [
-                  0, 500000, 1000000, 1500000, 2000000, 10000000
-                ],
-                default: "Other",
-                output: { count: { $sum: 1 } }
-              }
-            }
-          ],
-
-          fuelTypes: [
-            { $match: buildMatch(value, "fuelType") },
-            { $group: { _id: "$fuelType", count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-          ],
-
-          transmissions: [
-            { $match: buildMatch(value, "transmission") },
-            { $group: { _id: "$transmission", count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-          ],
-
-          brands: [
-            { $match: buildMatch(value, "brand") },
-            { $group: { _id: "$brand", count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-          ],
-
-          newest: [
-            { $match: { lifecycleStatus: "ACTIVE" } },
-            { $sort: { createdAt: -1 } },
-            { $limit: 8 }
-          ]
-        }
-      }
-    ]);
-
-    const output = result[0];
-    const total = output.totalCount[0]?.count || 0;
-
-    let similarItems = [];
-
-    if (total > 0 && total < 3 && value.brand?.length) {
-      similarItems = await Car.find({
-        lifecycleStatus: "ACTIVE",
-        brand: { $in: value.brand }
-      })
-        .sort({ createdAt: -1 })
-        .limit(6);
-    }
-
-    return res.status(200).json({
-      success: true,
-      total,
-      page: safePage,
-      totalPages: Math.ceil(total / limit),
-
-      filters: {
-        priceBuckets: output.priceBuckets,
-        fuelTypes: output.fuelTypes,
-        transmissions: output.transmissions,
-        brands: output.brands
+        // 🆕 NEWEST
+        newest: [
+          { $match: { lifecycleStatus: "ACTIVE" } },
+          { $sort: { createdAt: -1 } },
+          { $limit: 8 },
+        ],
       },
+    },
+  ]);
 
-      data: output.filtered,
-      similarItems,
-      newest: output.newest
-    });
+  const output = result[0];
+  const total = output.totalCount[0]?.count || 0;
 
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    total,
+    page: safePage,
+    totalPages: Math.ceil(total / safeLimit),
+
+    filters: {
+      priceBuckets: output.priceBuckets,
+      fuelTypes: output.fuelTypes,
+      transmissions: output.transmissions,
+      brands: output.brands,
+    },
+
+    data: output.data,
+    newest: output.newest,
+  });
+});
 
 
 const slugSchema = Joi.object({

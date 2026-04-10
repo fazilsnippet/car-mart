@@ -70,35 +70,45 @@ const toCarFormData = (data, { includePrice = true } = {}) => {
 
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCars: builder.query({
-      query: (params = {}) => {
-        const searchParams = new URLSearchParams();
+   getCars: builder.query({
+  query: (params = {}) => {
+    // 🔥 Clean params (remove empty values)
+    const cleanedParams = Object.fromEntries(
+      Object.entries(params).flatMap(([key, value]) => {
+        if (value === "" || value == null) return [];
 
-        Object.entries(params).forEach(([key, value]) => {
-          if (value === "" || value === null || value === undefined) return;
+        if (Array.isArray(value)) {
+          return value
+            .filter((v) => v !== "" && v != null)
+            .map((v) => [key, v]);
+        }
 
-          if (Array.isArray(value)) {
-            value.forEach((v) => {
-              if (v !== "" && v !== null && v !== undefined) {
-                searchParams.append(key, v);
-              }
-            });
-          } else {
-            searchParams.append(key, value);
-          }
-        });
+        return [[key, value]];
+      })
+    );
 
-        const queryString = searchParams.toString();
-        return { url: `/car${queryString ? `?${queryString}` : ""}` };
-      },
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result.data.map(({ _id }) => ({ type: "Car", id: _id })),
-              { type: "Car", id: "LIST" },
-            ]
-          : [{ type: "Car", id: "LIST" }],
-    }),
+    return {
+      url: "/cars", // ✅ fixed endpoint
+      params: cleanedParams, // ✅ let RTK handle query string
+    };
+  },
+
+  // 🔥 Prevent unnecessary refetch
+  serializeQueryArgs: ({ queryArgs }) => {
+    return JSON.stringify(queryArgs);
+  },
+
+  providesTags: (result) =>
+    result?.data
+      ? [
+          ...result.data.map(({ _id }) => ({
+            type: "Car",
+            id: _id,
+          })),
+          { type: "Car", id: "LIST" },
+        ]
+      : [{ type: "Car", id: "LIST" }],
+}),
 
     getCarById: builder.query({
       query: (id) => `/car/${id}`,
