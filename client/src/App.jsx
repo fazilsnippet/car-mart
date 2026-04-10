@@ -131,6 +131,16 @@ function App() {
             </Suspense>
           }
         />
+        <Route
+          path="/car"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute adminOnly>
+                <CarCreate />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
           {/* <Route
         index
         element={
@@ -153,17 +163,7 @@ function App() {
             }
           /> */}
 
-   <Route element={<UserLayout />}>
-          <Route
-            path="/car"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute adminOnly>
-                  <CarCreate />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
+  <Route element={<PrivateRoute><UserLayout /></PrivateRoute>}>
           {/* 📦 Booking */}
           <Route
             path="/booking"
@@ -177,9 +177,7 @@ function App() {
             path="/myProfile"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <MyProfile />
-                </PrivateRoute>
               </Suspense>
             }
           />
@@ -188,9 +186,7 @@ function App() {
             path="/wishlist"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <GetWishlists />
-                </PrivateRoute>
               </Suspense>
             }
           />
@@ -200,9 +196,7 @@ function App() {
             path="/notifications"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <NotificationsPage />
-                </PrivateRoute>
               </Suspense>
             }
           />
@@ -212,9 +206,7 @@ function App() {
             path="/chat"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <ChatPage />
-                </PrivateRoute>
               </Suspense>
             }
           />
@@ -223,23 +215,19 @@ function App() {
             path="/chat/:conversationId"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <ChatPage />
-                </PrivateRoute>
               </Suspense>
             }
           />
-        </Route>
           <Route
             path="/myBooking"
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
                   <MyBookings />
-                </PrivateRoute>
               </Suspense>
             }
-          />
+            />
+            </Route>
 
        
 
