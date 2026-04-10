@@ -111,9 +111,9 @@ function App() {
 
   return (
     <BrowserRouter>
+        <Header/>
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}
-        <Header/>
         <Route path="/" element={<DashboardLayout />}>
           {/* <Route index element={<Dashboard />} /> */}
 
