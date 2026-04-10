@@ -16,6 +16,7 @@ import {
 
 import NotificationBell from "../redux/features/notification/notificationbell.jsx";
 import logo from "../assets/carmartH.png";
+import UserSidebar from "./sidebar.jsx";
 
 const baseNavGroups = [
   {
@@ -113,7 +114,9 @@ export default function UserLayout() {
       </aside>
 
       {/* MAIN */}
-      <div className="flex flex-col flex-1">
+      {/* <div className="flex flex-col flex-1"> */}
+        <div className="flex min-h-screen">
+  <UserSidebar />
 
         {/* HEADER */}
         <header className="flex items-center justify-between h-16 px-6 border-b bg-background">
