@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { ChevronDown, Phone, User, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import carmartH from "../assets/carmartH.png";
-
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
