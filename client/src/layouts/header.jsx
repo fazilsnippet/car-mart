@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { ChevronDown, Phone, User, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import carmartH from "../assets/carmartH.png";
 
 
 const Header = () => {
@@ -23,7 +23,7 @@ const Header = () => {
             </div> */}
 
            <img
-  src={logo}
+  src={carmartH}
   alt="CarMart"
   className="object-contain w-24 h-auto"
   onClick={() => navigate("/")}
