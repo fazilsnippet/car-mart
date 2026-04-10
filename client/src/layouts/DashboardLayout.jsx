@@ -20,6 +20,7 @@ import {
 import NotificationBell from "../redux/features/notification/notificationbell";
 import logo from "../assets/carmartH.png";
 import HeaderWrapper from "../utils/headerwrapper";
+import Header from "./header";
 
 const baseNavGroups = [
   {
@@ -228,7 +229,8 @@ export default function DashboardLayout() {
       <div className="flex flex-col flex-1 min-h-screen bg-background text-foreground">
 
         {/* HEADER */}
-<HeaderWrapper><header className="fixed top-0 left-0 z-40 flex items-center justify-between w-full h-16 px-6 border-b bg-white/80 backdrop-blur-md bg-background text-foreground border-slate-200">
+        <Header className="fixed top-0 left-0 z-40 flex items-center justify-between w-full h-16 px-6 border-b bg-white/80 backdrop-blur-md bg-background text-foreground border-slate-200"/>
+{/* <HeaderWrapper><header className="fixed top-0 left-0 z-40 flex items-center justify-between w-full h-16 px-6 border-b bg-white/80 backdrop-blur-md bg-background text-foreground border-slate-200">
 
           <div className="flex items-center flex-1 gap-4">
 
@@ -239,7 +241,6 @@ export default function DashboardLayout() {
               <HiOutlineMenuAlt2 className="w-6 h-6" />
             </button>
 
-            {/* SEARCH */}
 
             <div className="relative hidden w-full max-w-md sm:block">
 
@@ -262,7 +263,7 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
+          //  RIGHT SIDE 
 
           <div className="flex items-center gap-4">
 
@@ -298,7 +299,7 @@ export default function DashboardLayout() {
 
           </div>
 
-        </header></HeaderWrapper>
+        </header></HeaderWrapper> */}
         
 
         {/* PAGE CONTENT */}
