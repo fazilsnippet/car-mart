@@ -67,75 +67,56 @@ import Joi from "joi";
 
 //   return match;
 // };
+const normalizeToArray = (value) => {
+  if (!value) return undefined;
 
-export const buildMatch = (filters, excludeField) => {
+  const arr = Array.isArray(value) ? value : [value];
+
+  return arr.filter(Boolean); // removes "", null, undefined
+};
+
+const buildMatch = (filters, exclude) => {
   const match = {
     lifecycleStatus: "ACTIVE",
   };
 
-  // 🔍 GLOBAL SEARCH (better than title-only)
   if (filters.q) {
-    match.$or = [
-      { title: { $regex: filters.q, $options: "i" } },
-      { description: { $regex: filters.q, $options: "i" } },
-    ];
+    match.$text = { $search: filters.q };
   }
 
-  // 🏷️ BRAND
-  if (filters.brand && excludeField !== "brand") {
-    const validIds = filters.brand
-      .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => new mongoose.Types.ObjectId(id));
+if (filters.brand && exclude !== "brand") {
+  const brands = normalizeToArray(filters.brand);
 
-    if (validIds.length) {
-      match.brand = { $in: validIds };
+  if (brands?.length) {
+    match.brand = { $in: brands }; 
+  }
+}
+
+  if (filters.fuelType && exclude !== "fuelType") {
+    const fuels = normalizeToArray(filters.fuelType);
+    if (fuels?.length) {
+      match.fuelType = { $in: fuels };
     }
   }
 
-  // ⛽ FUEL
-  if (filters.fuelType && excludeField !== "fuelType") {
-    match.fuelType = { $in: filters.fuelType };
+  if (filters.transmission && exclude !== "transmission") {
+    const transmissions = normalizeToArray(filters.transmission);
+    if (transmissions?.length) {
+      match.transmission = { $in: transmissions };
+    }
   }
 
-  // ⚙️ TRANSMISSION
-  if (filters.transmission && excludeField !== "transmission") {
-    match.transmission = { $in: filters.transmission };
-  }
-
-  // 👤 OWNER
-  if (filters.ownerCount) {
-    match.ownerCount = filters.ownerCount;
-  }
-
-  // 📅 YEAR RANGE
-  if (filters.minYear || filters.maxYear) {
-    match.year = {};
-    if (filters.minYear) match.year.$gte = Number(filters.minYear);
-    if (filters.maxYear) match.year.$lte = Number(filters.maxYear);
-  }
-
-  // 🚗 KM RANGE
-  if (filters.minKm || filters.maxKm) {
-    match.kmDriven = {};
-    if (filters.minKm) match.kmDriven.$gte = Number(filters.minKm);
-    if (filters.maxKm) match.kmDriven.$lte = Number(filters.maxKm);
-  }
-
-  // 💰 PRICE BUCKET
-  if (filters.priceBucket && excludeField !== "price") {
-    const bucketMap = {
-      "0-5": [0, 500000],
-      "5-10": [500000, 1000000],
-      "10-15": [1000000, 1500000],
-      "15-20": [1500000, 2000000],
-      "20+": [2000000, null], // 🔥 no Infinity
-    };
-
-    const [min, max] = bucketMap[filters.priceBucket] || [];
-
+  // 💰 price range (optional but recommended fix)
+  if (filters.priceMin || filters.priceMax) {
     match.price = {};
-    if (min !== undefined) match.price.$gte = min;
-    if (max !== null) match.price.$lte = max;
+
+    if (filters.priceMin) {
+      match.price.$gte = Number(filters.priceMin);
+    }
+
+    if (filters.priceMax) {
+      match.price.$lte = Number(filters.priceMax);
+    }
   }
 
   return match;
