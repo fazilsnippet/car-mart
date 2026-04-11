@@ -208,13 +208,15 @@ const buildMatch = (filters, exclude) => {
     lifecycleStatus: "ACTIVE",
   };
 
-//  const isTextSearch = filters.q && filters.q.trim() !== "";
-const searchQuery = typeof q === "string" ? q.trim() : "";
+const searchQuery =
+  typeof filters.q === "string" ? filters.q.trim() : "";
+
 const isTextSearch = searchQuery.length > 0;
-// match.title = { $regex: filters.q, $options: "i" };
+
 if (isTextSearch) {
   match.title = { $regex: searchQuery, $options: "i" };
 }
+
   const applyInFilter = (field) => {
     if (filters[field] && exclude !== field) {
       const values = normalizeToArray(filters[field]);
