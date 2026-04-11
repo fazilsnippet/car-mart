@@ -130,7 +130,7 @@ export default function CarFilters({
       <div className="px-4 pb-4">
 
         {/* Brand */}
-        <Section id="brand" title="Brand" open={open} onToggle={toggle}>
+        {/* <Section id="brand" title="Brand" open={open} onToggle={toggle}>
           {facets.brands?.map((b) => {
             const brandObj = brands.find(br => br._id === b._id);
             if (!brandObj) return null;
@@ -145,7 +145,26 @@ export default function CarFilters({
               />
             );
           })}
-        </Section>
+        </Section> */}
+        <Section id="brand" title="Brand" open={open} onToggle={toggle}>
+        {facets.brands?.map((b) => {
+  const brandObj = brands.find(
+    (br) => String(br._id) === String(b._id)
+  );
+
+  console.log("facet:", b._id, "matched:", brandObj);
+
+  return (
+    <CheckRow
+      key={b._id}
+      label={brandObj?.name || `Missing (${b._id})`}
+      count={b.count}
+      checked={(draft.brand ?? []).includes(b._id)}
+      onClick={() => toggleInArray("brand", b._id)}
+    />
+  );
+})}
+ </Section>
 
         {/* Price */}
         <Section id="price" title="Budget" open={open} onToggle={toggle}>
