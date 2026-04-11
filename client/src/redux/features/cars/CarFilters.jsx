@@ -8,9 +8,9 @@ const Section = ({ id, title, children, open, onToggle }) => (
       onClick={() => onToggle(id)}
       className="flex items-center justify-between w-full text-left"
     >
-      <span className="text-sm font-semibold text-slate-900">{title}</span>
+      <span className="text-sm font-semibold text-gray-50">{title}</span>
       <HiOutlineChevronDown
-        className={`w-5 h-5 text-slate-500 transition-transform ${
+        className={`w-5 h-5 text-gray-50 transition-transform ${
           open[id] ? "rotate-180" : ""
         }`}
       />
@@ -38,7 +38,7 @@ const CheckRow = ({ label, count, checked, onClick }) => (
       <span className="text-sm text-slate-700">{label}</span>
     </span>
     {typeof count === "number" && (
-      <span className="text-xs text-slate-500">({count})</span>
+      <span className="text-xs text-gray-50">({count})</span>
     )}
   </button>
 );
