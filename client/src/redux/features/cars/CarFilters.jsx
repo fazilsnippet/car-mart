@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { HiOutlineChevronDown, HiOutlineX } from "react-icons/hi";
 
 const Section = ({ id, title, children, open, onToggle }) => (
-  <div className="py-3 border-b border-slate-100">
+  <div className="py-3 border-b border-slate-100 bg-background text-foreground">
     <button
       type="button"
       onClick={() => onToggle(id)}
@@ -109,7 +109,7 @@ export default function CarFilters({
   return (
     <div
       className={`bg-white ${
-        compact ? "" : "rounded-2xl border border-slate-100 shadow-sm"
+        compact ? "" : "rounded-2xl border border-slate-100 shadow-sm bg-background text-foreground"
       }`}
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-100">

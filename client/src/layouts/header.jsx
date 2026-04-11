@@ -43,7 +43,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 z-50 w-full bg-white border-b">
+      <header className="fixed top-0 left-0 z-50 w-full bg-white border-b bg-background text-foreground">
         
         {/* 🔥 MAIN ROW */}
         <div className="flex items-center justify-between h-16 px-6 mx-auto max-w-7xl">
@@ -61,7 +61,7 @@ const Header = () => {
             </Link>
 
             {/* NAV (desktop only) */}
-            <nav className="items-center hidden gap-6 text-sm font-medium text-gray-700 md:flex">
+            <nav className="items-center hidden gap-6 text-sm font-medium text-gray-700 md:flex bg-background text-foreground">
               {navItems.map((item) => (
                 <div
                   key={item.path}
@@ -76,7 +76,7 @@ const Header = () => {
           </div>
 
           {/* 🔥 SEARCH BAR (DESKTOP) */}
-          <div className="flex-1 hidden max-w-xl mx-6 md:flex">
+          <div className="flex-1 hidden max-w-xl mx-6 md:flex bg-background text-foreground">
             <div className="flex w-full overflow-hidden border rounded-lg">
               <input
                 type="text"
@@ -143,7 +143,7 @@ const Header = () => {
         </div>
 
         {/* 🔥 MOBILE SEARCH BAR */}
-        <div className="px-4 pb-3 md:hidden">
+        <div className="px-4 pb-3 md:hidden bg-background text-foreground">
           <div className="flex overflow-hidden border rounded-lg">
             <input
               type="text"
