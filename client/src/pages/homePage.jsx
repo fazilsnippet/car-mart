@@ -8,7 +8,7 @@ const Home = () => {
     <div className="space-y-10">
 
       {/* 🔹 Hero */}
-      <section className="p-6 bg-gray-100 rounded-xl">
+      <section className="p-6 bg-gray-100 rounded-xl bg-background text-foreground">
         <h1 className="mb-4 text-2xl font-bold">
           Find Your Perfect Car
         </h1>

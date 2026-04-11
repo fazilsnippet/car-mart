@@ -144,7 +144,7 @@ export default function CarList() {
         {/* ---------------- HEADER ---------------- */}
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-emerald-50">
               Buy used cars
             </h1>
             <p className="mt-1 text-sm text-slate-500">
@@ -175,7 +175,7 @@ export default function CarList() {
           {/* ---------------- RESULTS ---------------- */}
           <div className="col-span-12 lg:col-span-8 xl:col-span-9">
             {cars.length === 0 ? (
-              <div className="p-10 text-center text-gray-800 bg-black border shadow-sm rounded-2xl border-slate-100">
+              <div className="p-10 text-center bg-black border shadow-sm text-emerald-50 rounded-2xl border-slate-100">
                 No cars match your filters.
                 <div className="mt-4">
                   <button
