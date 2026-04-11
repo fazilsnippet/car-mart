@@ -113,7 +113,7 @@ export default function CarFilters({
       }`}
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-100">
-        <div>
+        <div className="bg-background text-foreground">
           <h2 className="text-base font-bold text-slate-900">Filters</h2>
           <p className="text-xs text-slate-500">Refine your search</p>
         </div>
@@ -154,7 +154,7 @@ export default function CarFilters({
 
 
   return (
-    <CheckRow
+    <CheckRow className="bg-background text-foreground"
       key={b._id}
       label={brandObj?.name || `Missing (${b._id})`}
       count={b.count}
@@ -166,7 +166,7 @@ export default function CarFilters({
  </Section>
 
         {/* Price */}
-        <Section id="price" title="Budget" open={open} onToggle={toggle}>
+        <Section id="price" title="Budget" open={open} onToggle={toggle} className="bg-background text-foreground">
           {priceOptions.map((p) => (
             <CheckRow
               key={p.key}
@@ -184,7 +184,7 @@ export default function CarFilters({
         </Section>
 
         {/* Fuel */}
-        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle}>
+        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} className="bg-background text-foreground">
           {facets.fuelTypes?.map((f) => (
             <CheckRow
               key={f._id}
@@ -201,7 +201,7 @@ export default function CarFilters({
           id="transmission"
           title="Transmission"
           open={open}
-          onToggle={toggle}
+          onToggle={toggle} className="bg-background text-foreground"
         >
           {facets.transmissions?.map((t) => (
             <CheckRow
@@ -215,7 +215,7 @@ export default function CarFilters({
         </Section>
 
         {/* Apply / Reset Buttons */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 bg-background text-foreground">
           <button
             onClick={resetFilters}
             className="flex-1 py-2 text-sm font-semibold border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50"
