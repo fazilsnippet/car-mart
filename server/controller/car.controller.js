@@ -68,46 +68,6 @@ import Joi from "joi";
 //   return match;
 // };
 
-const normalizeToArray = (value) => {
-  if (!value) return undefined;
-
-  if (Array.isArray(value)) return value;
-
-  return value.split(",").map((v) => v.trim()).filter(Boolean);
-};
-const buildMatch = (filters, exclude) => {
-  const match = {
-    lifecycleStatus: "ACTIVE",
-  };
-
-  if (filters.q) {
-    match.$text = { $search: filters.q };
-  }
-
-  const applyInFilter = (field) => {
-    if (filters[field] && exclude !== field) {
-     const values = normalizeToArray(filters[field]);
-
-if (values?.length && exclude !== field) {
-  match[field] = { $in: values };
-}
-    }
-  };
-  
-
-  applyInFilter("brand");
-  applyInFilter("fuelType");
-  applyInFilter("transmission");
-
-  if (filters.priceMin || filters.priceMax) {
-    match.price = {};
-
-    if (filters.priceMin) match.price.$gte = Number(filters.priceMin);
-    if (filters.priceMax) match.price.$lte = Number(filters.priceMax);
-  }
-
-  return match;
-};
 
 // export const getCars = async (req, res, next) => {
 //   try {
@@ -148,8 +108,8 @@ if (values?.length && exclude !== field) {
 //           ],
 
 //           priceBuckets: [
-//             { $match: buildMatch(value, "price") },
-//             {
+  //             { $match: buildMatch(value, "price") },
+  //             {
 //               $bucket: {
 //                 groupBy: "$price",
 //                 boundaries: [
@@ -168,8 +128,8 @@ if (values?.length && exclude !== field) {
 //           ],
 
 //           transmissions: [
-//             { $match: buildMatch(value, "transmission") },
-//             { $group: { _id: "$transmission", count: { $sum: 1 } } },
+  //             { $match: buildMatch(value, "transmission") },
+  //             { $group: { _id: "$transmission", count: { $sum: 1 } } },
 //             { $sort: { count: -1 } }
 //           ],
 
@@ -226,6 +186,55 @@ if (values?.length && exclude !== field) {
 // };
 
 
+
+const normalizeToArray = (value) => {
+  if (!value) return undefined;
+  if (Array.isArray(value)) return value;
+
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+};
+
+const toMongoValues = (values) =>
+  values.map((v) =>
+    mongoose.Types.ObjectId.isValid(v)
+      ? new mongoose.Types.ObjectId(v)
+      : v
+  );
+const buildMatch = (filters, exclude) => {
+  const match = {
+    lifecycleStatus: "ACTIVE",
+  };
+
+  if (filters.q) {
+    match.$text = { $search: filters.q };
+  }
+
+  const applyInFilter = (field) => {
+    if (filters[field] && exclude !== field) {
+      const values = normalizeToArray(filters[field]);
+
+      if (values?.length) {
+        match[field] = { $in: toMongoValues(values) };
+      }
+    }
+  };
+
+  applyInFilter("brand");
+  applyInFilter("fuelType");
+  applyInFilter("transmission");
+
+  if (filters.priceMin || filters.priceMax) {
+    match.price = {};
+
+    if (filters.priceMin) match.price.$gte = Number(filters.priceMin);
+    if (filters.priceMax) match.price.$lte = Number(filters.priceMax);
+  }
+
+  return match;
+};
 export const getCars = asyncHandler(async (req, res) => {
   const {
     q,
@@ -264,58 +273,74 @@ export const getCars = asyncHandler(async (req, res) => {
     return matchCache[exclude || "base"];
   };
 
+  const baseMatch = getMatch();
+
   const result = await Car.aggregate([
     {
       $facet: {
         data: [
-          { $match: getMatch() },
+          { $match: baseMatch },
           { $sort: sortStage },
           { $skip: skip },
           { $limit: safeLimit },
         ],
 
         totalCount: [
-          { $match: getMatch() },
+          { $match: baseMatch },
           { $count: "count" },
         ],
 
-        // 💰 PRICE BUCKETS
         priceBuckets: [
           { $match: getMatch("price") },
           {
             $bucket: {
               groupBy: "$price",
-              boundaries: [
-                0, 500000, 1000000, 1500000, 2000000, 10000000,
-              ],
+              boundaries: [0, 500000, 1000000, 1500000, 2000000, 10000000],
               default: "Other",
               output: { count: { $sum: 1 } },
             },
           },
         ],
 
-        // ⛽ FUEL TYPES
         fuelTypes: [
           { $match: getMatch("fuelType") },
           { $group: { _id: "$fuelType", count: { $sum: 1 } } },
           { $sort: { count: -1 } },
         ],
 
-        // ⚙️ TRANSMISSIONS
         transmissions: [
           { $match: getMatch("transmission") },
           { $group: { _id: "$transmission", count: { $sum: 1 } } },
           { $sort: { count: -1 } },
         ],
 
-        // 🏷️ BRANDS
         brands: [
           { $match: getMatch("brand") },
           { $group: { _id: "$brand", count: { $sum: 1 } } },
+          {
+            $lookup: {
+              from: "brands",
+              localField: "_id",
+              foreignField: "_id",
+              as: "brand",
+            },
+          },
+          {
+            $unwind: {
+              path: "$brand",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              count: 1,
+              name: "$brand.name",
+            },
+          },
           { $sort: { count: -1 } },
         ],
 
-        // 🆕 NEWEST
         newest: [
           { $match: { lifecycleStatus: "ACTIVE" } },
           { $sort: { createdAt: -1 } },
@@ -333,18 +358,20 @@ export const getCars = asyncHandler(async (req, res) => {
     total,
     page: safePage,
     totalPages: Math.ceil(total / safeLimit),
-
     filters: {
       priceBuckets: output.priceBuckets,
       fuelTypes: output.fuelTypes,
       transmissions: output.transmissions,
       brands: output.brands,
     },
-
     data: output.data,
     newest: output.newest,
   });
 });
+
+
+
+
 
 
 const slugSchema = Joi.object({
