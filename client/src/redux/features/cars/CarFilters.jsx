@@ -154,7 +154,7 @@ export default function CarFilters({
 
 
   return (
-    <CheckRow className="bg-background text-foreground"
+    <CheckRow 
       key={b._id}
       label={brandObj?.name || `Missing (${b._id})`}
       count={b.count}
@@ -166,7 +166,7 @@ export default function CarFilters({
  </Section>
 
         {/* Price */}
-        <Section id="price" title="Budget" open={open} onToggle={toggle} className="bg-background text-foreground">
+        <Section id="price" title="Budget" open={open} onToggle={toggle} >
           {priceOptions.map((p) => (
             <CheckRow
               key={p.key}
@@ -184,7 +184,7 @@ export default function CarFilters({
         </Section>
 
         {/* Fuel */}
-        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} className="bg-background text-foreground">
+        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} >
           {facets.fuelTypes?.map((f) => (
             <CheckRow
               key={f._id}
@@ -201,7 +201,7 @@ export default function CarFilters({
           id="transmission"
           title="Transmission"
           open={open}
-          onToggle={toggle} className="bg-background text-foreground"
+          onToggle={toggle} 
         >
           {facets.transmissions?.map((t) => (
             <CheckRow
@@ -215,7 +215,7 @@ export default function CarFilters({
         </Section>
 
         {/* Apply / Reset Buttons */}
-        <div className="flex gap-3 mt-6 bg-background text-foreground">
+        <div className="flex gap-3 mt-6">
           <button
             onClick={resetFilters}
             className="flex-1 py-2 text-sm font-semibold border border-slate-200 text-gray-50 rounded-xl hover:bg-slate-50"
