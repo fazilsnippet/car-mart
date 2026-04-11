@@ -67,14 +67,14 @@ import Joi from "joi";
 
 //   return match;
 // };
+
 const normalizeToArray = (value) => {
   if (!value) return undefined;
 
-  const arr = Array.isArray(value) ? value : [value];
+  if (Array.isArray(value)) return value;
 
-  return arr.filter(Boolean); // removes "", null, undefined
+  return value.split(",").map((v) => v.trim()).filter(Boolean);
 };
-
 const buildMatch = (filters, exclude) => {
   const match = {
     lifecycleStatus: "ACTIVE",
@@ -84,39 +84,26 @@ const buildMatch = (filters, exclude) => {
     match.$text = { $search: filters.q };
   }
 
-if (filters.brand && exclude !== "brand") {
-  const brands = normalizeToArray(filters.brand);
+  const applyInFilter = (field) => {
+    if (filters[field] && exclude !== field) {
+     const values = normalizeToArray(filters[field]);
 
-  if (brands?.length) {
-    match.brand = { $in: brands }; 
-  }
+if (values?.length && exclude !== field) {
+  match[field] = { $in: values };
 }
-
-  if (filters.fuelType && exclude !== "fuelType") {
-    const fuels = normalizeToArray(filters.fuelType);
-    if (fuels?.length) {
-      match.fuelType = { $in: fuels };
     }
-  }
+  };
+  
 
-  if (filters.transmission && exclude !== "transmission") {
-    const transmissions = normalizeToArray(filters.transmission);
-    if (transmissions?.length) {
-      match.transmission = { $in: transmissions };
-    }
-  }
+  applyInFilter("brand");
+  applyInFilter("fuelType");
+  applyInFilter("transmission");
 
-  // 💰 price range (optional but recommended fix)
   if (filters.priceMin || filters.priceMax) {
     match.price = {};
 
-    if (filters.priceMin) {
-      match.price.$gte = Number(filters.priceMin);
-    }
-
-    if (filters.priceMax) {
-      match.price.$lte = Number(filters.priceMax);
-    }
+    if (filters.priceMin) match.price.$gte = Number(filters.priceMin);
+    if (filters.priceMax) match.price.$lte = Number(filters.priceMax);
   }
 
   return match;
