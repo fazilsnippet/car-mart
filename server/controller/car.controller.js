@@ -304,6 +304,7 @@ export const getCars = asyncHandler(async (req, res) => {
           { $skip: skip },
           { $limit: safeLimit },
         ],
+        
 
         totalCount: [
           { $match: baseMatch },
@@ -333,17 +334,19 @@ export const getCars = asyncHandler(async (req, res) => {
           { $group: { _id: "$transmission", count: { $sum: 1 } } },
           { $sort: { count: -1 } },
         ],
+        
 
         brands: [
           { $match: getMatch("brand") },
           { $group: { _id: "$brand", count: { $sum: 1 } } },
           {
-            $lookup: {
-              from: "brands",
-              localField: "_id",
-              foreignField: "_id",
-              as: "brand",
-            },
+  
+    $lookup: {
+      from: "brands",
+      localField: "brand",
+      foreignField: "_id",
+      as: "brand",
+    },
           },
           {
             $unwind: {

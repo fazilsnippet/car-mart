@@ -152,7 +152,6 @@ export default function CarFilters({
     (br) => String(br._id) === String(b._id)
   );
 
-  console.log("facet:", b._id, "matched:", brandObj);
 
   return (
     <CheckRow
