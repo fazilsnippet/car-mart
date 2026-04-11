@@ -208,10 +208,9 @@ const buildMatch = (filters, exclude) => {
     lifecycleStatus: "ACTIVE",
   };
 
-  if (filters.q) {
-    match.$text = { $search: filters.q };
-  }
+ const isTextSearch = filters.q && filters.q.trim() !== "";
 
+match.title = { $regex: filters.q, $options: "i" };
   const applyInFilter = (field) => {
     if (filters[field] && exclude !== field) {
       const values = normalizeToArray(filters[field]);
