@@ -71,27 +71,24 @@ const toCarFormData = (data, { includePrice = true } = {}) => {
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
    getCars: builder.query({
-  query: (params = {}) => {
-    // 🔥 Clean params (remove empty values)
-    const cleanedParams = Object.fromEntries(
-      Object.entries(params).flatMap(([key, value]) => {
-        if (value === "" || value == null) return [];
-
+query: (params = {}) => {
+  const cleanedParams = Object.fromEntries(
+    Object.entries(params)
+      .filter(([_, value]) => value !== "" && value != null)
+      .map(([key, value]) => {
         if (Array.isArray(value)) {
-          return value
-            .filter((v) => v !== "" && v != null)
-            .map((v) => [key, v]);
+          const filtered = value.filter((v) => v !== "" && v != null);
+          return [key, filtered.join(",")]; // ✅ KEY FIX
         }
-
-        return [[key, value]];
+        return [key, value];
       })
-    );
+  );
 
-    return {
-      url: "/car", // ✅ fixed endpoint
-      params: cleanedParams, // ✅ let RTK handle query string
-    };
-  },
+  return {
+    url: "/car",
+    params: cleanedParams,
+  };
+},
 
   // 🔥 Prevent unnecessary refetch
   serializeQueryArgs: ({ queryArgs }) => {
