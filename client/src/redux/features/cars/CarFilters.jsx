@@ -35,7 +35,7 @@ const CheckRow = ({ label, count, checked, onClick }) => (
       >
         {checked && <span className="w-1.5 h-1.5 bg-white rounded-sm" />}
       </span>
-      <span className="text-sm text-slate-700">{label}</span>
+      <span className="text-sm text-gray-50">{label}</span>
     </span>
     {typeof count === "number" && (
       <span className="text-xs text-gray-50">({count})</span>
