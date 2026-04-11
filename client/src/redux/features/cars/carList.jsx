@@ -163,9 +163,9 @@ export default function CarList() {
 
         <div className="grid grid-cols-12 gap-6">
           {/* ---------------- DESKTOP SIDEBAR ---------------- */}
-          <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
+<div className="sticky self-start hidden lg:block lg:col-span-4 xl:col-span-3 top-20 h-fit">
             <CarFilters
-              brands={facets.brands || []} // ✅ backend-driven
+              brands={facets.brands || []} 
               facets={facets}
               value={filters}
               onChange={updateFilters}

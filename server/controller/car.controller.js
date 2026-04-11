@@ -343,7 +343,7 @@ export const getCars = asyncHandler(async (req, res) => {
   
     $lookup: {
       from: "brands",
-      localField: "brand",
+      localField: "_id",
       foreignField: "_id",
       as: "brand",
     },
