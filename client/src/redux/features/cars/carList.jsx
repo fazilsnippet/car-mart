@@ -14,7 +14,7 @@ export default function CarList() {
   /* ---------------- FILTERS FROM URL ---------------- */
   const filters = useMemo(
     () => ({
-      q: searchParams.get("q") || "", // ✅ FIXED
+      q: searchParams.get("q") || "", 
       brand: searchParams.getAll("brand"),
       fuelType: searchParams.getAll("fuelType"),
       transmission: searchParams.getAll("transmission"),
@@ -117,7 +117,7 @@ export default function CarList() {
     <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
       {/* 🔥 Updating indicator */}
       {isFetching && (
-        <div className="mb-2 text-sm text-gray-400">Updating...</div>
+        <div className="mb-2 text-sm text-gray-600">Updating...</div>
       )}
 
       {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
@@ -154,7 +154,7 @@ export default function CarList() {
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-white border lg:hidden rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-800 bg-white border lg:hidden rounded-xl border-slate-200 hover:bg-slate-50 bg-background text-foreground"
           >
             <HiOutlineAdjustments className="w-5 h-5" />
             Filters
@@ -175,7 +175,7 @@ export default function CarList() {
           {/* ---------------- RESULTS ---------------- */}
           <div className="col-span-12 lg:col-span-8 xl:col-span-9">
             {cars.length === 0 ? (
-              <div className="p-10 text-center bg-white border shadow-sm text-slate-500 rounded-2xl border-slate-100">
+              <div className="p-10 text-center text-gray-800 bg-black border shadow-sm rounded-2xl border-slate-100">
                 No cars match your filters.
                 <div className="mt-4">
                   <button

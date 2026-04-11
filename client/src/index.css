@@ -6,8 +6,8 @@
 
 
 .dark {
-  --background: #1e292f;
-  --foreground: #ccd1d5;
+  --background: #101518;
+  --foreground: #ebeff2;
 }
 
 .bg-background { background: var(--background); }
