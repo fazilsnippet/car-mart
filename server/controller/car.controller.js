@@ -226,8 +226,28 @@ const buildMatch = (filters, exclude) => {
   applyInFilter("fuelType");
   applyInFilter("transmission");
 
+  // Handle price bucket from frontend (e.g., "0-5", "5-10", "20+")
+  if (filters.priceBucket && exclude !== "price") {
+    const bucketMap = {
+      "0-5": [0, 500000],
+      "5-10": [500000, 1000000],
+      "10-15": [1000000, 1500000],
+      "15-20": [1500000, 2000000],
+      "20+": [2000000, Infinity],
+    };
+
+    const [min, max] = bucketMap[filters.priceBucket] || [];
+    
+    if (min !== undefined) {
+      match.price = {};
+      if (min !== undefined) match.price.$gte = min;
+      if (max !== Infinity) match.price.$lte = max;
+    }
+  }
+
+  // Also handle direct priceMin/priceMax if provided
   if (filters.priceMin || filters.priceMax) {
-    match.price = {};
+    match.price = match.price || {};
 
     if (filters.priceMin) match.price.$gte = Number(filters.priceMin);
     if (filters.priceMax) match.price.$lte = Number(filters.priceMax);
