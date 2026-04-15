@@ -8,6 +8,7 @@ import {
 export default function AdminChatPage() {
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [message, setMessage] = useState("");
+  const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
 
   const { data, isLoading } = useGetConversationsQuery();
   const conversations = data?.data || [];
@@ -19,7 +20,6 @@ export default function AdminChatPage() {
 
   const messages = messageData?.data || [];
 
-  const [sendMessage] = useSendMessageMutation();
 
   // ✅ useMemo → avoid unnecessary re-renders
   const sortedConversations = useMemo(() => {
@@ -28,20 +28,25 @@ export default function AdminChatPage() {
     );
   }, [conversations]);
 
-  const handleSend = async () => {
-    if (!message.trim() || !selectedConvo) return;
 
-   try {
-  const res = await sendMessage(...).unwrap();
-} catch (err) {
-  console.error(err);
-}
+const handleSend = async () => {
+  if (!message.trim() || !selectedConvo?._id || isSending) return;
+
+  try {
+    await sendMessage({
+      conversationId: selectedConvo._id,
+      text: message.trim(),
+    }).unwrap();
 
     setMessage("");
-  };
+  } catch (err) {
+    console.error("Send failed:", err);
+    alert("Message failed to send");
+  }
+};
 
   return (
-    <div className="grid h-[600px] grid-cols-[300px,1fr] border rounded-2xl overflow-hidden">
+    <div className="grid h-150 grid-cols-[300px,1fr] border rounded-2xl overflow-hidden">
 
       {/* 🔹 LEFT → Conversations */}
       <div className="overflow-y-auto border-r">
