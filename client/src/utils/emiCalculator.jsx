@@ -68,12 +68,13 @@ const EmiCalculator = ({
         <label className="text-sm">Interest Rate (%)</label>
         <input
           type="number"
+            step="0.01"
           value={rate}
-          onChange={(e) => setRate(Number(e.target.value))}
+          onChange={(e) => setRate((e.target.value))}
           className="w-full p-2 border rounded"
         />
       </div>
-
+        
       {/* TENURE */}
       <div className="mb-3">
         <label className="text-sm">Tenure (years)</label>
