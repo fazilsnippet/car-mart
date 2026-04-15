@@ -1,117 +1,168 @@
-import { useEffect, useState } from "react";
-import { getSocket } from "../../../utils/socket.js";
-import { useGetMessagesQuery, useSendMessageMutation } from "./chatApi.js";
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  useGetMessagesQuery,
+  useSendMessageMutation,
+  chatApi,
+} from "./chatApi";
+import { getSocket } from "../../../utils/socket";
 
-export default function ChatWindow({ conversationId }) {
-  const [text, setText] = useState("");
-  const [liveMessages, setLiveMessages] = useState([]);
-  const [sendError, setSendError] = useState("");
+export default function ChatWindow({ conversation }) {
+  const dispatch = useDispatch();
 
-  const { data, isLoading } = useGetMessagesQuery(
-    { conversationId, page: 1 },
+  const userId = useSelector((state) => state.auth?.user?._id);
+
+  const conversationId = conversation?._id;
+  
+  const bottomRef = useRef();
+
+  const { data, isFetching } = useGetMessagesQuery(
+    { conversationId, page: 1, limit: 50 },
     { skip: !conversationId }
   );
+
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
+  const [text, setText] = useState("");
 
-  const messages = data?.data || [];
-
-  useEffect(() => {
-    setLiveMessages([]);
-  }, [conversationId]);
-
+  // =========================
+  // ✅ SOCKET LISTENER
+  // =========================
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket || !conversationId) return;
 
-    const handleReceive = (msg) => {
-      const incomingConversationId = msg.conversationId || msg.conversation;
+    const handler = (msg) => {
+      if (msg.conversation !== conversationId) return;
 
-      if (incomingConversationId?.toString() === conversationId?.toString()) {
-        setLiveMessages((prev) => [...prev, msg]);
-      }
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getMessages",
+          { conversationId, page: 1, limit: 50 },
+          (draft) => {
+            const exists = draft.data?.some((m) => m._id === msg._id);
+            if (!exists) {
+              draft.data.push(msg);
+            }
+          }
+        )
+      );
     };
 
-    socket.on("receiveMessage", handleReceive);
+    socket.on("receiveMessage", handler);
 
-    return () => {
-      socket.off("receiveMessage", handleReceive);
-    };
-  }, [conversationId]);
+    return () => socket.off("receiveMessage", handler);
+  }, [conversationId, dispatch]);
 
+  // =========================
+  // ✅ CLEAR UNREAD COUNT
+  // =========================
+  useEffect(() => {
+    if (!conversationId || !userId) return;
+
+    dispatch(
+      chatApi.util.updateQueryData(
+        "getConversations",
+        { page: 1, limit: 50 },
+        (draft) => {
+          const convo = draft.data?.find((c) => c._id === conversationId);
+          if (convo && convo.unreadCounts) {
+            convo.unreadCounts[userId] = 0;
+          }
+        }
+      )
+    );
+  }, [conversationId, userId, dispatch]);
+
+  // =========================
+  // ✅ AUTO SCROLL
+  // =========================
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [data]);
+
+  // =========================
+  // ✅ SEND MESSAGE
+  // =========================
   const handleSend = async () => {
-    const trimmedText = text.trim();
-
-    if (!trimmedText || !conversationId) return;
-
-    setSendError("");
+    if (!text.trim() || !conversationId) return;
 
     try {
-      const response = await sendMessage({
-        conversationId,
-        text: trimmedText
-      }).unwrap();
-
-      if (response?.data) {
-        setLiveMessages((prev) => [...prev, response.data]);
-      }
-
+      await sendMessage({ conversationId, text }).unwrap();
       setText("");
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      setSendError(error?.data?.message || "Unable to send message.");
+    } catch (e) {
+      console.error("Send failed:", e);
     }
   };
 
-  if (!conversationId) {
+  // =========================
+  // ❌ NO CONVERSATION SELECTED
+  // =========================
+  if (!conversation) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-white sm:justify-center">
         Select a conversation
       </div>
     );
   }
 
-  const allMessages = [...messages.slice().reverse(), ...liveMessages].filter(
-    (msg, index, self) => index === self.findIndex((m) => m._id === msg._id)
-  );
-
   return (
-    <>
-      <div className="p-4 font-semibold border-b">Chat</div>
+    <div className="flex flex-col h-full">
 
-      <div className="flex-1 p-4 overflow-y-auto">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          allMessages.map((msg, i) => (
-            <div key={msg._id || i} className="mb-2">
-              <p>{msg.text}</p>
+      {/* HEADER */}
+      <div className="p-3 font-semibold border-b">
+        {conversation.car?.title || "Conversation"}
+      </div>
+
+      {/* MESSAGES */}
+      <div className="flex-1 p-3 space-y-2 overflow-y-auto">
+        {isFetching && <p>Loading...</p>}
+
+        {data?.data?.map((m) => {
+          const isMe = m.sender === userId;
+
+          return (
+            <div
+              key={m._id}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[70%] p-2 rounded-lg text-sm ${
+                  isMe ? "bg-green-200" : "bg-orange-300"
+                }`}
+              >
+                <p className= "text-black">{m.text}</p>
+                <p className="mt-1 text-xs text-gray-500 ">
+                  {new Date(m.createdAt).toLocaleTimeString()}
+                </p>
+              </div>
             </div>
-          ))
-        )}
+          );
+        })}
+
+        <div ref={bottomRef} />
       </div>
 
-      <div className="p-4 border-t">
-        {sendError && (
-          <p className="mb-2 text-sm text-red-600">{sendError}</p>
-        )}
+      {/* INPUT BAR */}
+      <div className="flex items-center gap-2 p-3 border-t bg-background text-forground">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message..."
+          className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-black"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSend();
+          }}
+        />
 
-        <div className="flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type a message..."
-            className="flex-1 px-3 py-2 border rounded-lg"
-          />
-          <button
-            onClick={handleSend}
-            disabled={isSending || !text.trim() || !conversationId}
-            className="px-4 text-white bg-blue-500 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSending ? "Sending..." : "Send"}
-          </button>
-        </div>
+        <button
+          onClick={handleSend}
+          disabled={isSending}
+          className="px-5 py-2 text-white bg-orange-300 rounded-full hover:bg-gray-800 disabled:opacity-50"
+        >
+          {isSending ? "Sending..." : "Send"}
+        </button>
       </div>
-    </>
+    </div>
   );
 }

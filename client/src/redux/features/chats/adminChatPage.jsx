@@ -31,10 +31,11 @@ export default function AdminChatPage() {
   const handleSend = async () => {
     if (!message.trim() || !selectedConvo) return;
 
-    await sendMessage({
-      conversationId: selectedConvo._id,
-      text: message,
-    });
+   try {
+  const res = await sendMessage(...).unwrap();
+} catch (err) {
+  console.error(err);
+}
 
     setMessage("");
   };

@@ -11,6 +11,7 @@ const buildQueryString = (params = {}) => {
   return searchParams.toString();
 };
 
+
 export const bookingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getBookings: builder.query({

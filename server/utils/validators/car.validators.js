@@ -1,23 +1,22 @@
 import Joi from "joi";
 
-// export const createSchema = Joi.object({
-//   title: Joi.string().trim().required(),
-//   brand: Joi.string().hex().length(24).required(),
-//   variant : Joi.string().required(),
-//   year: Joi.number().required(),
-//   price: Joi.number().required(),
-//   kmDriven: Joi.number().required(),
-//   fuelType: Joi.string().valid("Petrol", "Diesel", "Electric", "Hybrid", "CNG", "LPG", "Other").required(),
-//   transmission: Joi.string().valid("MT", "AT", "CVT", "DCT", "AMT", "IMT", "E-CVT", "SINGLE-SPEED", "OTHERS").required(),
-//   gears: Joi.number(),
-//   driveType: Joi.string().valid("FWD", "RWD", "AWD", "4WD"),
-//   ownerCount: Joi.number().integer().min(1).max(10),
-//   location: Joi.object({
-//     city: Joi.string(),
-//     state: Joi.string()
-//   }),
-//   features: Joi.array().items(Joi.string())
-// });
+
+export const carValidation = Joi.object({
+  title: Joi.string().required(),
+  images: Joi.array().items(Joi.string().uri()).min(1).max(12).required(),
+  brand: Joi.string().required(),
+  year: Joi.number().min(1950).max(new Date().getFullYear()).required(),
+  fuel: Joi.string().valid("Petrol","Diesel","Electric","Hybrid","CNG","LPG").required(),
+  transmission: Joi.string().valid("Manual","Automatic").required(),
+  kmDriven: Joi.number().min(0).required(),
+  owners: Joi.number().max(7).required(),
+  registrationNumber: Joi.string().required(),
+  location: Joi.string().required(),
+  expectedPrice: Joi.number().min(1000).required(),
+  features: Joi.array().items(Joi.string()),
+  conditionNotes: Joi.string().allow("")
+});
+
 
 
 export const querySchema = Joi.object({

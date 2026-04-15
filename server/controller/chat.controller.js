@@ -5,13 +5,30 @@ import { Message } from "../models/Message.model.js";
 
 export const startConversation = async (req, res) => {
   try {
-    const { carId } = req.body;
     const userId = req.user?._id;
+    const isAdmin = req.user?.role === "admin";
+    const { carId } = req.body;
 
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized"
+      });
+    }
+//     if (!req.user || !req.user._id) {
+//   return res.status(401).json({
+//     success: false,
+//     message: "Unauthorized user"
+//   });
+// }
+
+
+
+    // ❌ Prevent admin from starting conversation
+    if (isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Admins cannot start conversations"
       });
     }
 
@@ -22,50 +39,62 @@ export const startConversation = async (req, res) => {
       });
     }
 
-    const carExists = await Car.exists({ _id: carId, lifecycleStatus: "ACTIVE" });
-
+    const carExists = await Car.exists({
+      _id: carId,
+      lifecycleStatus: "ACTIVE"
+    });
+    
     if (!carExists) {
       return res.status(404).json({
         success: false,
         message: "Car not found or inactive"
       });
     }
+    
+    
+    // ✅ UPSERT CONVERSATION
+   const ADMIN_ID = process.env.ADMIN_ID;
 
-    // const convo = await Conversation.findOneAndUpdate(
-    //   { user: userId, car: carId },
-    //   { $setOnInsert: { user: userId, car: carId } },
-    //   { new: true, upsert: true }
-    // );
+const uniqueKey = `${userId}_${carId}`;
 
-    const convo = await Conversation.findOneAndUpdate(
-  { user: userId, car: carId },
-  { $set: { lastMessageAt: new Date() }, $setOnInsert: { user: userId, car: carId } },
-  { returnDocument: "after", upsert: true }
-);
-
-    return res.status(200).json(convo);
-  } catch (error) {
-    if (error?.code === 11000) {
-      const convo = await Conversation.findOne({
-        user: req.user?._id,
-        car: req.body?.carId
-      });
-
-      if (convo) {
-        return res.status(200).json(convo);
+const conversation = await Conversation.findOneAndUpdate(
+  { uniqueKey },
+  {
+    $set: {
+      updatedAt: new Date()
+    },
+    $setOnInsert: {
+      uniqueKey,
+      car: carId,
+      participants: [userId, ADMIN_ID],
+      unreadCounts: {
+        [userId.toString()]: 0,
+        [ADMIN_ID]: 0
       }
     }
+  },
+  {
+    new: true,
+    upsert: true
+  }
+);
 
-    return res.status(500).json({
+false
+return res.status(200).json({
+  success: true,
+  data: conversation
+});
+
+} catch (error) {
+  return res.status(500).json({
       success: false,
       message: error.message
     });
   }
 };
 
-export const sendMessage = async (req, res) => {
-  const session = await mongoose.startSession();
 
+export const sendMessage = async (req, res) => {
   try {
     const { conversationId, text } = req.body;
     const trimmedText = text?.trim();
@@ -84,12 +113,9 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    session.startTransaction();
-
-    const conversation = await Conversation.findById(conversationId).session(session);
+    const conversation = await Conversation.findById(conversationId);
 
     if (!conversation) {
-      await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: "Conversation not found"
@@ -98,53 +124,60 @@ export const sendMessage = async (req, res) => {
 
     const isAdmin = req.user.role === "admin";
 
-    if (!isAdmin && conversation.user.toString() !== req.user._id.toString()) {
-      await session.abortTransaction();
+    // ✅ CORRECT PARTICIPANT CHECK
+   const isParticipant = conversation.participants?.some(
+  (id) => id.toString() === req.user._id.toString()
+);
+
+
+    if (!isAdmin && !isParticipant) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to send messages in this conversation"
+        message: "Not authorized"
       });
     }
 
-    const sender = isAdmin ? "admin" : "user";
+    // ✅ REAL SENDER (USER ID)
+    const message = await Message.create({
+      conversation: conversationId,
+      sender: req.user._id,
+      text: trimmedText
+    });
 
-    const [message] = await Message.create(
-      [
-        {
-          conversation: conversationId,
-          sender,
-          text: trimmedText
-        }
-      ],
-      { session }
-    );
+    // ✅ UPDATE CONVERSATION
+    conversation.lastMessage = message._id;
+    conversation.updatedAt = new Date();
 
-    await Conversation.findByIdAndUpdate(
-      conversationId,
-      {
-        lastMessage: message._id,
-        updatedAt: new Date()
-      },
-      { session }
-    );
+    // =========================
+    // 🔥 UNREAD COUNT UPDATE
+    // =========================
+    const participants = conversation.participants || [];
 
-    await session.commitTransaction();
+    participants.forEach((participantId) => {
+      if (participantId.toString() !== req.user._id.toString()) {
+        const current =
+          conversation.unreadCounts?.get(participantId.toString()) || 0;
+
+        conversation.unreadCounts.set(
+          participantId.toString(),
+          current + 1
+        );
+      }
+    });
+console.log("participants:", conversation.participants);
+    await conversation.save();
 
     return res.status(201).json({
       success: true,
       data: message
     });
-  } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
 
+  } catch (error) {
     return res.status(500).json({
       success: false,
       message: error.message
+      
     });
-  } finally {
-    session.endSession();
   }
 };
 export const getConversations = async (req, res) => {
@@ -152,18 +185,37 @@ export const getConversations = async (req, res) => {
     const userId = req.user._id;
     const isAdmin = req.user.role === "admin";
 
-    const conversations = await Conversation.find(
-      isAdmin ? {} : { user: userId }
-    )
-      .populate("user", "name email")
-      .populate("car", "title price images")
-      .populate("lastMessage", "text sender createdAt")
-      .sort({ updatedAt: -1 })
-      .lean();
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
+    const skip = (page - 1) * limit;
+
+    // ✅ FILTER
+    const filter = isAdmin
+      ? {}
+      : { participants: userId };
+
+    const [conversations, total] = await Promise.all([
+      Conversation.find(filter)
+        .populate("participants", "name email") // replaces user
+        .populate("car", "title price images")
+        .populate("lastMessage", "text sender createdAt")
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Conversation.countDocuments(filter)
+    ]);
 
     return res.json({
       success: true,
-      data: conversations
+      data: conversations,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore: skip + limit < total
+      }
     });
 
   } catch (error) {
@@ -179,8 +231,8 @@ export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
 
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
 
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
       return res.status(400).json({
@@ -189,7 +241,9 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const conversation = await Conversation.findById(conversationId).lean();
+    const conversation = await Conversation.findById(conversationId)
+      .select("participants")
+      .lean();
 
     if (!conversation) {
       return res.status(404).json({
@@ -200,7 +254,12 @@ export const getMessages = async (req, res) => {
 
     const isAdmin = req.user.role === "admin";
 
-    if (!isAdmin && conversation.user.toString() !== req.user._id.toString()) {
+    // ✅ CORRECT PARTICIPANT CHECK
+    const isParticipant = conversation.participants?.some(
+      (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (!isAdmin && !isParticipant) {
       return res.status(403).json({
         success: false,
         message: "Not authorized"
@@ -209,16 +268,29 @@ export const getMessages = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const messages = await Message.find({ conversation: conversationId })
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    // ✅ FETCH MESSAGES
+    const [messages, total] = await Promise.all([
+      Message.find({ conversation: conversationId })
+        .sort({ createdAt: -1 }) // latest first (efficient)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Message.countDocuments({ conversation: conversationId })
+    ]);
+
+    // ✅ REVERSE FOR CHAT UI (old → new)
+    const formattedMessages = messages.reverse();
 
     res.json({
       success: true,
-      data: messages,
-      page,
-      limit
+      data: formattedMessages,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore: skip + limit < total
+      }
     });
 
   } catch (error) {

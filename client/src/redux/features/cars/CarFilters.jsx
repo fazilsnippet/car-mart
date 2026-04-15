@@ -8,37 +8,41 @@ const Section = ({ id, title, children, open, onToggle }) => (
       onClick={() => onToggle(id)}
       className="flex items-center justify-between w-full text-left"
     >
-      <span className="text-sm font-semibold text-gray-50">{title}</span>
+      <span className="text-sm font-semibold text-foreground">{title}</span>
+
       <HiOutlineChevronDown
-        className={`w-5 h-5 text-gray-50 transition-transform ${
+        className={`w-5 h-5 text-foreground transition-transform ${
           open[id] ? "rotate-180" : ""
         }`}
       />
     </button>
+
     {open[id] && <div className="mt-3">{children}</div>}
   </div>
 );
 
-const CheckRow = ({ label, count, checked, onClick }) => (
+const CheckRow = ({ label, count, checked, onClick, className = "" }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-slate-50"
+    className={`flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-background/50 ${className}`}
   >
     <span className="flex items-center gap-2">
       <span
         className={`w-4 h-4 rounded border flex items-center justify-center ${
           checked
             ? "bg-indigo-600 border-indigo-600"
-            : "bg-white border-slate-300"
+            : "bg-background border-slate-300"
         }`}
       >
         {checked && <span className="w-1.5 h-1.5 bg-white rounded-sm" />}
       </span>
-      <span className="text-sm text-gray-50">{label}</span>
+
+      <span className="text-sm text-foreground">{label}</span>
     </span>
+
     {typeof count === "number" && (
-      <span className="text-xs text-gray-50">({count})</span>
+      <span className="text-xs text-foreground">({count})</span>
     )}
   </button>
 );
@@ -108,19 +112,19 @@ export default function CarFilters({
 
   return (
     <div
-      className={`bg-white ${
+      className={` ${
         compact ? "" : "rounded-2xl border border-slate-100 shadow-sm bg-background text-foreground"
       }`}
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-100">
         <div className="bg-background text-foreground">
-          <h2 className="text-base font-bold text-gray-50">Filters</h2>
-          <p className="text-xs text-gray-50">Refine your search</p>
+        <h2 className="text-base font-bold text-foreground">Filters</h2>
+<p className="text-xs text-foreground">Refine your search</p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 text-gray-50"
+            className="p-2 rounded-lg hover:bg-background/50 text-foreground"
           >
             <HiOutlineX className="w-5 h-5" />
           </button>
@@ -154,7 +158,7 @@ export default function CarFilters({
 
 
   return (
-    <CheckRow 
+    <CheckRow className="bg-background text-foreground"
       key={b._id}
       label={brandObj?.name || `Missing (${b._id})`}
       count={b.count}
@@ -166,7 +170,7 @@ export default function CarFilters({
  </Section>
 
         {/* Price */}
-        <Section id="price" title="Budget" open={open} onToggle={toggle} >
+        <Section id="price" title="Budget" open={open} onToggle={toggle} className="bg-background text-foreground">
           {priceOptions.map((p) => (
             <CheckRow
               key={p.key}
@@ -184,7 +188,7 @@ export default function CarFilters({
         </Section>
 
         {/* Fuel */}
-        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} >
+        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} className="bg-background text-foreground">
           {facets.fuelTypes?.map((f) => (
             <CheckRow
               key={f._id}
@@ -201,7 +205,7 @@ export default function CarFilters({
           id="transmission"
           title="Transmission"
           open={open}
-          onToggle={toggle} 
+          onToggle={toggle} className="bg-background text-foreground"
         >
           {facets.transmissions?.map((t) => (
             <CheckRow
@@ -215,10 +219,10 @@ export default function CarFilters({
         </Section>
 
         {/* Apply / Reset Buttons */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 bg-background text-foreground">
           <button
             onClick={resetFilters}
-            className="flex-1 py-2 text-sm font-semibold border border-slate-200 text-gray-50 rounded-xl hover:bg-slate-50"
+            className="flex-1 py-2 text-sm font-semibold text-white bg-orange-300 border border-slate-200 rounded-xl hover:bg-slate-50"
           >
             Reset
           </button>

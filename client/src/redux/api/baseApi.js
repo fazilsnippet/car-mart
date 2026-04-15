@@ -1,47 +1,43 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logout } from "../features/auth/authSlice";
 
-const url = import.meta.env.VITE_API_URL ?? import.meta.env.REACT_APP_API_URL;
+const API_URL =
+  import.meta.env.VITE_API_URL ?? import.meta.env.REACT_APP_API_URL;
+
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: url || "",
-  credentials: "include", // 🔥 cookies only
+  baseUrl: API_URL || "",
+  credentials: "include",
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  // normalize args
-  const url = typeof args === "string" ? args : args.url;
-
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  // ❌ stop if already retried
-  if (args?._retry) return result;
-
-  // 🔥 handle 401 (only for protected routes)
-  if (
-    result?.error?.status === 401 &&
-    !url.includes("/users/login") &&
-    !url.includes("/users/refreshtoken") &&
-    !url.includes("/users/me") &&
-    !url.includes("/users/mount")
-  ) {
+  // ✅ Only retry once using meta flag (NOT args)
+  if (result?.error?.status === 401 && !extraOptions?.alreadyRetried) {
     const refreshResult = await rawBaseQuery(
       { url: "/users/refreshtoken", method: "POST" },
       api,
       extraOptions
     );
 
-    // ❌ refresh failed → logout + STOP
+    // ❌ refresh failed → logout + cleanup
     if (refreshResult?.error) {
       api.dispatch(logout());
+
+      // 🔥 VERY IMPORTANT: disconnect socket
+      if (typeof window !== "undefined") {
+        const socket = window.__socket;
+        socket?.disconnect?.();
+      }
+
       return result;
     }
 
-    // ✅ retry once
-    result = await rawBaseQuery(
-      { ...args, _retry: true },
-      api,
-      extraOptions
-    );
+    // ✅ retry request safely
+    result = await rawBaseQuery(args, api, {
+      ...extraOptions,
+      alreadyRetried: true,
+    });
   }
 
   return result;

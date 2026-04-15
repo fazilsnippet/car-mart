@@ -9,11 +9,11 @@ const messageSchema = new mongoose.Schema(
       ref: "Conversation",
       required: true
     },
-    sender: {
-      type: String, // "user" | "admin"
-            enum: ["user", "admin"],
-      required: true
-    },
+  sender: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true
+},
     text: {
       type: String,
       required: true

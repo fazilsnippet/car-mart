@@ -2,11 +2,20 @@ import { useSelector } from "react-redux";
 import { ChevronDown, Phone, User, Bell, Search } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
-import carmartH from "../assets/carmartH.png";
+
+import kiaA from "../assets/kiaA.png";
+import kiaB from "../assets/kiaB.jpeg";
+import { useTheme } from "../utils/theme.jsx";
+import kia from "../assets/kia.png";
+
+
+import NotificationBell from "../redux/features/notification/notificationbell.jsx";
+import { fromJSON } from "postcss";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
 
   const { user, isLoading } = useSelector((state) => state.auth);
 
@@ -21,9 +30,9 @@ const Header = () => {
   // ✅ CENTRALIZED NAV
   const navItems = useMemo(() => [
     { label: "Buy used car", path: "/cars-list" },
-    { label: "Sell car", path: "/chat" },
-    { label: "Car finance", path: "/finance" },
-    { label: "New cars", path: "/new-cars" },
+    { label: "Sell car", path: "/sell-car" },
+    { label: "Car finance", path: "/emiCalculator" },
+    { label: "Chat", path: "/chat" },
     { label: "Car services", path: "/services" },
   ], []);
 
@@ -53,12 +62,25 @@ const Header = () => {
 
             {/* LOGO */}
             <Link to="/" className="flex items-center">
-              <img
-                src={carmartH}
-                alt="CarMart"
-                className="object-contain w-24 h-auto cursor-pointer"
-              />
-            </Link>
+  {/* Light logo */}
+  {/* <img
+    src={kiaA}
+    alt="CarMart"
+    className="object-contain w-24 h-auto cursor-pointer dark:hidden"
+  />
+
+  <img
+    src={kiaB} // 👈 your dark version
+    alt="CarMart"
+    className="hidden object-contain w-24 h-auto cursor-pointer dark:block"
+  /> */}
+
+<img
+  src={theme === "dark" ? kiaA : kiaA}
+  className="object-contain w-24"
+  alt="CarMart Logo"
+/>
+</Link>
 
             {/* NAV (desktop only) */}
             <nav className="items-center hidden gap-6 text-sm font-medium text-gray-700 md:flex bg-background text-foreground">
@@ -88,7 +110,7 @@ const Header = () => {
               />
               <button
                 onClick={handleSearch}
-                className="flex items-center justify-center px-4 text-white bg-black"
+                className="flex items-center justify-center px-4 text-white bg-orange-300"
               >
                 <Search size={18} />
               </button>
@@ -99,7 +121,7 @@ const Header = () => {
           <div className="flex items-center gap-4">
 
             {/* CALL */}
-            <button className="items-center hidden gap-2 px-4 py-2 text-sm text-white bg-black rounded-lg md:flex">
+            <button className="items-center hidden gap-2 px-4 py-2 text-sm text-white bg-orange-300 rounded-lg md:flex">
               <Phone size={16} />
               Call us
             </button>
@@ -118,15 +140,18 @@ const Header = () => {
               <div className="flex items-center gap-4">
 
                 {/* NOTIFICATIONS */}
-                <div
+                {/* <div
                   onClick={() => navigate("/notifications")}
                   className="relative cursor-pointer"
                 >
                   <Bell size={20} />
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1 rounded-full">
-                    3
+                    
                   </span>
-                </div>
+                </div> */}
+                  <div className="relative p-2 rounded-lg hover:bg-slate-100">
+                   <NotificationBell  className="w-5 h-5" />
+            </div>
 
                 {/* PROFILE */}
                 <div
@@ -165,7 +190,7 @@ const Header = () => {
       </header>
 
       {/* SPACER */}
-      <div className="h-[88px] md:h-16"></div>
+      <div className="h-22 md:h-16"></div>
     </>
   );
 };

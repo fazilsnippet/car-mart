@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 
 const EmiCalculator = ({
   price = 0,
-  defaultRate = 8,
+  defaultRate = 9,
   defaultTenure = 5,
 }) => {
   const [downPayment, setDownPayment] = useState(price * 0.1);
@@ -45,7 +45,7 @@ const EmiCalculator = ({
   }, [price]);
 
   return (
-    <div className="p-4 bg-white border rounded-xl">
+    <div className="p-4 border bg-background text-forground rounded-xl">
       <h3 className="mb-4 font-semibold">EMI Calculator</h3>
 
       <p className="mb-2 text-sm text-gray-500">
@@ -86,7 +86,7 @@ const EmiCalculator = ({
       </div>
 
       {/* RESULT */}
-      <div className="p-3 mt-4 bg-gray-100 rounded">
+      <div className="p-3 mt-4 bg-gray-500 rounded">
         <p className="font-semibold">
           EMI: ₹ {emiData.emi.toFixed(0)}
         </p>

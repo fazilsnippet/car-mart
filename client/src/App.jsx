@@ -51,6 +51,8 @@ import Header from "./layouts/header.jsx";
 const ChatPage = lazy(() =>
   import("./redux/features/chats/chatPage.jsx")
 );
+import EmiCalculator from "./utils/emiCalculator.jsx";
+import CarForm from "./redux/features/carSell/carForm.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -220,6 +222,15 @@ function App() {
               </Suspense>
             }
           />
+            <Route
+            path="/emiCalculator"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <EmiCalculator />
+              </Suspense>
+            }
+          />
+          
 
           <Route
             path="/register"
@@ -252,6 +263,16 @@ function App() {
               </Suspense>
             }
           />
+          <Route
+            path="/sell-car"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
+                  <CarForm />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
 
           {/* 🔔 Notifications */}
           <Route
@@ -264,7 +285,7 @@ function App() {
               </Suspense>
             }
           />
-
+ 
           {/* 💬 Chat */}
           <Route
             path="/chat"

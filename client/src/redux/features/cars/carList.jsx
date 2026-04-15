@@ -117,8 +117,7 @@ export default function CarList() {
     <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
       {/* 🔥 Updating indicator */}
       {isFetching && (
-        <div className="mb-2 text-sm text-gray-600">Updating...</div>
-      )}
+<div className="mb-2 text-sm text-foreground/70">Updating...</div>      )}
 
       {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
       {isFilterOpen && (
@@ -126,8 +125,8 @@ export default function CarList() {
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setIsFilterOpen(false)}
-          />
-          <div className="absolute left-0 top-0 bottom-0 w-[92vw] max-w-sm bg-white shadow-xl overflow-y-auto">
+          />           
+           <div className="absolute left-0 top-0 bottom-0 w-[92vw] max-w-sm bg-background text-foreground shadow-xl overflow-y-auto">
             <CarFilters
               brands={facets.brands || []} // ✅ from backend
               facets={facets}
@@ -144,18 +143,18 @@ export default function CarList() {
         {/* ---------------- HEADER ---------------- */}
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-2xl font-bold text-emerald-50">
+            <h1 className="text-2xl font-bold text-foreground">
               Buy used cars
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-foreground/60">
               {total} result{total !== 1 ? "s" : ""} found
             </p>
           </div>
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-800 bg-white border lg:hidden rounded-xl border-slate-200 hover:bg-slate-50 bg-background text-foreground"
-          >
+className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border rounded-xl lg:hidden border-slate-200 bg-background text-foreground hover:bg-background/80"          >
+            
             <HiOutlineAdjustments className="w-5 h-5" />
             Filters
           </button>
@@ -175,8 +174,7 @@ export default function CarList() {
           {/* ---------------- RESULTS ---------------- */}
           <div className="col-span-12 lg:col-span-8 xl:col-span-9">
             {cars.length === 0 ? (
-              <div className="p-10 text-center bg-black border shadow-sm text-emerald-50 rounded-2xl border-slate-100">
-                No cars match your filters.
+<div className="p-10 text-center border shadow-sm bg-background text-foreground rounded-2xl border-slate-100">                No cars match your filters.
                 <div className="mt-4">
                   <button
                     onClick={() => setSearchParams({})} // ✅ CLEAN RESET
@@ -198,6 +196,7 @@ export default function CarList() {
                 {/* ---------------- PAGINATION ---------------- */}
                 {totalPages > 1 && (
                   <div className="flex justify-center gap-2 mt-8">
+                    
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <button
                         key={i}
@@ -207,8 +206,7 @@ export default function CarList() {
                         className={`px-3 py-2 rounded-lg text-sm font-medium ${
                           filters.page === i + 1
                             ? "bg-indigo-600 text-white"
-                            : "bg-white border border-slate-200 text-slate-700"
-                        }`}
+: "bg-background border border-slate-200 text-foreground" }`}
                       >
                         {i + 1}
                       </button>

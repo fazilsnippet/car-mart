@@ -18,7 +18,6 @@ import {
   HiOutlineHeart
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
-import logo from "../assets/carmartH.png";
 import HeaderWrapper from "../utils/headerwrapper";
 // import Header from "./header";
 
