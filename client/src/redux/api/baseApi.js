@@ -12,7 +12,22 @@ const rawBaseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  // ✅ Only retry once using meta flag (NOT args)
+  // 🚨 Detect offline OR network failure AFTER request
+  if (result?.error?.status === "FETCH_ERROR") {
+    const isOffline =
+      typeof navigator !== "undefined" && !navigator.onLine;
+
+    return {
+      error: {
+        status: isOffline ? "OFFLINE" : "NETWORK_ERROR",
+        message: isOffline
+          ? "No internet connection"
+          : "Server unreachable",
+      },
+    };
+  }
+
+  // ✅ 401 refresh logic
   if (result?.error?.status === 401 && !extraOptions?.alreadyRetried) {
     const refreshResult = await rawBaseQuery(
       { url: "/users/refreshtoken", method: "POST" },
@@ -20,11 +35,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       extraOptions
     );
 
-    // ❌ refresh failed → logout + cleanup
     if (refreshResult?.error) {
       api.dispatch(logout());
 
-      // 🔥 VERY IMPORTANT: disconnect socket
       if (typeof window !== "undefined") {
         const socket = window.__socket;
         socket?.disconnect?.();
@@ -33,7 +46,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       return result;
     }
 
-    // ✅ retry request safely
     result = await rawBaseQuery(args, api, {
       ...extraOptions,
       alreadyRetried: true,

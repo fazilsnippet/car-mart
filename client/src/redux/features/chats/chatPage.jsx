@@ -14,11 +14,23 @@ export default function ChatPage() {
   return (
 <div className="flex h-[calc(100vh-60px)]">
 
-  {/* MOBILE BACK BUTTON */}
-  <div className="p-2 md:hidden">
+  <div className="p-2 ">
     <button
+        onClick={() => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/chat");
+    }
+  }}
+      className="p-2 rounded-full hover:bg-gray-200 block md:hidden"
+    >
+      <ArrowLeft />
+    </button>
+
+      <button
       onClick={() => navigate(-1)}
-      className="p-2 rounded-full hover:bg-gray-200"
+      className="p-2 rounded-full hover:bg-gray-200 hidden md:block"
     >
       <ArrowLeft />
     </button>

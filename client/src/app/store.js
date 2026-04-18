@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { baseApi } from "../redux/api/baseApi";
 import authReducer from "../redux/features/auth/authSlice";
 import uiReducer from "../redux/features/ui/theme.js";
-import { chatApi } from "../redux/features/chats/chatApi";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 export const store = configureStore({
   reducer: {
@@ -14,3 +14,4 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseApi.middleware)
 });
+  setupListeners(store.dispatch);

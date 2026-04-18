@@ -66,8 +66,10 @@ export const chatApi = baseApi.injectEndpoints({
 
       async onQueryStarted(
         { conversationId, text },
-        { dispatch, queryFulfilled }
+        { dispatch, queryFulfilled, getState }
       ) {
+        const user = getState().auth.user;
+
         // 🔥 optimistic update
         const patchResult = dispatch(
           chatApi.util.updateQueryData(
@@ -81,7 +83,7 @@ export const chatApi = baseApi.injectEndpoints({
               draft.data.push({
                 _id: tempId,
                 conversation: conversationId,
-                sender: "me", // ⚠️ better replace with auth userId
+                sender: user?._id,
                 text,
                 createdAt: new Date().toISOString(),
                 read: false,

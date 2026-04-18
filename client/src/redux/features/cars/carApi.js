@@ -67,47 +67,56 @@ const toCarFormData = (data, { includePrice = true } = {}) => {
 
   return formData;
 };
+const cleanParams = (params = {}) => {
+  return Object.fromEntries(
+    Object.entries(params)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          const filtered = value
+            .filter((v) => v !== "" && v != null)
+            .sort();
+
+          if (!filtered.length) return null;
+
+          return [key, filtered.join(",")];
+        }
+
+        if (value === "" || value == null) return null;
+
+        return [key, value];
+      })
+      .filter(Boolean)
+  );
+};
 
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-   getCars: builder.query({
-query: (params = {}) => {
-  const cleanedParams = Object.fromEntries(
-    Object.entries(params)
-      .filter(([_, value]) => value !== "" && value != null)
-      .map(([key, value]) => {
-        if (Array.isArray(value)) {
-          const filtered = value.filter((v) => v !== "" && v != null);
-          return [key, filtered.join(",")]; // ✅ KEY FIX
-        }
-        return [key, value];
-      })
-  );
+    getCars: builder.query({
+      query: (params = {}) => ({
+        url: "/car",
+        params: cleanParams(params),
+      }),
 
-  return {
-    url: "/car",
-    params: cleanedParams,
-  };
-},
+      serializeQueryArgs: ({ queryArgs }) => {
+        return JSON.stringify(cleanParams(queryArgs));
+      },
 
-  // 🔥 Prevent unnecessary refetch
-  serializeQueryArgs: ({ queryArgs }) => {
-    return JSON.stringify(queryArgs);
-  },
+      keepUnusedDataFor: 300,
+      refetchOnReconnect: true,
+      refetchOnFocus: true,
 
-  providesTags: (result) =>
-    result?.data
-      ? [
-          ...result.data.map(({ _id }) => ({
-            type: "Car",
-            id: _id,
-          })),
-          { type: "Car", id: "LIST" },
-        ]
-      : [{ type: "Car", id: "LIST" }],
-}),
-
-    getCarById: builder.query({
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ _id }) => ({
+                type: "Car",
+                id: _id,
+              })),
+              { type: "Car", id: "LIST" },
+            ]
+          : [{ type: "Car", id: "LIST" }],
+    }),
+ getCarById: builder.query({
       query: (id) => `/car/${id}`,
       transformResponse: (response) => response.data,
       providesTags: (result, error, id) => [{ type: "Car", id }],

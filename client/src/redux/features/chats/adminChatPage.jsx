@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useGetConversationsQuery,
   useGetMessagesQuery,
@@ -8,104 +8,155 @@ import {
 export default function AdminChatPage() {
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [message, setMessage] = useState("");
-  const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useGetConversationsQuery();
+  const [allMessages, setAllMessages] = useState([]);
+  const containerRef = useRef(null);
+
+  const { data } = useGetConversationsQuery({ page: 1, limit: 50 });
   const conversations = data?.data || [];
 
   const { data: messageData, isFetching } = useGetMessagesQuery(
-    { conversationId: selectedConvo?._id },
+    {
+      conversationId: selectedConvo?._id,
+      page,
+      limit: 50,
+    },
     { skip: !selectedConvo }
   );
 
-  const messages = messageData?.data || [];
+  const [sendMessage] = useSendMessageMutation();
 
+  // =========================
+  // 🔥 RESET WHEN SWITCH CHAT
+  // =========================
+  useEffect(() => {
+    setAllMessages([]);
+    setPage(1);
+  }, [selectedConvo?._id]);
 
-  // ✅ useMemo → avoid unnecessary re-renders
-  const sortedConversations = useMemo(() => {
-    return [...conversations].sort(
-      (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-    );
-  }, [conversations]);
+  // =========================
+  // 🔥 MERGE PAGINATED DATA
+  // =========================
+  useEffect(() => {
+    if (!messageData?.data) return;
 
+    // API = newest → oldest
+    const incoming = [...messageData.data].reverse(); // oldest → newest
 
-const handleSend = async () => {
-  if (!message.trim() || !selectedConvo?._id || isSending) return;
+    setAllMessages((prev) => {
+      const ids = new Set(prev.map((m) => m._id));
 
-  try {
-    await sendMessage({
-      conversationId: selectedConvo._id,
-      text: message.trim(),
-    }).unwrap();
+      // prepend older messages
+      const merged = [
+        ...incoming.filter((m) => !ids.has(m._id)),
+        ...prev,
+      ];
 
-    setMessage("");
-  } catch (err) {
-    console.error("Send failed:", err);
-    alert("Message failed to send");
-  }
-};
+      return merged;
+    });
+  }, [messageData]);
+
+  // =========================
+  // 🔥 AUTO SCROLL (SMART)
+  // =========================
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const isNearBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+    if (isNearBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [allMessages]);
+
+  // =========================
+  // 🔥 LOAD OLDER ON TOP SCROLL
+  // =========================
+  const handleScroll = (e) => {
+    if (e.target.scrollTop === 0 && messageData?.pagination?.hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  // =========================
+  // 🔥 SEND MESSAGE (NO OPTIMISTIC)
+  // =========================
+  const handleSend = async () => {
+    if (!message.trim() || !selectedConvo?._id) return;
+
+    try {
+      await sendMessage({
+        conversationId: selectedConvo._id,
+        text: message.trim(),
+      }).unwrap();
+
+      setMessage("");
+      // ❌ do NOT manually update UI
+      // socket will handle it
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <div className="grid h-150 grid-cols-[300px,1fr] border rounded-2xl overflow-hidden">
+    <div className="grid h-[600px] grid-cols-[300px,1fr] border rounded-2xl overflow-hidden">
 
-      {/* 🔹 LEFT → Conversations */}
+      {/* LEFT */}
       <div className="overflow-y-auto border-r">
         <h2 className="p-3 font-semibold">Chats</h2>
 
-        {isLoading ? (
-          <p className="p-3 text-sm">Loading...</p>
-        ) : (
-          sortedConversations.map((c) => (
-            <div
-              key={c._id}
-              onClick={() => setSelectedConvo(c)}
-              className={`p-3 cursor-pointer border-b ${
-                selectedConvo?._id === c._id ? "bg-gray-100" : ""
-              }`}
-            >
-              <p className="font-semibold">{c.car?.title}</p>
-              <p className="text-xs text-gray-500">
-                {c.lastMessage?.text || "No messages yet"}
-              </p>
-            </div>
-          ))
-        )}
+        {conversations.map((c) => (
+          <div
+            key={c._id}
+            onClick={() => setSelectedConvo(c)}
+            className={`p-3 cursor-pointer border-b ${
+              selectedConvo?._id === c._id ? "bg-background text-foreground" : ""
+            }`}
+          >
+            <p className="font-semibold">{c.car?.title}</p>
+            <p className="text-xs text-gray-500">
+              {c.lastMessage?.text || "No messages yet"}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* 🔹 RIGHT → Messages */}
+      {/* RIGHT */}
       <div className="flex flex-col">
         {!selectedConvo ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full">
             Select a conversation
           </div>
         ) : (
           <>
             {/* Header */}
-            <div className="p-3 font-semibold border-b">
+            <div className="p-3 border-b font-semibold">
               {selectedConvo.car?.title}
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-3 space-y-2 overflow-y-auto">
-              {isFetching ? (
-                <p>Loading...</p>
-              ) : (
-                messages
-                  .slice()
-                  .reverse()
-                  .map((msg) => (
-                    <div
-                      key={msg._id}
-                      className={`max-w-xs p-2 rounded-lg text-sm ${
-                        msg.sender === "admin"
-                          ? "bg-blue-500 text-white ml-auto"
-                          : "bg-gray-200"
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  ))
-              )}
+            <div
+              ref={containerRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto p-3 space-y-2"
+            >
+              {allMessages.map((msg) => (
+                <div
+                  key={msg._id}
+                  className={`max-w-xs p-2 rounded-lg text-sm ${
+                    msg.sender === "admin"
+                      ? "bg-blue-500 text-foreground ml-auto"
+                      : "bg-background text-foreground"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              ))}
+
+              {isFetching && <p className="text-xs">Loading...</p>}
             </div>
 
             {/* Input */}
@@ -113,12 +164,12 @@ const handleSend = async () => {
               <input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg"
-                placeholder="Type a message..."
+                className="flex-1 border px-3 py-2 rounded-lg"
+                placeholder="Type message..."
               />
               <button
                 onClick={handleSend}
-                className="px-4 py-2 text-white bg-black rounded-lg"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg"
               >
                 Send
               </button>

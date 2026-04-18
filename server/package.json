@@ -33,5 +33,5 @@
     "nodemon": "^3.1.11",
     "prettier": "^3.8.1"
   },
-  "proxy": "https://car-mart-backend.onrender.com"
+  "proxy": "http://localhost:8001"
 }

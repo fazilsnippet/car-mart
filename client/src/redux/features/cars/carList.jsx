@@ -6,6 +6,7 @@ import CarFilters from "./CarFilters";
 import { useSearchParams } from "react-router-dom";
 import { HiOutlineAdjustments, HiOutlineX } from "react-icons/hi";
 import Loader from "../ui/loader.jsx";
+import QueryWrapper from "../../../utils/queryWrapper.jsx"
 
 export default function CarList() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -95,26 +96,24 @@ export default function CarList() {
     setSearchParams(params);
   };
 
-  /* ---------------- LOADING ---------------- */
-  if (isLoading && !data) {
-    return (
-      <div className="flex items-center justify-center flex-1">
-        <Loader />
-      </div>
-    );
-  }
+ 
+  
 
-  /* ---------------- ERROR ---------------- */
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center flex-1 text-center text-red-500">
-        {error?.data?.message || "Failed to load cars"}
-      </div>
-    );
-  }
+return (
+  <QueryWrapper
+    data={data}
+    error={error}
+    isLoading={isLoading}
+    isFetching={isFetching}
+  >
+    {(data) => {
+      const cars = data?.data || [];
+      const total = data?.total || 0;
+      const totalPages = data?.totalPages || 1;
+      const facets = data?.filters || {};
 
-  return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
+      return (
+        <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
       {/* 🔥 Updating indicator */}
       {isFetching && (
 <div className="mb-2 text-sm text-foreground/70">Updating...</div>      )}
@@ -218,6 +217,9 @@ className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border
           </div>
         </div>
       </div>
-    </div>
-  );
+           </div>
+      );
+    }}
+  </QueryWrapper>
+);
 }

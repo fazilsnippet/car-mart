@@ -10,85 +10,69 @@ export const startConversation = async (req, res) => {
     const { carId } = req.body;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized"
-      });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-//     if (!req.user || !req.user._id) {
-//   return res.status(401).json({
-//     success: false,
-//     message: "Unauthorized user"
-//   });
-// }
 
-
-
-    // ❌ Prevent admin from starting conversation
     if (isAdmin) {
       return res.status(403).json({
         success: false,
-        message: "Admins cannot start conversations"
+        message: "Admins cannot start conversations",
       });
     }
 
     if (!carId || !mongoose.Types.ObjectId.isValid(carId)) {
       return res.status(400).json({
         success: false,
-        message: "Valid carId is required"
+        message: "Valid carId is required",
       });
     }
 
     const carExists = await Car.exists({
       _id: carId,
-      lifecycleStatus: "ACTIVE"
+      lifecycleStatus: "ACTIVE",
     });
-    
+
     if (!carExists) {
       return res.status(404).json({
         success: false,
-        message: "Car not found or inactive"
+        message: "Car not found or inactive",
       });
     }
-    
-    
-    // ✅ UPSERT CONVERSATION
-   const ADMIN_ID = process.env.ADMIN_ID;
 
-const uniqueKey = `${userId}_${carId}`;
+    const ADMIN_ID = process.env.ADMIN_ID;
 
-const conversation = await Conversation.findOneAndUpdate(
-  { uniqueKey },
-  {
-    $set: {
-      updatedAt: new Date()
-    },
-    $setOnInsert: {
-      uniqueKey,
-      car: carId,
-      participants: [userId, ADMIN_ID],
-      unreadCounts: {
-        [userId.toString()]: 0,
-        [ADMIN_ID]: 0
-      }
+    if (!mongoose.Types.ObjectId.isValid(ADMIN_ID)) {
+      throw new Error("Invalid ADMIN_ID");
     }
-  },
-  {
-    new: true,
-    upsert: true
-  }
-);
 
-false
-return res.status(200).json({
-  success: true,
-  data: conversation
-});
+    const uniqueKey = `${userId}_${carId}`;
 
-} catch (error) {
-  return res.status(500).json({
+    const conversation = await Conversation.findOneAndUpdate(
+      { uniqueKey },
+      {
+        $set: { updatedAt: new Date() },
+        $setOnInsert: {
+          uniqueKey,
+          car: carId,
+          participants: [userId], // only user
+          adminId: ADMIN_ID,
+          unreadCounts: {
+            [userId.toString()]: 0,
+            [ADMIN_ID]: 0,
+          },
+        },
+      },
+      { new: true, upsert: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: conversation,
+    });
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -102,14 +86,14 @@ export const sendMessage = async (req, res) => {
     if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
       return res.status(400).json({
         success: false,
-        message: "Valid conversationId is required"
+        message: "Valid conversationId is required",
       });
     }
 
     if (!trimmedText) {
       return res.status(400).json({
         success: false,
-        message: "Message text is required"
+        message: "Message text is required",
       });
     }
 
@@ -118,65 +102,67 @@ export const sendMessage = async (req, res) => {
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: "Conversation not found"
+        message: "Conversation not found",
       });
     }
 
-    const isAdmin = req.user.role === "admin";
+    const userId = req.user._id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
 
-    // ✅ CORRECT PARTICIPANT CHECK
-   const isParticipant = conversation.participants?.some(
-  (id) => id.toString() === req.user._id.toString()
-);
+    const isAdmin = userId === ADMIN_ID;
+    const isParticipant = conversation.participants.some(
+      (id) => id.toString() === userId
+    );
 
-
+    // 🔥 strict access control
     if (!isAdmin && !isParticipant) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized"
+        message: "Not authorized",
       });
     }
 
-    // ✅ REAL SENDER (USER ID)
     const message = await Message.create({
       conversation: conversationId,
       sender: req.user._id,
-      text: trimmedText
+      text: trimmedText,
     });
 
-    // ✅ UPDATE CONVERSATION
+    // update conversation
     conversation.lastMessage = message._id;
     conversation.updatedAt = new Date();
 
-    // =========================
-    // 🔥 UNREAD COUNT UPDATE
-    // =========================
-    const participants = conversation.participants || [];
+    // 🔥 unread count (object-safe)
+    const allReceivers = [
+      ...conversation.participants.map((id) => id.toString()),
+      ADMIN_ID,
+    ];
 
-    participants.forEach((participantId) => {
-      if (participantId.toString() !== req.user._id.toString()) {
-        const current =
-          conversation.unreadCounts?.get(participantId.toString()) || 0;
-
-        conversation.unreadCounts.set(
-          participantId.toString(),
-          current + 1
-        );
+    allReceivers.forEach((id) => {
+      if (id !== userId) {
+        const current = conversation.unreadCounts?.[id] || 0;
+        conversation.unreadCounts[id] = current + 1;
       }
     });
-console.log("participants:", conversation.participants);
+
     await conversation.save();
+
+    // 🔥 SOCKET EMIT (CRITICAL)
+    const io = req.app.get("io");
+
+    io.to(conversationId.toString()).emit("newMessage", {
+      message,
+      conversationId,
+    });
 
     return res.status(201).json({
       success: true,
-      data: message
+      data: message,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message
-      
+      message: error.message,
     });
   }
 };
@@ -237,7 +223,7 @@ export const getMessages = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid conversationId"
+        message: "Invalid conversationId",
       });
     }
 
@@ -248,13 +234,12 @@ export const getMessages = async (req, res) => {
     if (!conversation) {
       return res.status(404).json({
         success: false,
-        message: "Conversation not found"
+        message: "Conversation not found",
       });
     }
 
     const isAdmin = req.user.role === "admin";
 
-    // ✅ CORRECT PARTICIPANT CHECK
     const isParticipant = conversation.participants?.some(
       (id) => id.toString() === req.user._id.toString()
     );
@@ -262,41 +247,31 @@ export const getMessages = async (req, res) => {
     if (!isAdmin && !isParticipant) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized"
+        message: "Not authorized",
       });
     }
 
     const skip = (page - 1) * limit;
 
-    // ✅ FETCH MESSAGES
-    const [messages, total] = await Promise.all([
-      Message.find({ conversation: conversationId })
-        .sort({ createdAt: -1 }) // latest first (efficient)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
-      Message.countDocuments({ conversation: conversationId })
-    ]);
-
-    // ✅ REVERSE FOR CHAT UI (old → new)
-    const formattedMessages = messages.reverse();
+    const messages = await Message.find({ conversation: conversationId })
+      .sort({ createdAt: -1 }) // 🔥 KEEP DESC
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,
-      data: formattedMessages,
+      data: messages, // ✅ FIXED
       pagination: {
         page,
         limit,
-        total,
-        hasMore: skip + limit < total
-      }
+        hasMore: messages.length === limit, // ✅ better than count
+      },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
