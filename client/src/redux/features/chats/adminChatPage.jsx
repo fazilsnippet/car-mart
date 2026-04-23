@@ -133,7 +133,7 @@ export default function AdminChatPage() {
         ) : (
           <>
             {/* Header */}
-            <div className="p-3 border-b font-semibold">
+            <div className="p-3 font-semibold border-b">
               {selectedConvo.car?.title}
             </div>
 
@@ -141,7 +141,7 @@ export default function AdminChatPage() {
             <div
               ref={containerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-3 space-y-2"
+              className="flex-1 p-3 space-y-2 overflow-y-auto"
             >
               {allMessages.map((msg) => (
                 <div
@@ -164,12 +164,12 @@ export default function AdminChatPage() {
               <input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="flex-1 border px-3 py-2 rounded-lg"
+                className="flex-1 px-3 py-2 border rounded-lg"
                 placeholder="Type message..."
               />
               <button
                 onClick={handleSend}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+                className="px-4 py-2 text-white bg-blue-500 rounded-lg"
               >
                 Send
               </button>

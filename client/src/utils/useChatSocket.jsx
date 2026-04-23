@@ -80,7 +80,7 @@ export const initChatSocket = (userId) => {
           const exists = draft.data.some((m) => m._id === message._id);
           if (!exists) {
             // backend is DESC → newest first
-            draft.data.unshift(message);
+            draft.data.push(message);
           }
         }
       )
@@ -102,9 +102,10 @@ export const initChatSocket = (userId) => {
           }
 
           // keep latest on top
-          draft.data.sort(
-            (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-          );
+        draft.data.sort(
+  (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+);
+
         }
       )
     );

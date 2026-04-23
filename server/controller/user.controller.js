@@ -136,7 +136,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // 🍪 Production-safe cookie config
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
@@ -180,7 +180,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
@@ -208,7 +208,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
 
@@ -238,7 +238,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     };
 

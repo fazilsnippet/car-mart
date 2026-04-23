@@ -2,23 +2,22 @@
 
 import mongoose from "mongoose";
 
-const conversationSchema = new mongoose.Schema(
-  {
+const conversationSchema = new mongoose.Schema( {
    participants: {
-  type: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
-    }
-  ],
-  validate: {
-    validator: function (arr) {
-      return arr.length === 2 && arr.every(Boolean);
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
+    validate: {
+      validator: function (arr) {
+        return arr.length === 2 && new Set(arr.map(String)).size === 2;
+      },
+      message: "Conversation must have exactly 2 unique participants",
     },
-    message: "Conversation must have exactly 2 valid participants"
-  }
-},
+  },
 
     car: {
       type: mongoose.Schema.Types.ObjectId,

@@ -1,3 +1,4 @@
+import { use } from "react";
 import { baseApi } from "../../api/baseApi";
 
 export const chatApi = baseApi.injectEndpoints({
@@ -64,30 +65,25 @@ export const chatApi = baseApi.injectEndpoints({
         body: { conversationId, text },
       }),
 
-      async onQueryStarted(
-        { conversationId, text },
-        { dispatch, queryFulfilled, getState }
+      
+  async onQueryStarted(
+    { conversationId, text, userId }, // ✅ pass userId in when calling mutation
+    { dispatch, queryFulfilled }
       ) {
-        const user = getState().auth.user;
-
-        // 🔥 optimistic update
-        const patchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getMessages",
-            { conversationId, page: 1, limit: 50 },
-            (draft) => {
-              if (!draft.data) draft.data = [];
-
-              const tempId = `temp-${Date.now()}`;
-
-              draft.data.push({
-                _id: tempId,
-                conversation: conversationId,
-                sender: user?._id,
-                text,
-                createdAt: new Date().toISOString(),
-                read: false,
-              });
+       dispatch(
+  chatApi.util.updateQueryData(
+    "getMessages",
+    { conversationId, page: 1, limit: 50 },
+    (draft) => {
+      if (!draft.data) draft.data = [];
+      draft.data.push({
+        _id: tempId,
+        conversation: conversationId,
+        sender: userId,
+        text,
+        createdAt: new Date().toISOString(),
+        read: false,
+      });
             }
           )
         );

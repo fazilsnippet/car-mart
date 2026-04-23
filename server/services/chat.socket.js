@@ -1,11 +1,8 @@
-// file: sockets/chat.socket.js
+import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
+import { Conversation } from "../models/Conversation.model.js";
 import { Message } from "../models/Message.model.js";
 import { canSendMessage } from "../utils/ratelimiter.js";
-import { notificationQueue } from "../services/notification.queue.js";
-
-const onlineUsers = new Map();
-
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -14,84 +11,153 @@ export const initSocket = (server) => {
     },
   });
 
-  io.on("connection", (socket) => {
-    // JOIN
-    socket.on("join", ({ userId }) => {
-      onlineUsers.set(userId, socket.id);
+
+
+io.use((socket, next) => {
+  try {
+    const cookies = socket.handshake.headers.cookie;
+    if (!cookies) return next(new Error("Unauthorized"));
+
+    const accessToken = cookies
+      .split(";")
+      .map(c => c.trim())
+      .find(c => c.startsWith("accessToken="))
+      ?.split("=")[1];
+
+    if (!accessToken) return next(new Error("Unauthorized"));
+
+    // ✅ verify the token
+    const payload = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+    // ✅ attach user to socket
+    socket.user = { _id: payload.userId };
+
+    next();
+  } catch (err) {
+    next(new Error("Unauthorized"));
+  }
+});
+
+
+
+ io.on("connection", (socket) => {
+  const userId = socket.user?._id;
+  if (!userId) {
+    socket.disconnect();
+    return;
+  }
+   
+
+    // ✅ JOIN CONVERSATION ROOM
+    socket.on("joinConversation", async ({ conversationId }) => {
+      const conversation = await Conversation.findById(conversationId);
+
+      if (!conversation) return;
+
+      const isParticipant = conversation.participants.some(
+        (id) => id.toString() === userId
+      );
+
+      if (!isParticipant) return;
+
+      socket.join(conversationId.toString());
     });
 
-    // SEND MESSAGE
-    socket.on("sendMessage", async (data) => {
-      const { conversationId, sender, text, receiverId, userId } = data;
+    // ✅ SEND MESSAGE (aligned with backend rules)
+    socket.on("sendMessage", async ({ conversationId, text }) => {
+      try {
+        if (!canSendMessage(userId)) {
+          socket.emit("error", "Too many messages");
+          return;
+        }
 
-      if (!canSendMessage(userId)) {
-        socket.emit("error", "Too many messages");
-        return;
-      }
+        const conversation = await Conversation.findById(conversationId);
 
-      const message = await Message.create({
-        conversation: conversationId,
-        sender,
-        text
-      });
+        if (!conversation) return;
 
-      const receiverSocket = onlineUsers.get(receiverId);
+        const isParticipant = conversation.participants.some(
+          (id) => id.toString() === userId
+        );
 
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("receiveMessage", message);
-      } else {
-        await notificationQueue.add("new-message", {
-          userId: receiverId,
-          message: text,
-           conversationId: conversationId
-        });
-      }
+        if (!isParticipant) return;
 
-      socket.emit("receiveMessage", message);
-
-      // AUTO MESSAGE
-      if (sender === "user") {
-        const autoReply = await Message.create({
+        const message = await Message.create({
           conversation: conversationId,
-          sender: "admin",
-          text: "Thanks! We'll reply soon."
+          sender: userId,
+          text,
         });
 
-        socket.emit("receiveMessage", autoReply);
+        // ✅ update conversation
+        conversation.lastMessage = message._id;
+        conversation.updatedAt = new Date();
+
+        conversation.participants.forEach((id) => {
+          const strId = id.toString();
+          if (strId !== userId) {
+            const current = conversation.unreadCounts.get(strId) || 0;
+            conversation.unreadCounts.set(strId, current + 1);
+          }
+        });
+
+        await conversation.save();
+
+        const populatedMessage = await message.populate(
+          "sender",
+          "name avatar"
+        );
+
+        // 🔥 emit to room (both participants)
+        io.to(conversationId.toString()).emit("newMessage", {
+          message: populatedMessage,
+          conversationId,
+        });
+
+      } catch (err) {
+        socket.emit("error", "Message failed");
       }
     });
 
-    // TYPING
-    socket.on("typing", ({ receiverId }) => {
-      const receiverSocket = onlineUsers.get(receiverId);
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("typing");
-      }
+    // ✅ TYPING
+    socket.on("typing", ({ conversationId }) => {
+      socket.to(conversationId).emit("typing", { userId });
     });
 
-    socket.on("stopTyping", ({ receiverId }) => {
-      const receiverSocket = onlineUsers.get(receiverId);
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("stopTyping");
-      }
+    socket.on("stopTyping", ({ conversationId }) => {
+      socket.to(conversationId).emit("stopTyping", { userId });
     });
 
-    // READ RECEIPTS
+    // ✅ READ RECEIPTS (scoped)
     socket.on("markAsRead", async ({ conversationId }) => {
+      const conversation = await Conversation.findById(conversationId);
+
+      if (!conversation) return;
+
+      const isParticipant = conversation.participants.some(
+        (id) => id.toString() === userId
+      );
+
+      if (!isParticipant) return;
+
       await Message.updateMany(
-        { conversation: conversationId, read: false },
+        {
+          conversation: conversationId,
+          sender: { $ne: userId },
+          read: false,
+        },
         { $set: { read: true } }
       );
 
-      io.emit("messagesRead", { conversationId });
+      conversation.unreadCounts.set(userId, 0);
+      await conversation.save();
+
+      io.to(conversationId.toString()).emit("messagesRead", {
+        conversationId,
+        userId,
+      });
     });
 
     socket.on("disconnect", () => {
-      for (let [userId, sockId] of onlineUsers.entries()) {
-        if (sockId === socket.id) {
-          onlineUsers.delete(userId);
-        }
-      }
+      // nothing needed (rooms auto cleaned)
     });
   });
 

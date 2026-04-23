@@ -3,17 +3,17 @@ import { Car } from "../models/Car.model.js";
 import { Conversation } from "../models/Conversation.model.js";
 import { Message } from "../models/Message.model.js";
 
+
 export const startConversation = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const isAdmin = req.user?.role === "admin";
     const { carId } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    if (isAdmin) {
+    if (req.user.role === "admin") {
       return res.status(403).json({
         success: false,
         message: "Admins cannot start conversations",
@@ -47,23 +47,33 @@ export const startConversation = async (req, res) => {
 
     const uniqueKey = `${userId}_${carId}`;
 
-    const conversation = await Conversation.findOneAndUpdate(
-      { uniqueKey },
-      {
-        $set: { updatedAt: new Date() },
-        $setOnInsert: {
-          uniqueKey,
-          car: carId,
-          participants: [userId], // only user
-          adminId: ADMIN_ID,
-          unreadCounts: {
-            [userId.toString()]: 0,
-            [ADMIN_ID]: 0,
+    let conversation;
+
+    try {
+      conversation = await Conversation.findOneAndUpdate(
+        { uniqueKey },
+        {
+          $set: { updatedAt: new Date() },
+          $setOnInsert: {
+            uniqueKey,
+            car: carId,
+            participants: [userId, ADMIN_ID],
+            unreadCounts: new Map([
+              [userId.toString(), 0],
+              [ADMIN_ID.toString(), 0],
+            ]),
           },
         },
-      },
-      { new: true, upsert: true }
-    );
+        { new: true, upsert: true }
+      );
+    } catch (err) {
+      // 🔥 handle race condition
+      if (err.code === 11000) {
+        conversation = await Conversation.findOne({ uniqueKey });
+      } else {
+        throw err;
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -76,7 +86,6 @@ export const startConversation = async (req, res) => {
     });
   }
 };
-
 
 export const sendMessage = async (req, res) => {
   try {
@@ -107,15 +116,13 @@ export const sendMessage = async (req, res) => {
     }
 
     const userId = req.user._id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
 
-    const isAdmin = userId === ADMIN_ID;
+    // ✅ strict participant check (admin included)
     const isParticipant = conversation.participants.some(
       (id) => id.toString() === userId
     );
 
-    // 🔥 strict access control
-    if (!isAdmin && !isParticipant) {
+    if (!isParticipant) {
       return res.status(403).json({
         success: false,
         message: "Not authorized",
@@ -128,36 +135,38 @@ export const sendMessage = async (req, res) => {
       text: trimmedText,
     });
 
-    // update conversation
+    // ✅ update conversation metadata
     conversation.lastMessage = message._id;
     conversation.updatedAt = new Date();
 
-    // 🔥 unread count (object-safe)
-    const allReceivers = [
-      ...conversation.participants.map((id) => id.toString()),
-      ADMIN_ID,
-    ];
+    // ✅ safe Map handling
+    if (!conversation.unreadCounts) {
+      conversation.unreadCounts = new Map();
+    }
 
-    allReceivers.forEach((id) => {
-      if (id !== userId) {
-        const current = conversation.unreadCounts?.[id] || 0;
-        conversation.unreadCounts[id] = current + 1;
+    conversation.participants.forEach((id) => {
+      const strId = id.toString();
+      if (strId !== userId) {
+        const current = conversation.unreadCounts.get(strId) || 0;
+        conversation.unreadCounts.set(strId, current + 1);
       }
     });
 
     await conversation.save();
 
-    // 🔥 SOCKET EMIT (CRITICAL)
-    const io = req.app.get("io");
+    // ✅ populate sender (better UX)
+    const populatedMessage = await message.populate("sender", "name avatar");
 
+    // 🔥 SOCKET EMIT
+    const io = req.app.get("io");
     io.to(conversationId.toString()).emit("newMessage", {
-      message,
+      message: populatedMessage,
       conversationId,
     });
 
     return res.status(201).json({
       success: true,
-      data: message,
+      data: populatedMessage,
     });
   } catch (error) {
     return res.status(500).json({
@@ -166,6 +175,7 @@ export const sendMessage = async (req, res) => {
     });
   }
 };
+
 export const getConversations = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -238,18 +248,22 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const isAdmin = req.user.role === "admin";
 
-    const isParticipant = conversation.participants?.some(
-      (id) => id.toString() === req.user._id.toString()
-    );
+const userId = req.user._id.toString();
+const isAdmin = req.user.role === "admin";
 
-    if (!isAdmin && !isParticipant) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized",
-      });
-    }
+const isParticipant = conversation.participants.some(
+  (id) => id.toString() === userId
+);
+
+if (!isAdmin && !isParticipant) {
+  return res.status(403).json({
+    success: false,
+    message: "Not authorized",
+  });
+}
+
+
 
     const skip = (page - 1) * limit;
 
@@ -270,6 +284,47 @@ export const getMessages = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const markAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user._id.toString();
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found",
+      });
+    }
+
+    const isParticipant = conversation.participants.some(
+      (id) => id.toString() === userId
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized",
+      });
+    }
+
+    conversation.unreadCounts.set(userId, 0);
+
+    await conversation.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Marked as read",
+    });
+  } catch (error) {
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

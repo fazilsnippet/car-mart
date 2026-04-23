@@ -5,7 +5,7 @@ import {
   useSendMessageMutation,
   chatApi,
 } from "./chatApi";
-import { getSocket } from "../../../utils/socket";
+import { joinConversation } from "../../../utils/socket";
 
 export default function ChatWindow({ conversation }) {
   const dispatch = useDispatch();
@@ -28,7 +28,7 @@ export default function ChatWindow({ conversation }) {
   // ✅ SOCKET LISTENER
   // =========================
   useEffect(() => {
-    const socket = getSocket();
+    const socket = joinConversation(conversationId);
     if (!socket || !conversationId) return;
 
     const handler = (msg) => {
@@ -48,9 +48,9 @@ export default function ChatWindow({ conversation }) {
       );
     };
 
-    socket.on("receiveMessage", handler);
+    socket.on("newMessage", handler);
 
-    return () => socket.off("receiveMessage", handler);
+    return () => socket.off("newMessage", handler);
   }, [conversationId, dispatch]);
 
   // =========================
