@@ -53,6 +53,7 @@ const ChatPage = lazy(() =>
 );
 import EmiCalculator from "./utils/emiCalculator.jsx";
 import CarForm from "./redux/features/carSell/carForm.jsx";
+import HomePage from "./pages/homePage.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -116,9 +117,8 @@ function App() {
         <Header/>
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}
-        <Route path="/" element={<DashboardLayout />}>
-          {/* <Route index element={<Dashboard />} /> */}
-
+       <Route element={<DashboardLayout />}>
+        <Route path="/" element={<HomePage />} />
           {/* 🔒 Admin */}
           <Route
             path="/admin"

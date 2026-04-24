@@ -100,12 +100,14 @@ const Header = () => {
           {/* 🔥 SEARCH BAR (DESKTOP) */}
           <div className="flex-1 hidden max-w-xl mx-6 md:flex bg-background text-foreground">
             <div className="flex w-full overflow-hidden border rounded-lg">
-              <input
-                type="text"
-                placeholder="Search cars (e.g. Swift, BMW...)"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleKeyDown}
+ <input
+  type="search"
+  name="q"
+  autoComplete="off"
+  inputMode="search"
+  value={searchText}
+  onChange={(e) => setSearchText(e.target.value)}
+  onKeyDown={handleKeyDown}
                 className="flex-1 px-4 py-2 outline-none"
               />
               <button
@@ -170,12 +172,14 @@ const Header = () => {
         {/* 🔥 MOBILE SEARCH BAR */}
         <div className="px-4 pb-3 md:hidden bg-background text-foreground">
           <div className="flex overflow-hidden border rounded-lg">
-            <input
-              type="text"
-              placeholder="Search cars..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              onKeyDown={handleKeyDown}
+<input
+  type="search"
+  name="q"
+  autoComplete="off"
+  inputMode="search"
+  value={searchText}
+  onChange={(e) => setSearchText(e.target.value)}
+  onKeyDown={handleKeyDown}
               className="flex-1 px-4 py-2 outline-none"
             />
             <button

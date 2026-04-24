@@ -181,9 +181,11 @@ import {
   useSendMessageMutation,
   chatApi,
 } from "./chatApi";
+import { ArrowLeft } from "lucide-react";
 import { joinConversation } from "../../../utils/socket";
 
-export default function ChatWindow({ conversation }) {
+export default function ChatWindow({ conversation, onBack }) {
+
   const dispatch = useDispatch();
   const userId = useSelector((state) => state.auth?.user?._id);
   const conversationId = conversation?._id;
@@ -274,9 +276,21 @@ export default function ChatWindow({ conversation }) {
     <div className="flex flex-col h-full">
 
       {/* HEADER */}
-      <div className="p-3 font-semibold border-b">
-        {conversation.car?.title || "Conversation"}
-      </div>
+    <div className="p-3 font-semibold border-b flex items-center gap-3">
+
+  {/* BACK BUTTON */}
+  <button
+    onClick={onBack}
+    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-green text-black"
+  >
+    <ArrowLeft />
+  </button>
+
+  {/* TITLE */}
+ <span className="flex-1 min-w-0 truncate">
+  {conversation.car?.title || "Conversation"}
+</span>
+</div>
 
       {/* MESSAGES */}
       <div className="flex-1 p-3 space-y-2 overflow-y-auto">

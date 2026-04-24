@@ -19,24 +19,6 @@ import {
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
 import HeaderWrapper from "../utils/headerwrapper";
-// import Header from "./header";
-
-// const baseNavGroups = [
-//   {
-//     title: "Explore",
-//     items: [
-//       { to: "/", label: "Home", icon: HiOutlineViewGrid },
-//       { to: "/cars-list", label: "Browse Cars", icon: HiOutlineViewList },
-//     ],
-//   },
-//   {
-//     title: "My activity",
-//     items: [
-//       { to: "/myBooking", label: "My Bookings", icon: HiOutlineTruck },
-//       { to: "/wishlist", label: "My Wishlist", icon: HiOutlineHeart },
-//     ],
-//   },
-// ];
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -152,7 +134,7 @@ export default function DashboardLayout() {
           </div>
         ))}
       </nav>
-
+{/* 
       <div className="p-4 space-y-1 border-t border-slate-100 bg-background text-foreground">
         <Link
           to="/settings"
@@ -167,7 +149,7 @@ export default function DashboardLayout() {
           <HiOutlineQuestionMarkCircle className="w-5 h-5 shrink-0" />
           Help Center
         </button>
-      </div>
+      </div> */}
     </>
   );
 
@@ -212,82 +194,6 @@ export default function DashboardLayout() {
       {/* MAIN AREA */}
 
       <div className="flex flex-col flex-1 min-h-screen bg-background text-foreground">
-
-        {/* HEADER */}
-        {/* <Header className="fixed top-0 left-0 z-40 flex items-center justify-between w-full h-16 px-6 border-b bg-white/80 backdrop-blur-md bg-background text-foreground border-slate-200"/> */}
-{/* <HeaderWrapper><header className="fixed top-0 left-0 z-40 flex items-center justify-between w-full h-16 px-6 border-b bg-white/80 backdrop-blur-md bg-background text-foreground border-slate-200">
-
-          <div className="flex items-center flex-1 gap-4">
-
-            <button
-              onClick={() => setIsMobileMenuOpen((o) => !o)}
-              className="lg:hidden"
-            >
-              <HiOutlineMenuAlt2 className="w-6 h-6" />
-            </button>
-
-
-            <div className="relative hidden w-full max-w-md sm:block">
-
-              <span
-                onClick={handleSearch}
-                className="absolute inset-y-0 left-0 flex items-center pl-3 cursor-pointer"
-              >
-                <HiOutlineSearch className="w-4 h-4 text-slate-400" />
-              </span>
-
-              <input
-                type="text"
-                placeholder="Search cars, brands..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="block w-full py-2 pl-10 pr-3 text-sm border border-slate-200 rounded-xl bg-slate-50/50 focus:ring-2 focus:ring-indigo-500/20"
-              />
-
-            </div>
-          </div>
-
-          //  RIGHT SIDE 
-
-          <div className="flex items-center gap-4">
-
-            {isAdmin && (
-              <button
-                onClick={() => navigate("/admin")}
-                className="hidden items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 sm:inline-flex bg-background text-foreground"
-              >
-                <HiOutlineShieldCheck className="w-4 h-4" />
-                Admin Center
-              </button>
-            )}
-
-            <button className="relative p-2 rounded-lg hover:bg-slate-100">
-                   <NotificationBell  className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => navigate("/myProfile")}
-              className="flex items-center gap-3"
-            >
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold">My Account</p>
-                <p className="text-[10px] text-slate-500">
-                  {isAdmin ? "Admin & profile access" : "Profile & settings"}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center rounded-full w-9 h-9 bg-slate-200">
-                <HiOutlineUserCircle className="w-7 h-7 text-slate-400" />
-              </div>
-            </button>
-
-          </div>
-
-        </header></HeaderWrapper> */}
-        
-
-        {/* PAGE CONTENT */}
 
         <main className="flex-1 p-8">
           <div className="mx-auto max-w-7xl">

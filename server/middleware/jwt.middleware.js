@@ -12,10 +12,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     : null;
 
 
-console.log(
-  "Exists:",
-  fs.existsSync(new URL("../utils/ApiError.js", import.meta.url))
-);
+
 
   const token = req.cookies?.accessToken || bearerToken;
 
