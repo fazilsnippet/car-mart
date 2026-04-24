@@ -1,89 +1,114 @@
 import { useState, useEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   useGetConversationsQuery,
   useGetMessagesQuery,
   useSendMessageMutation,
 } from "./chatApi";
+import { joinConversation } from "../../../utils/socket";
 
 export default function AdminChatPage() {
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth?.user?._id);
+
+  const prevScrollHeight = useRef(0);
+  const containerRef = useRef(null);
+
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [message, setMessage] = useState("");
   const [page, setPage] = useState(1);
-
   const [allMessages, setAllMessages] = useState([]);
-  const containerRef = useRef(null);
 
   const { data } = useGetConversationsQuery({ page: 1, limit: 50 });
   const conversations = data?.data || [];
 
   const { data: messageData, isFetching } = useGetMessagesQuery(
-    {
-      conversationId: selectedConvo?._id,
-      page,
-      limit: 50,
-    },
+    { conversationId: selectedConvo?._id, page, limit: 50 },
     { skip: !selectedConvo }
   );
 
   const [sendMessage] = useSendMessageMutation();
 
-  // =========================
-  // 🔥 RESET WHEN SWITCH CHAT
-  // =========================
+  // RESET SCROLL
   useEffect(() => {
-    setAllMessages([]);
-    setPage(1);
+    const el = containerRef.current;
+    if (!el) return;
+
+    if (!prevScrollHeight.current) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [selectedConvo?._id]);
 
-  // =========================
-  // 🔥 MERGE PAGINATED DATA
-  // =========================
+  // MERGE PAGINATION
   useEffect(() => {
     if (!messageData?.data) return;
 
-    // API = newest → oldest
-    const incoming = [...messageData.data].reverse(); // oldest → newest
+    const incoming = [...messageData.data].reverse();
 
     setAllMessages((prev) => {
       const ids = new Set(prev.map((m) => m._id));
 
-      // prepend older messages
       const merged = [
         ...incoming.filter((m) => !ids.has(m._id)),
         ...prev,
       ];
 
-      return merged;
+      return merged.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
     });
   }, [messageData]);
 
-  // =========================
-  // 🔥 AUTO SCROLL (SMART)
-  // =========================
+  // SOCKET
+  useEffect(() => {
+    const socket = joinConversation(selectedConvo?._id);
+    if (!socket || !selectedConvo) return;
+
+    const handler = ({ message }) => {
+      if (message.conversation !== selectedConvo._id) return;
+
+      const senderId =
+        typeof message.sender === "object"
+          ? message.sender._id
+          : message.sender;
+
+      if (senderId === userId) return;
+
+      setAllMessages((prev) => {
+        const exists = prev.some((m) => m._id === message._id);
+        if (exists) return prev;
+
+        return [...prev, message];
+      });
+    };
+
+    socket.on("newMessage", handler);
+    return () => socket.off("newMessage", handler);
+  }, [selectedConvo?._id, userId]);
+
+  // AUTO SCROLL
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    const isNearBottom =
-      el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-
-    if (isNearBottom) {
-      el.scrollTop = el.scrollHeight;
+    if (prevScrollHeight.current) {
+      const newHeight = el.scrollHeight;
+      el.scrollTop = newHeight - prevScrollHeight.current;
+      prevScrollHeight.current = 0;
     }
   }, [allMessages]);
 
-  // =========================
-  // 🔥 LOAD OLDER ON TOP SCROLL
-  // =========================
+  // LOAD MORE
   const handleScroll = (e) => {
-    if (e.target.scrollTop === 0 && messageData?.pagination?.hasMore) {
+    const el = e.target;
+
+    if (el.scrollTop <= 10 && messageData?.pagination?.hasMore) {
+      prevScrollHeight.current = el.scrollHeight;
       setPage((prev) => prev + 1);
     }
   };
 
-  // =========================
-  // 🔥 SEND MESSAGE (NO OPTIMISTIC)
-  // =========================
+  // SEND
   const handleSend = async () => {
     if (!message.trim() || !selectedConvo?._id) return;
 
@@ -91,85 +116,136 @@ export default function AdminChatPage() {
       await sendMessage({
         conversationId: selectedConvo._id,
         text: message.trim(),
+        userId,
       }).unwrap();
 
       setMessage("");
-      // ❌ do NOT manually update UI
-      // socket will handle it
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div className="grid h-[600px] grid-cols-[300px,1fr] border rounded-2xl overflow-hidden">
+    <div className="grid h-[600px] grid-cols-[300px,1fr] border rounded-2xl overflow-hidden bg-white">
 
-      {/* LEFT */}
-      <div className="overflow-y-auto border-r">
-        <h2 className="p-3 font-semibold">Chats</h2>
+      {/* LEFT PANEL */}
+      <div className="flex flex-col min-h-0 border-r">
+        <div className="p-3 font-semibold border-b bg-gray-50">
+          Chats
+        </div>
 
-        {conversations.map((c) => (
-          <div
-            key={c._id}
-            onClick={() => setSelectedConvo(c)}
-            className={`p-3 cursor-pointer border-b ${
-              selectedConvo?._id === c._id ? "bg-background text-foreground" : ""
-            }`}
-          >
-            <p className="font-semibold">{c.car?.title}</p>
-            <p className="text-xs text-gray-500">
-              {c.lastMessage?.text || "No messages yet"}
-            </p>
-          </div>
-        ))}
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map((c) => (
+            <div
+              key={c._id}
+              onClick={() => {
+                setSelectedConvo(c);
+                setAllMessages([]);
+                setPage(1);
+              }}
+              className={`p-3 cursor-pointer border-b hover:bg-gray-100 ${
+                selectedConvo?._id === c._id ? "bg-gray-200" : ""
+              }`}
+            >
+              <p className="font-medium">{c.car?.title}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {c.lastMessage?.text || "No messages yet"}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* RIGHT */}
-      <div className="flex flex-col">
+      {/* RIGHT PANEL */}
+      <div className="flex flex-col h-full min-h-0">
+
         {!selectedConvo ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full text-gray-500">
             Select a conversation
           </div>
         ) : (
           <>
-            {/* Header */}
-            <div className="p-3 font-semibold border-b">
-              {selectedConvo.car?.title}
+            {/* HEADER */}
+            <div className="flex items-center gap-3 p-3 border-b bg-gray-50">
+              <button
+                onClick={() => {
+                  setSelectedConvo(null);
+                  setAllMessages([]);
+                  setPage(1);
+                }}
+                className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+              >
+                ←
+              </button>
+
+              <div>
+                <p className="font-semibold">
+                  {selectedConvo.car?.title}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Conversation
+                </p>
+              </div>
             </div>
 
-            {/* Messages */}
+            {/* MESSAGES */}
             <div
               ref={containerRef}
               onScroll={handleScroll}
-              className="flex-1 p-3 space-y-2 overflow-y-auto"
+              className="flex-1 min-h-0 p-4 space-y-3 overflow-y-auto bg-gray-50"
             >
-              {allMessages.map((msg) => (
-                <div
-                  key={msg._id}
-                  className={`max-w-xs p-2 rounded-lg text-sm ${
-                    msg.sender === "admin"
-                      ? "bg-blue-500 text-foreground ml-auto"
-                      : "bg-background text-foreground"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              ))}
+              {allMessages.map((msg) => {
+                const senderId =
+                  typeof msg.sender === "object"
+                    ? msg.sender._id
+                    : msg.sender;
 
-              {isFetching && <p className="text-xs">Loading...</p>}
+                const isMe = senderId === userId;
+
+                return (
+                  <div
+                    key={msg._id}
+                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm max-w-xs break-words shadow ${
+                        isMe
+                          ? "bg-blue-500 text-white"
+                          : "bg-white text-gray-800 border"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {isFetching && (
+                <p className="text-xs text-center text-gray-400">
+                  Loading...
+                </p>
+              )}
             </div>
 
-            {/* Input */}
-            <div className="flex gap-2 p-3 border-t">
-              <input
+            {/* INPUT */}
+            <div className="flex items-end gap-2 p-3 bg-white border-t">
+              <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Type message..."
               />
+
               <button
                 onClick={handleSend}
-                className="px-4 py-2 text-white bg-blue-500 rounded-lg"
+                className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
               >
                 Send
               </button>

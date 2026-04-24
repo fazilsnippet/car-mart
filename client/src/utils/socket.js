@@ -53,6 +53,7 @@ export const joinConversation = (conversationId) => {
   if (socket?.connected) {
     socket.emit("joinConversation", { conversationId });
   }
+  return socket;
 };
 
 // ✅ Merge new messages directly into RTK Query cache

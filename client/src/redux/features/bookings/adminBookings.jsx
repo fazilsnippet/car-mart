@@ -38,12 +38,6 @@ export default function AdminBookings() {
     <div className="space-y-4">
       {/* 🔹 Filters */}
       <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search message..."
-          className="px-3 py-2 text-sm border rounded-lg border-slate-200"
-        />
 
         <select
           value={status}

@@ -159,10 +159,11 @@ export const sendMessage = async (req, res) => {
 
     // 🔥 SOCKET EMIT
     const io = req.app.get("io");
-    io.to(conversationId.toString()).emit("newMessage", {
-      message: populatedMessage,
-      conversationId,
-    });
+    // io.to(conversationId.toString()).emit("newMessage", {
+    //   message: populatedMessage,
+    //   conversationId,
+    // });
+    io.to(conversationId.toString()).emit("newMessage", populatedMessage);
 
     return res.status(201).json({
       success: true,
@@ -266,7 +267,6 @@ if (!isAdmin && !isParticipant) {
 
 
     const skip = (page - 1) * limit;
-
     const messages = await Message.find({ conversation: conversationId })
       .sort({ createdAt: -1 }) // 🔥 KEEP DESC
       .skip(skip)

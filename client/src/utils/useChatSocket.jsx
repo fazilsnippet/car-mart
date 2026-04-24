@@ -102,9 +102,9 @@ export const initChatSocket = (userId) => {
           }
 
           // keep latest on top
-        draft.data.sort(
-  (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
-);
+//         draft.data.sort(
+//   (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+// );
 
         }
       )
