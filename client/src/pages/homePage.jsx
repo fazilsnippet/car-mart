@@ -1,96 +1,101 @@
 import React from "react";
+import kia from "../assets/kia.webp";
+import kia1 from "../assets/kia1.webp";
+import kia2 from "../assets/kia2.webp";
+import kia3 from "../assets/kia3.webp";
+import kia4 from "../assets/kia4.jpeg";
 export default function HomePage() {
   return (
-    <div className="bg-gray-50 text-gray-800">
+    <div className="text-gray-800 bg-gray-50">
 
       {/* HERO */}
-      <section className="text-center py-20 px-6 bg-gradient-to-r from-orange-100 to-yellow-100">
-        <h2 className="text-4xl md:text-5xl font-bold mb-4">
+      <section className="px-6 py-20 text-center bg-gradient-to-r from-orange-100 to-yellow-100">
+        <h2 className="mb-4 text-4xl font-bold md:text-5xl">
           Find Your Perfect Ride 🚗
         </h2>
-        <p className="mb-6 text-gray-600 text-lg">
+        <p className="mb-6 text-lg text-gray-600">
           "Drive your dreams, not your budget away."
         </p>
 
-        <div className="flex flex-col md:flex-row justify-center gap-4">
-          <button className="px-6 py-3 bg-orange-500 text-white rounded-full">
+        <div className="flex flex-col justify-center gap-4 md:flex-row">
+          <button className="px-6 py-3 text-white bg-orange-500 rounded-full">
             Find Your Car
           </button>
-          <button className="px-6 py-3 border border-orange-500 text-orange-500 rounded-full">
+          <button className="px-6 py-3 text-orange-500 border border-orange-500 rounded-full">
             Sell Your Car
           </button>
         </div>
       </section>
 
       {/* SEARCH SECTION */}
-      <section className="py-12 px-6 bg-white">
-        <h3 className="text-2xl font-semibold mb-4">Find Your Best Car</h3>
-        <div className="flex flex-col md:flex-row gap-4">
+      <section className="px-6 py-12 bg-white">
+        <h3 className="mb-4 text-2xl font-semibold">Find Your Best Car</h3>
+        <div className="flex flex-col gap-4 md:flex-row">
           <input
-            className="flex-1 border p-3 rounded-lg"
+            className="flex-1 p-3 border rounded-lg"
             placeholder="Search by brand, model or city"
           />
-          <select className="border p-3 rounded-lg">
+          <select className="p-3 border rounded-lg">
             <option>Budget</option>
             <option>Under 5L</option>
             <option>5L - 10L</option>
             <option>10L+</option>
           </select>
-          <button className="px-6 py-3 bg-orange-500 text-white rounded-lg">
+          <button className="px-6 py-3 text-white bg-orange-500 rounded-lg">
             Search
           </button>
         </div>
       </section>
 
       {/* WHY CHOOSE US */}
-      <section className="py-16 px-6 text-center">
-        <h3 className="text-3xl font-semibold mb-10">Why Choose Us?</h3>
+      <section className="px-6 py-16 text-center">
+        <h3 className="mb-10 text-3xl font-semibold">Why Choose Us?</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="bg-white p-6 rounded-2xl shadow">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="p-6 bg-white shadow rounded-2xl">
             <img
-              src="https://source.unsplash.com/100x100/?car,inspection"
+              src={kia1}
               alt="inspection"
               className="mx-auto mb-4 rounded-full"
             />
-            <h4 className="font-semibold text-lg mb-2">Verified Cars</h4>
-            <p className="text-gray-500 text-sm">
+            <h4 className="mb-2 text-lg font-semibold">Verified Cars</h4>
+            <p className="text-sm text-gray-500">
               Every car is inspected to ensure quality and reliability.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow">
+          <div className="p-6 bg-white shadow rounded-2xl">
             <img
-              src="https://source.unsplash.com/100x100/?car,deal"
+              src={kia4}
               alt="deal"
               className="mx-auto mb-4 rounded-full"
             />
-            <h4 className="font-semibold text-lg mb-2">Best Prices</h4>
-            <p className="text-gray-500 text-sm">
+            <h4 className="mb-2 text-lg font-semibold">Best Prices</h4>
+            <p className="text-sm text-gray-500">
               Get the best market price without hidden charges.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow">
+          <div className="p-6 bg-white shadow rounded-2xl">
             <img
-              src="https://source.unsplash.com/100x100/?car,delivery"
+              src={kia2}
               alt="delivery"
               className="mx-auto mb-4 rounded-full"
             />
-            <h4 className="font-semibold text-lg mb-2">Easy Process</h4>
-            <p className="text-gray-500 text-sm">
+            <h4 className="mb-2 text-lg font-semibold">Easy Process</h4>
+            <p className="text-sm text-gray-500">
               Smooth buying and selling experience from start to finish.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow">
+          <div className="p-6 bg-white shadow rounded-2xl">
             <img
-              src="https://source.unsplash.com/100x100/?finance,car"
+              src={kia3}
               alt="emi"
               className="mx-auto mb-4 rounded-full"
             />
-            <h4 className="font-semibold text-lg mb-2">Easy EMI Options</h4>
-            <p className="text-gray-500 text-sm">
+            <h4 className="mb-2 text-lg font-semibold">Easy EMI Options</h4>
+            <p className="text-sm text-gray-500">
               Flexible EMI plans available to make your purchase affordable.
             </p>
           </div>
@@ -98,8 +103,8 @@ export default function HomePage() {
       </section>
 
       {/* STATS */}
-      <section className="py-14 px-6 text-center bg-orange-50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="px-6 text-center py-14 bg-orange-50">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div>
             <h4 className="text-3xl font-bold">1200+</h4>
             <p>Cars Sold</p>
@@ -116,15 +121,15 @@ export default function HomePage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="py-16 px-6 bg-white">
-        <h3 className="text-3xl font-semibold text-center mb-10">
+      <section className="px-6 py-16 bg-white">
+        <h3 className="mb-10 text-3xl font-semibold text-center">
           What Our Customers Say
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[1, 2, 3].map((t) => (
-            <div key={t} className="p-6 bg-gray-50 rounded-xl shadow">
-              <p className="text-gray-600 mb-4">
+            <div key={t} className="p-6 shadow bg-gray-50 rounded-xl">
+              <p className="mb-4 text-gray-600">
                 "Amazing experience! Got my dream car within days."
               </p>
               <h4 className="font-semibold">Customer {t}</h4>
@@ -134,15 +139,15 @@ export default function HomePage() {
       </section>
 
       {/* ABOUT */}
-      <section className="py-16 px-6 grid md:grid-cols-2 gap-8 items-center">
+      <section className="grid items-center gap-8 px-6 py-16 md:grid-cols-2">
         <img
-          src="https://source.unsplash.com/500x400/?car,showroom"
+          src={kia}
           alt="about"
           className="rounded-2xl"
         />
         <div>
-          <h3 className="text-2xl font-semibold mb-4">About Us</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="mb-4 text-2xl font-semibold">About Us</h3>
+          <p className="mb-4 text-gray-600">
             We help you buy and sell second-hand cars with trust and transparency.
           </p>
           <p className="italic text-gray-500">
@@ -153,14 +158,14 @@ export default function HomePage() {
 
       {/* CTA */}
       <section className="py-16 text-center bg-gradient-to-r from-orange-200 to-yellow-200">
-        <h3 className="text-3xl font-bold mb-4">Ready to Get Started?</h3>
-        <button className="px-8 py-3 bg-orange-500 text-white rounded-full">
+        <h3 className="mb-4 text-3xl font-bold">Ready to Get Started?</h3>
+        <button className="px-8 py-3 text-white bg-orange-500 rounded-full">
           Explore Cars
         </button>
       </section>
 
       {/* FOOTER */}
-      <footer className="text-center py-6 bg-gray-800 text-white">
+      <footer className="py-6 text-center text-white bg-gray-800">
         <p>© 2026 AutoResale. All rights reserved.</p>
       </footer>
 

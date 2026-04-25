@@ -11,7 +11,7 @@ const PublicLayout = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <main className="p-4">
         <Outlet />
       </main>

@@ -18,7 +18,7 @@ import {
   HiOutlineHeart
 } from "react-icons/hi";
 import NotificationBell from "../redux/features/notification/notificationbell";
-import HeaderWrapper from "../utils/headerwrapper";
+import MobileBottomNav from "./mobileBottomNav";
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -199,6 +199,7 @@ export default function DashboardLayout() {
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>
+           <MobileBottomNav />
         </main>
 
       </div>
