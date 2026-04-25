@@ -23,7 +23,7 @@ app.use(
     origin: "https://car-mart-client.onrender.com" , 
     credentials: true,
   })
-);``
+);
 
 // app.use(
 //   cors({
