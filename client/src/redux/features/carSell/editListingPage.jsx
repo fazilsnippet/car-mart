@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   useGetCarSellByIdQuery,
   useUpdateCarSellMutation,
-} from "../store/carsApi";
+} from "./carSellApi.js";
 import CarForm from "./carForm.jsx";
 
 const EditListingPage = () => {

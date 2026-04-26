@@ -1,4 +1,4 @@
-import { useGetMyCarsQuery } from "../store/carsApi";
+import { useGetMyCarsQuery } from "./carSellApi";
 import { Link } from "react-router-dom";
 
 const MyListingsPage = () => {
@@ -21,7 +21,7 @@ const MyListingsPage = () => {
         {cars.map((car) => (
           <div
             key={car._id}
-            className="p-4 border rounded-xl shadow-sm"
+            className="p-4 border shadow-sm rounded-xl"
           >
             {/* IMAGE */}
             {car.images?.[0]?.url && (
@@ -36,7 +36,7 @@ const MyListingsPage = () => {
             <h2 className="text-lg font-semibold">{car.title}</h2>
 
             {/* PRICE */}
-            <p className="text-indigo-600 font-bold">
+            <p className="font-bold text-indigo-600">
               ₹{car.price}
             </p>
 
