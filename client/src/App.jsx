@@ -51,9 +51,15 @@ import Header from "./layouts/header.jsx";
 const ChatPage = lazy(() =>
   import("./redux/features/chats/chatPage.jsx")
 );
-import EmiCalculator from "./utils/emiCalculator.jsx";
-import CarForm from "./redux/features/carSell/carForm.jsx";
-import HomePage from "./pages/homePage.jsx";
+const EmiCalculator = lazy(() => import("./utils/emiCalculator.jsx"))
+const CarForm = lazy(() => import("./redux/features/carSell/carForm.jsx"))
+
+const MyListingsPage =lazy(()=> import  ("./redux/features/carSell/myListingPage.jsx"))
+
+const EditListingPage =lazy(() => import ("./redux/features/carSell/editListingPage.jsx"))
+import HomePage from "./pages/homepage.jsx"
+
+
 
 function App() {
   const dispatch = useDispatch();
@@ -203,7 +209,26 @@ function App() {
               </Suspense>
             }
           />
-
+<Route
+            path="/myListings"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
+                  <MyListingsPage />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/edit-my-car/:id"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute>
+                  <EditListingPage />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
           <Route
             path="/brandList"
             element={
