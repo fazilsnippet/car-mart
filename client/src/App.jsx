@@ -57,9 +57,8 @@ const CarForm = lazy(() => import("./redux/features/carSell/carForm.jsx"))
 const MyListingsPage =lazy(()=> import  ("./redux/features/carSell/myListingPage.jsx"))
 
 const EditListingPage =lazy(() => import ("./redux/features/carSell/editListingPage.jsx"))
-import HomePage from "./pages/homepage.jsx"
 
-
+import HomePage from "./pages/homePage.jsx";
 
 function App() {
   const dispatch = useDispatch();
