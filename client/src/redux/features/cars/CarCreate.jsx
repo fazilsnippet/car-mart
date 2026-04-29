@@ -1,9 +1,9 @@
-import CarForm from "../cars/CarForm";
+import CarForm from "./CarForm";
 
 const CarCreate = () => {
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-6">Create Car</h1>
+    <div className="max-w-5xl p-6 mx-auto">
+      <h1 className="mb-6 text-2xl font-semibold">Create Car</h1>
       <CarForm />
     </div>
   );
