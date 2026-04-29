@@ -519,195 +519,216 @@ const lastTap = useRef(0);
   // ✅ SPECS (NOW CORRECTLY INSIDE COMPONENT)
   const specs = formatCarSpecs(car);
 
-  return (
-              <div className="space-y-4 lg:col-span-7 lg:sticky lg:top-6">
-      <div className="grid gap-6 lg:grid-cols-12">
+ return (
+  <div className="min-h-screen bg-gray-50 px-4 py-6">
+    <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-6">
 
-        {/* LEFT */}
-          <div className="self-start space-y-4 lg:col-span-7 lg:sticky lg:top-6">
-          <div
-            className="relative overflow-hidden bg-background rounded-2xl"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+      {/* LEFT: IMAGE */}
+      <div className="lg:col-span-7 space-y-4">
+        <div
+          className="relative bg-white rounded-2xl shadow-sm overflow-hidden group"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* ❤️ Wishlist */}
+          <button
+            onClick={handleToggle}
+            className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:scale-105 transition"
           >
+            <HiOutlineHeart
+              className={`w-5 h-5 ${
+                isSaved ? "text-red-500 fill-red-500" : "text-gray-600"
+              }`}
+            />
+          </button>
+
+          {/* IMAGE */}
+          <img
+            src={images[activeIndex]?.url}
+            className="w-full h-75 sm:h-105 lg:h-130 object-contain cursor-pointer group-hover:scale-105 transition"
+            onClick={() => setIsFullscreen(true)}
+          />
+
+          {/* NAV */}
+          {total > 1 && (
+            <>
+              <button
+                onClick={prev}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow"
+              >
+                <HiOutlineChevronLeft size={24} />
+              </button>
+
+              <button
+                onClick={next}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow"
+              >
+                <HiOutlineChevronRight size={24} />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* RIGHT: DETAILS */}
+      <div className="lg:col-span-5 space-y-6">
+
+        {/* MAIN CARD */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm space-y-5">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">
+              {car.title} {car.year && `(${car.year})`}
+            </h1>
+
+            <p className="text-3xl font-bold text-indigo-600 mt-2">
+              ₹ {car.price?.toLocaleString("en-IN")}
+            </p>
+          </div>
+
+          {/* SPECS */}
+          <div className="grid grid-cols-2 gap-3">
+            {specs.map((spec) => {
+              const Icon = iconMap[spec.icon];
+
+              return (
+                <div
+                  key={spec.key}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                >
+                  <Icon className="w-5 h-5 text-indigo-600" />
+
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      {spec.label}
+                    </p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {spec.value}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ACTIONS */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <button
-              onClick={handleToggle}
-              className="absolute z-10 p-2 bg-white rounded-full top-3 right-3"
+              onClick={handleBook}
+              className="flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
             >
-              <HiOutlineHeart
-                className={`w-5 h-5 ${
-                  isSaved ? "text-red-500 fill-red-500" : ""
-                }`}
-              />
+              <CalendarDays size={18} />
+              Book
             </button>
 
-           <img
-  src={images[activeIndex]?.url}
-  className="object-contain w-full cursor-pointer h-65 sm:h-105 lg:h-130"
-  onClick={() => setIsFullscreen(true)}
-/>
+            <button
+              onClick={handleStartChat}
+              disabled={isStartingChat}
+              className="flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            >
+              <HiOutlineChatAlt2 />
+              {isStartingChat ? "Opening..." : "Chat"}
+            </button>
 
+            <button
+              onClick={() =>
+                (window.location.href = "tel:+919916262484")
+              }
+              className="flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            >
+              <HiOutlinePhone />
+              Call
+            </button>
 
-            {total > 1 && (
-              <>
-             <button onClick={prev} className="absolute p-2 bg-transparent rounded-full shadow left-3 top-1/2">
-  <HiOutlineChevronLeft size={32} />
-</button>
-<button onClick={next} className="absolute p-2 bg-transparent rounded-full shadow right-3 top-1/2">
-  <HiOutlineChevronRight size={32} />
-</button>
+            <button
+              onClick={() =>
+                window.open("https://wa.me/919916262484", "_blank")
+              }
+              className="flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
+            >
+              <FaWhatsapp />
+              WhatsApp
+            </button>
+          </div>
 
-              </>
+          {/* EMI */}
+          <div className="pt-2">
+            <button
+              onClick={() => setShowEmi((prev) => !prev)}
+              className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            >
+              <HiOutlineCalculator />
+              {showEmi ? "Hide EMI Calculator" : "Calculate EMI"}
+            </button>
+
+            {showEmi && (
+              <div className="mt-4">
+                <EmiCalculator price={car.price} />
+              </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="space-y-5 lg:col-span-5">
-          <div className="p-5 space-y-5 shadow bg-slate-400 rounded-2xl">
+        {/* FEATURES */}
+        {car.features?.length > 0 && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">
+              Features
+            </h2>
 
-            <h1 className="text-2xl font-semibold">
-              {car.title} {car.year && `(${car.year})`}
-            </h1>
-
-            <p className="text-3xl font-bold text-indigo-600">
-              ₹ {car.price?.toLocaleString("en-IN")}
-            </p>
-
-            {/* ✅ SPECS UI */}
-            <div className="grid grid-cols-2 gap-4">
-              {specs.map((spec) => {
-                const Icon = iconMap[spec.icon];
-
-                return (
-                  <div
-                    key={spec.key}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-background text-freground"
-                  >
-                    <Icon className="w-5 h-5 text-forground" />
-                    <div>
-                      <p className="text-xs text-gray-500">
-                        {spec.label}
-                      </p>
-                      <p className="text-sm font-medium">
-                        {spec.value}
-                      </p>
-                    </div>
-             
-
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ACTIONS */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleBook}
-                className="flex items-center justify-center gap-2 py-3 text-white bg-indigo-600 rounded-xl"
-              >
-                <CalendarDays size={18} /> Book
-              </button>
-
-              <button
-                onClick={handleStartChat}
-                disabled={isStartingChat}
-                className="flex items-center justify-center gap-2 py-3 border rounded-xl"
-              >
-                <HiOutlineChatAlt2 />
-                {isStartingChat ? "Opening..." : "Chat"}
-              </button>
-              <button
-  onClick={() => window.location.href = "tel:+919916262484"} // replace with actual number
-  className="flex items-center justify-center gap-2 py-3 border rounded-xl"
->
-  <HiOutlinePhone />
-  Call
-</button>
-
-{/* WHATSAPP BUTTON */}
-<button
-  onClick={() => window.open("https://wa.me/919916262484", "_blank")} // replace with actual number
-  className="flex items-center justify-center gap-2 py-3 bg-green-500 border text-forground rounded-xl"
->
-  <FaWhatsapp />
-  WhatsApp
-</button>
-  <button
-          onClick={() => setShowEmi((prev) => !prev)}
-          className="flex items-center justify-center gap-2 py-3 border rounded-xl"
-        >
-          <HiOutlineCalculator />
-          {showEmi ? "Hide EMI" : "Calculate EMI"}
-        </button>
-
-        {/* EMI Calculator (conditionally rendered) */}
-        {showEmi && <EmiCalculator price={car.price} />}
+            <ul className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+              {car.features.map((feature, index) => (
+                <li key={index}>• {feature}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
-                  </div>
-
-            {car.features?.length > 0 && (
-  <div className="p-5 mt-6 shadow bg-forground rounded-2xl">
-    <h2 className="mb-3 text-lg font-semibold">Features</h2>
-
-    <div className="space-y-3 font-bold leading-relaxed text-gray-700 text-bold">
-      {car.features.map((feature, index) => (
-        <p key={index} className="whitespace-pre-line">
-          {feature}
-        </p>
-      ))}
-    </div>
-  </div>
-)}
-{isFullscreen && (
-  <div className="fixed inset-0 z-50 flex flex-col bg-black">
-
-    {/* TOP BAR */}
-    <div className="flex items-center justify-between p-4 text-white">
-      <button onClick={() => setIsFullscreen(false)}>
-        ← Back
-      </button>
-
-      <p>{activeIndex + 1} / {total}</p>
     </div>
 
-    {/* IMAGE */}
-    <div className="flex items-center justify-center flex-1">
-      <img
-        src={images[activeIndex]?.url}
-        className={`max-h-full max-w-full transition-transform duration-300 ${
-          isZoomed ? "scale-150" : ""
-        }`}
-        onClick={() => setIsZoomed((p) => !p)}
-      />
-    </div>
+    {/* FULLSCREEN */}
+    {isFullscreen && (
+      <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        <div className="flex justify-between p-4 text-white">
+          <button onClick={() => setIsFullscreen(false)}>
+            ← Back
+          </button>
+          <p>
+            {activeIndex + 1} / {total}
+          </p>
+        </div>
 
-    {/* NAVIGATION */}
-    {total > 1 && (
-      <>
-        <button
-          onClick={prev}
-          className="absolute p-3 text-white -translate-y-1/2 left-4 top-1/2"
-        >
-          <HiOutlineChevronLeft size={30} />
-        </button>
+        <div className="flex items-center justify-center flex-1">
+          <img
+            src={images[activeIndex]?.url}
+            className={`max-w-full max-h-full transition ${
+              isZoomed ? "scale-150" : ""
+            }`}
+            onClick={() => setIsZoomed((p) => !p)}
+          />
+        </div>
 
-        <button
-          onClick={next}
-          className="absolute p-3 text-white -translate-y-1/2 right-4 top-1/2"
-        >
-          <HiOutlineChevronRight size={30} />
-        </button>
-      </>
+        {total > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white"
+            >
+              <HiOutlineChevronLeft size={30} />
+            </button>
+
+            <button
+              onClick={next}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white"
+            >
+              <HiOutlineChevronRight size={30} />
+            </button>
+          </>
+        )}
+      </div>
     )}
   </div>
-)}
-
-          </div>
-        </div>
-      </div>
-  );
-};
+);
+}
 
 export default CarDetailPage;

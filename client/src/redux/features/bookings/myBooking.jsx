@@ -28,140 +28,141 @@ export default function MyBookings() {
     await updateBooking({ id, type }).unwrap();
     setEditingId(null);
   } catch (err) {
-    console.error(err);
   }
 };
+return (
+  <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    
+    {/* HEADER */}
+    <div className="flex items-center gap-3">
+      <button
+        onClick={() => window.history.back()}
+        className="p-2 rounded-lg hover:bg-gray-100"
+      >
+        <ArrowLeft />
+      </button>
 
-  return (
-    <div>
-      <button onClick={() => window.history.back()}>
-          <ArrowLeft />
-        </button>
+      <h1 className="text-xl font-semibold text-gray-800">
+        My Bookings
+      </h1>
+    </div>
+
+    {/* LIST */}
+    <div className="space-y-4">
       {bookings.map((booking) => {
         const imageUrl = booking.car?.image?.url?.replace(
           "/upload/",
-          "/upload/w_200,h_200,c_fill,q_auto/"
+          "/upload/w_300,h_300,c_fill,q_auto/"
         );
 
         return (
-         <div
-  key={booking._id}
-  className="flex items-center justify-between gap-4 px-4 py-4 border-b min-h-30"
->
-  {/* LEFT */}
-  <div className="flex-1 space-y-2">
-    <div className="flex items-center gap-2">
-      <Car size={18} />
-      <h2 className="text-base font-semibold">
-        {booking.car?.title}
-      </h2>
-    </div>
+          <div
+            key={booking._id}
+            className="flex gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition"
+          >
+            {/* IMAGE */}
+            <div className="w-28 h-28 rounded-xl overflow-hidden shrink-0 bg-gray-100">
+              <img
+                src={imageUrl}
+                alt={booking.car?.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-    <div className="flex items-center gap-2 text-gray-600">
-      <IndianRupee size={16} />
-      <span>{booking.car?.price}</span>
-    </div>
+            {/* CONTENT */}
+            <div className="flex-1 flex flex-col justify-between">
+              
+              {/* TOP */}
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-gray-800 line-clamp-1">
+                  {booking.car?.title}
+                </h2>
 
-    <div className="flex items-center gap-2 text-sm">
-      <Tag size={16} />
-      <span className="px-2 py-1 bg-gray-200 rounded">
-        {booking.status}
-      </span>
-    </div>
+                <p className="text-indigo-600 font-semibold">
+                  ₹ {booking.car?.price?.toLocaleString("en-IN")}
+                </p>
+              </div>
 
-   {editingId === booking._id ? (
-  <div className="flex items-center gap-2">
-    <select
-      value={type}
-      onChange={(e) => setType(e.target.value)}
-      className="p-2 border rounded"
-    >
-      <option value="TEST_DRIVE">Test Drive</option>
-      <option value="CALLBACK">Callback</option>
-      <option value="VISIT">Visit</option>
-    </select>
+              {/* META */}
+              <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                <span className="px-2 py-1 bg-gray-100 rounded-lg">
+                  {booking.status}
+                </span>
 
-    <button
-      onClick={() => handleUpdate(booking._id)}
-      className="px-3 py-2 text-white bg-blue-500 rounded"
-    >
-      Save
-    </button>
+                <span>•</span>
 
-    <button
-      onClick={() => setEditingId(null)}
-      className="px-3 py-2 border rounded"
-    >
-      Cancel
-    </button>
-  </div>
-) : (
-  <div className="flex items-center justify-between">
-    <p className="text-sm caret-black">Type: {booking.bookingType}</p>
+                <span>Type: {booking.bookingType}</span>
+              </div>
 
-    {/* <button
-      onClick={() => {
-        setEditingId(booking._id);
-        setType(booking.bookingType);
-      }}
-      className="text-sm text-blue-500"
-    >
-      Edit
-    </button> */}
-  </div>
-)}
+              {/* EDIT AREA */}
+              {editingId === booking._id ? (
+                <div className="flex items-center gap-2 mt-3">
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 rounded-xl bg-gray-50"
+                  >
+                    <option value="TEST_DRIVE">Test Drive</option>
+                    <option value="CALLBACK">Callback</option>
+                    <option value="VISIT">Visit</option>
+                  </select>
 
-    <button
-      onClick={() => {
-        setEditingId(booking._id);
-        setType(booking.type);
-      }}
-      className="flex items-center gap-1 text-sm text-blue-500"
-    >
-      <Edit3 size={16} />
-      Edit
-    </button>
-  </div>
+                  <button
+                    onClick={() => handleUpdate(booking._id)}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+                  >
+                    Save
+                  </button>
 
-  {/* RIGHT IMAGE */}
-  <div className="overflow-hidden rounded-lg w-28 h-28 shrink-0">
-    <img
-      src={
-        booking.car?.image?.url?.replace(
-          "/upload/",
-          "/upload/w_300,h_300,c_fill,q_auto/"
-        )
-      }
-      alt={booking.car?.title}
-      className="object-cover w-full h-full"
-    />
-  </div>
-</div>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="px-4 py-2 border border-gray-200 rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={() => {
+                      setEditingId(booking._id);
+                      setType(booking.bookingType);
+                    }}
+                    className="flex items-center gap-1 text-sm text-indigo-600 hover:underline"
+                  >
+                    <Edit3 size={16} />
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         );
       })}
-
-      {/* PAGINATION (compact) */}
-      <div className="flex justify-center gap-3 mt-2 text-sm">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-2 py-1 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span>
-          {data?.data?.page} / {data?.data?.pages}
-        </span>
-
-        <button
-          disabled={page === data?.data?.pages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-2 py-1 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
-  );
+
+    {/* PAGINATION */}
+    <div className="flex justify-center items-center gap-4 pt-4">
+      <button
+        disabled={page === 1}
+        onClick={() => setPage((p) => p - 1)}
+        className="px-4 py-2 border border-gray-200 rounded-xl disabled:opacity-50"
+      >
+        Prev
+      </button>
+
+      <span className="text-sm text-gray-600">
+        {data?.data?.page} / {data?.data?.pages}
+      </span>
+
+      <button
+        disabled={page === data?.data?.pages}
+        onClick={() => setPage((p) => p + 1)}
+        className="px-4 py-2 border border-gray-200 rounded-xl disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+);
 }

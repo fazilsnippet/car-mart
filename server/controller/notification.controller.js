@@ -16,8 +16,8 @@ export const getUserNotifications = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
-    const pageNum = parseInt(req.query.page, 10) || 1;
-    const limitNum = parseInt(req.query.limit, 10) || 20;
+    const pageNum = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNum = Math.max(parseInt(req.query.limit, 10) || 20, 1);
 
     const [notifications, unreadCount] = await Promise.all([
       Notification.find({ user: userId })
@@ -64,9 +64,20 @@ export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Notification.findByIdAndUpdate(id, { read: true });
+    const updated = await Notification.findOneAndUpdate(
+      { _id: id, user: req.user._id },
+      { read: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
 
     res.json({ success: true });
+
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

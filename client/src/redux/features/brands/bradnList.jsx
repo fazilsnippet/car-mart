@@ -30,27 +30,36 @@ export default function BrandList() {
 
   return (
     <div className="max-w-6xl p-6 mx-auto">
-      <h2 className="mb-6 text-2xl font-semibold">All Brands</h2>
+  <h2 className="mb-6 text-2xl font-semibold">All Brands</h2>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {brands.map((brand) => (
-          <div
-            key={brand._id}
-            className="p-4 transition border shadow rounded-xl hover:shadow-lg"
-          >          
+  <input
+    placeholder="Search brands..."
+    className="w-full p-3 mb-6 border rounded-lg"
+    onChange={(e) => setSearch(e.target.value)}
+  />
 
-            {/* Name */}
-            <h3 className="text-lg font-medium text-center">
-              {brand.name}
-            </h3>
+  {filtered.length === 0 ? (
+    <p className="text-center text-gray-500">No brands found</p>
+  ) : (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      {filtered.map((brand) => (
+        <div
+          key={brand._id}
+          onClick={() => navigate(`/cars-list?brand=${brand._id}`)}
+          className="p-5 text-center transition bg-white border rounded-xl shadow-sm cursor-pointer hover:shadow-md hover:scale-[1.02]"
+        >
+          {/* {brand.logo?.url && (
+            <img
+              src={brand.logo.url}
+              alt={brand.name}
+              className="object-contain w-16 h-16 mx-auto mb-3"
+            />
+          )} */}
 
-            {/* Slug (optional display) */}
-            <p className="mt-1 text-sm text-center text-gray-500">
-              {brand.slug}
-            </p>
-          </div>
-        ))}
-      </div>
+          <h3 className="text-sm font-semibold">{brand.name}</h3>
+        </div>
+      ))}
     </div>
-  );
-}
+  )}
+</div>
+  )}

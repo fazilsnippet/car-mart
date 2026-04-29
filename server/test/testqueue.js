@@ -7,4 +7,3 @@ await notificationQueue.add("price_drop", {
   newPrice: 177 // Lower price to trigger notification
 });
 
-console.log("✅ Price-drop job added to queue");

@@ -49,7 +49,6 @@ export default function BookingCreate() {
 
       reset();
     } catch (err) {
-      console.error(err);
     }
   };
 

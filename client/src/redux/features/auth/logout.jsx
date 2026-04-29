@@ -16,7 +16,6 @@ export default function LogoutButton({ className = "" }) {
       await logoutUser().unwrap();
 
     } catch (err) {
-      console.warn("Logout API failed, forcing logout anyway");
     } finally {
       // ✅ ALWAYS clear frontend state (even if API fails)
 

@@ -3,50 +3,110 @@ import React from "react";
 import { useGetConversationsQuery } from "./chatApi";
 
 export default function ConversationList({ onSelectConversation, selectedId }) {
-  const { data, isLoading, refetch } = useGetConversationsQuery({ page: 1, limit: 50 });
+  const { data, isLoading, refetch } = useGetConversationsQuery({
+    page: 1,
+    limit: 50,
+  });
 
-  if (isLoading) return <div>Loading conversations…</div>;
+  const userId = localStorage.getItem("userId");
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3 animate-pulse">
+            <div className="w-10 h-10 bg-gray-200 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <div className="w-1/2 h-3 bg-gray-200 rounded" />
+              <div className="w-3/4 h-3 bg-gray-100 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const conversations = data?.data || [];
 
   return (
-    <div className="conversation-list">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3>Conversations</h3>
-        <button onClick={() => refetch()}>Refresh</button>
+    <div className="flex flex-col h-full">
+
+      {/* HEADER */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+        <h2 className="text-base font-semibold text-gray-800">
+          Conversations
+        </h2>
+
+        <button
+          onClick={refetch}
+          className="text-sm text-indigo-600 hover:underline"
+        >
+          Refresh
+        </button>
       </div>
 
-      {data?.data?.length === 0 && <div>No conversations yet</div>}
+      {/* EMPTY STATE */}
+      {conversations.length === 0 ? (
+        <div className="flex items-center justify-center flex-1 text-sm text-gray-500">
+          No conversations yet
+        </div>
+      ) : (
 
-      <ul>
-        {data?.data?.map((conv) => {
-          const other = conv.participants?.find((p) => p._id !== localStorage.getItem("userId"));
-          const unread = conv.unreadCounts?.[localStorage.getItem("userId")] || 0;
-          return (
-            <li
-              key={conv._id}
-              onClick={() => onSelectConversation(conv)}
-              style={{
-                padding: 12,
-                borderBottom: "1px solid #eee",
-                background: selectedId === conv._id ? "#f5f7ff" : "transparent",
-                cursor: "pointer"
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
-                  <strong>{conv.car?.title || other?.name || "Conversation"}</strong>
-                  <div style={{ fontSize: 12, color: "#666" }}>
-                    {conv.lastMessage?.text?.slice(0, 80) || "No messages yet"}
+        /* LIST */
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map((conv) => {
+            const other = conv.participants?.find(
+              (p) => p._id !== userId
+            );
+
+            const unread =
+              conv.unreadCounts?.[userId] || 0;
+
+            const isActive = selectedId === conv._id;
+
+            return (
+              <button
+                key={conv._id}
+                onClick={() => onSelectConversation(conv)}
+                className={`w-full text-left px-4 py-3 flex gap-3 items-start transition
+                  ${isActive ? "bg-indigo-50" : "hover:bg-gray-50"}
+                `}
+              >
+                {/* AVATAR */}
+                <div className="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
+                  {other?.name?.[0] || "U"}
+                </div>
+
+                {/* CONTENT */}
+                <div className="flex-1 min-w-0">
+
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-800 truncate">
+                      {conv.car?.title || other?.name || "Conversation"}
+                    </p>
+
+                    <span className="text-xs text-gray-400 shrink-0">
+                      {new Date(conv.updatedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-gray-500 truncate">
+                      {conv.lastMessage?.text || "No messages yet"}
+                    </p>
+
+                    {unread > 0 && (
+                      <span className="ml-2 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full">
+                        {unread}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 12 }}>{new Date(conv.updatedAt).toLocaleString()}</div>
-                  {unread > 0 && <div style={{ background: "#e33", color: "#fff", borderRadius: 12, padding: "2px 8px", fontSize: 12 }}>{unread}</div>}
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

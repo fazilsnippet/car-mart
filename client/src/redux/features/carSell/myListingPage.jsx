@@ -1,65 +1,81 @@
-import { useGetMyCarsQuery } from "./carSellApi";
-import { Link } from "react-router-dom";
+import React from "react";
+import { useGetMyCarsQuery } from "./carSellApi.js";
 
 const MyListingsPage = () => {
-  const { data, isLoading, isError } = useGetMyCarsQuery();
+  const { data: cars = [], isLoading, isError } = useGetMyCarsQuery(
+    undefined,
+    { refetchOnMountOrArgChange: true }
+  );
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p className="text-red-500">Failed to load</p>;
+  if (isLoading)
+    return <p className="text-center mt-10 text-gray-500">Loading listings...</p>;
 
-  const cars = data?.data || [];
-
-  if (cars.length === 0) {
-    return <p className="text-gray-500">No listings yet</p>;
-  }
+  if (isError)
+    return (
+      <p className="text-center mt-10 text-red-500 font-medium">
+        Failed to load listings
+      </p>
+    );
 
   return (
-    <div className="max-w-6xl p-6 mx-auto">
-      <h1 className="mb-6 text-2xl font-bold">My Listings</h1>
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">
+          My Listings
+        </h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {cars.map((car) => (
-          <div
-            key={car._id}
-            className="p-4 border shadow-sm rounded-xl"
-          >
-            {/* IMAGE */}
-            {car.images?.[0]?.url && (
-              <img
-                src={car.images[0].url}
-                alt={car.title}
-                className="object-cover w-full h-40 mb-3 rounded"
-              />
-            )}
-
-            {/* TITLE */}
-            <h2 className="text-lg font-semibold">{car.title}</h2>
-
-            {/* PRICE */}
-            <p className="font-bold text-indigo-600">
-              ₹{car.price}
-            </p>
-
-            {/* DETAILS */}
-            <p className="text-sm text-gray-500">
-              {car.year} • {car.fuelType} • {car.kmDriven} km
-            </p>
-
-            {/* ACTIONS */}
-            <div className="flex gap-3 mt-4">
-              <Link
-                to={`/edit/${car._id}`}
-                className="px-3 py-1 text-white bg-blue-500 rounded"
-              >
-                Edit
-              </Link>
-
-              <button className="px-3 py-1 text-white bg-red-500 rounded">
-                Delete
-              </button>
-            </div>
+        {cars.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-xl shadow-sm">
+            <p className="text-gray-500 text-lg">No listings yet 🚗</p>
           </div>
-        ))}
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {cars.map((car) => (
+              <div
+                key={car._id}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden group"
+              >
+                <div className="relative">
+                  <img
+                    src={car.images?.[0]?.url || "/placeholder.jpg"}
+                    alt={car.title}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition duration-300"
+                  />
+                  <span className="absolute top-3 left-3 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                    {car.year}
+                  </span>
+                </div>
+
+                <div className="p-5">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1">
+                    {car.title}
+                  </h2>
+
+                  <p className="text-xl font-bold text-indigo-600 mb-2">
+                    ₹{car.finalPrice ?? car.expectedPrice}
+                  </p>
+
+                  <div className="text-sm text-gray-500 space-y-1 mb-3">
+                    <p>
+                      {car.fuelType} • {car.kmDriven} km
+                    </p>
+                    <p>📍 {car.location}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-4">
+                    <span className="text-sm text-gray-600">
+                      📞 {car.phoneNumber}
+                    </span>
+
+                    <button className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition">
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

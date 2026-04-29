@@ -11,18 +11,25 @@ export default function NotificationsPage() {
 
   const notifications = data?.data || [];
 
-  const handleClick = async (n) => {
-    await markAsRead(n._id);
-
-    if (n.type === "new-message") {
-      navigate("/chat");
-    } else if (n.data?.carId) {
-      navigate(`/cars/${n.data.carId}`);
-    }
-  };
+ const handleClick = async (n) => {
+  try {
+await markAsRead(n._id).unwrap();
+refetch()
+  } catch (err) {
+    console.error("Failed to mark as read", err);
+  }
+navigate(`/car/${n.data.slug || n.data.carId}`);
+  if (n.type === "new-message") {
+    // navigate("/chat");
+    navigate(`/chat?conversationId=${n.data?.conversationId}`);
+  } else if (n.data?.carId) {
+navigate(`/car/${n.data.slug || n.data.carId}`);  }
+};
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6 text-center text-gray-400">
+  Loading notifications...
+</div>
   }
 
   return (
@@ -37,9 +44,9 @@ export default function NotificationsPage() {
             <div
               key={n._id}
               onClick={() => handleClick(n)}
-              className={`p-4 rounded-xl shadow cursor-pointer transition ${
-                n.read ? "bg-gray-100" : "bg-blue-50"
-              }`}
+             className={`p-4 rounded-xl shadow cursor-pointer transition hover:scale-[1.01] ${
+  n.read ? "bg-gray-100" : "bg-blue-50"
+}`}
             >
               <div className="flex justify-between items-center">
                 <p className="font-semibold">{n.title}</p>

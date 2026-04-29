@@ -1,51 +1,61 @@
 import { useState, useEffect } from "react";
 import { HiOutlineChevronDown, HiOutlineX } from "react-icons/hi";
 
+/* ---------------- SECTION ---------------- */
+
 const Section = ({ id, title, children, open, onToggle }) => (
-  <div className="py-3 border-b border-slate-100 bg-background text-foreground">
+  <div className="border-b border-gray-100 py-3">
     <button
       type="button"
       onClick={() => onToggle(id)}
-      className="flex items-center justify-between w-full text-left"
+      className="flex items-center justify-between w-full"
     >
-      <span className="text-sm font-semibold text-foreground">{title}</span>
+      <span className="text-sm font-semibold text-gray-800">
+        {title}
+      </span>
 
       <HiOutlineChevronDown
-        className={`w-5 h-5 text-foreground transition-transform ${
+        className={`w-5 h-5 text-gray-400 transition-transform ${
           open[id] ? "rotate-180" : ""
         }`}
       />
     </button>
 
-    {open[id] && <div className="mt-3">{children}</div>}
+    {open[id] && <div className="mt-3 space-y-1">{children}</div>}
   </div>
 );
 
-const CheckRow = ({ label, count, checked, onClick, className = "" }) => (
+/* ---------------- CHECK ROW ---------------- */
+
+const CheckRow = ({ label, count, checked, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-background/50 ${className}`}
+    className="flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-gray-50 transition"
   >
-    <span className="flex items-center gap-2">
+    <span className="flex items-center gap-3">
       <span
-        className={`w-4 h-4 rounded border flex items-center justify-center ${
+        className={`w-4 h-4 rounded-md border flex items-center justify-center transition ${
           checked
             ? "bg-indigo-600 border-indigo-600"
-            : "bg-background border-slate-300"
+            : "border-gray-300 bg-white"
         }`}
       >
-        {checked && <span className="w-1.5 h-1.5 bg-white rounded-sm" />}
+        {checked && (
+          <span className="w-2 h-2 bg-white rounded-sm" />
+        )}
       </span>
 
-      <span className="text-sm text-foreground">{label}</span>
+      <span className="text-sm text-gray-700">{label}</span>
     </span>
 
     {typeof count === "number" && (
-      <span className="text-xs text-foreground">({count})</span>
+      <span className="text-xs text-gray-400">({count})</span>
     )}
   </button>
 );
+
+/* ---------------- MAIN ---------------- */
 
 export default function CarFilters({
   value,
@@ -61,10 +71,6 @@ export default function CarFilters({
     fuel: true,
     transmission: true
   });
-
-  /* -------------------------
-     Local Draft State
-  -------------------------- */
 
   const [draft, setDraft] = useState(value);
 
@@ -86,8 +92,8 @@ export default function CarFilters({
   };
 
   const applyFilters = () => {
-    onChange(draft); // 🔥 Only now server is queried
-    onClose?.(); // Close the filter panel after applying
+    onChange(draft);
+    onClose?.();
   };
 
   const resetFilters = () => {
@@ -112,65 +118,56 @@ export default function CarFilters({
 
   return (
     <div
-      className={` ${
-        compact ? "" : "rounded-2xl border border-slate-100 shadow-sm bg-background text-foreground"
+      className={`${
+        compact
+          ? ""
+          : "bg-white rounded-2xl shadow-sm border border-gray-100"
       }`}
     >
-      <div className="flex items-center justify-between p-4 border-b border-slate-100">
-        <div className="bg-background text-foreground">
-        <h2 className="text-base font-bold text-foreground">Filters</h2>
-<p className="text-xs text-foreground">Refine your search</p>
+      {/* HEADER */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+        <div>
+          <h2 className="text-base font-semibold text-gray-800">
+            Filters
+          </h2>
+          <p className="text-xs text-gray-500">
+            Refine your results
+          </p>
         </div>
+
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-background/50 text-foreground"
+            className="p-2 rounded-lg hover:bg-gray-100 transition"
           >
-            <HiOutlineX className="w-5 h-5" />
+            <HiOutlineX className="w-5 h-5 text-gray-600" />
           </button>
         )}
       </div>
 
+      {/* BODY */}
       <div className="px-4 pb-4">
-
-        {/* Brand */}
-        {/* <Section id="brand" title="Brand" open={open} onToggle={toggle}>
+        {/* BRAND */}
+        <Section id="brand" title="Brand" open={open} onToggle={toggle}>
           {facets.brands?.map((b) => {
-            const brandObj = brands.find(br => br._id === b._id);
-            if (!brandObj) return null;
+            const brandObj = brands.find(
+              (br) => String(br._id) === String(b._id)
+            );
 
             return (
               <CheckRow
                 key={b._id}
-                label={brandObj.name}
+                label={brandObj?.name || `Brand ${b._id}`}
                 count={b.count}
                 checked={(draft.brand ?? []).includes(b._id)}
                 onClick={() => toggleInArray("brand", b._id)}
               />
             );
           })}
-        </Section> */}
-        <Section id="brand" title="Brand" open={open} onToggle={toggle}>
-        {facets.brands?.map((b) => {
-  const brandObj = brands.find(
-    (br) => String(br._id) === String(b._id)
-  );
+        </Section>
 
-
-  return (
-    <CheckRow className="bg-background text-foreground"
-      key={b._id}
-      label={brandObj?.name || `Missing (${b._id})`}
-      count={b.count}
-      checked={(draft.brand ?? []).includes(b._id)}
-      onClick={() => toggleInArray("brand", b._id)}
-    />
-  );
-})}
- </Section>
-
-        {/* Price */}
-        <Section id="price" title="Budget" open={open} onToggle={toggle} className="bg-background text-foreground">
+        {/* PRICE */}
+        <Section id="price" title="Budget" open={open} onToggle={toggle}>
           {priceOptions.map((p) => (
             <CheckRow
               key={p.key}
@@ -187,8 +184,8 @@ export default function CarFilters({
           ))}
         </Section>
 
-        {/* Fuel */}
-        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle} className="bg-background text-foreground">
+        {/* FUEL */}
+        <Section id="fuel" title="Fuel Type" open={open} onToggle={toggle}>
           {facets.fuelTypes?.map((f) => (
             <CheckRow
               key={f._id}
@@ -200,12 +197,12 @@ export default function CarFilters({
           ))}
         </Section>
 
-        {/* Transmission */}
+        {/* TRANSMISSION */}
         <Section
           id="transmission"
           title="Transmission"
           open={open}
-          onToggle={toggle} className="bg-background text-foreground"
+          onToggle={toggle}
         >
           {facets.transmissions?.map((t) => (
             <CheckRow
@@ -218,23 +215,22 @@ export default function CarFilters({
           ))}
         </Section>
 
-        {/* Apply / Reset Buttons */}
-        <div className="flex gap-3 mt-6 bg-background text-foreground">
+        {/* ACTIONS */}
+        <div className="sticky bottom-0 bg-white pt-4 mt-6 flex gap-3">
           <button
             onClick={resetFilters}
-            className="flex-1 py-2 text-sm font-semibold text-white bg-orange-300 border border-slate-200 rounded-xl hover:bg-slate-50"
+            className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition"
           >
             Reset
           </button>
 
           <button
             onClick={applyFilters}
-            className="flex-1 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
+            className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-sm"
           >
-            Apply Filters
+            Apply
           </button>
         </div>
-
       </div>
     </div>
   );

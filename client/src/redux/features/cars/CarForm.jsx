@@ -119,48 +119,58 @@ const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
   };
 
   const submitLoading = isCreating || isUpdating;
+return (
+  <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 py-6">
+    
+    {/* BASIC INFO */}
+    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold text-gray-800">
+        Basic Information
+      </h2>
 
-  return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <input
-        name="title"
-        placeholder="Title"
-        value={form.title}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+      <div className="grid md:grid-cols-2 gap-4">
+        <input
+          name="title"
+          placeholder="Car Title"
+          value={form.title}
+          onChange={handleChange}
+          className="input"
+        />
 
-      <input
-        name="variant"
-        placeholder="Variant"
-        value={form.variant}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+        <input
+          name="variant"
+          placeholder="Variant"
+          value={form.variant}
+          onChange={handleChange}
+          className="input"
+        />
+      </div>
 
-      <select
-        name="brand"
-        value={form.brand}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-        disabled={brandsLoading || brandsError}
-      >
-        <option value="">Select Brand</option>
-        {brandsData?.map((brand) => (
-          <option key={brand._id} value={brand._id}>
-            {brand.name}
-          </option>
-        ))}
-      </select>
+      <div className="grid md:grid-cols-2 gap-4">
+        <select
+          name="brand"
+          value={form.brand}
+          onChange={handleChange}
+          className="input"
+          disabled={brandsLoading || brandsError}
+        >
+          <option value="">Select Brand</option>
+          {brandsData?.map((brand) => (
+            <option key={brand._id} value={brand._id}>
+              {brand.name}
+            </option>
+          ))}
+        </select>
 
-      <input
-        name="year"
-        type="number"
-        placeholder="Year"
-        value={form.year}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+        <input
+          name="year"
+          type="number"
+          placeholder="Year"
+          value={form.year}
+          onChange={handleChange}
+          className="input"
+        />
+      </div>
 
       {!isEditMode && (
         <input
@@ -169,144 +179,198 @@ const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
           placeholder="Price"
           value={form.price}
           onChange={handleChange}
-          className="px-3 py-2 text-black border rounded-lg border-slate-200"
+          className="input"
         />
       )}
+    </div>
 
-      <input
-        name="kmDriven"
-        type="number"
-        placeholder="KM Driven"
-        value={form.kmDriven}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+    {/* VEHICLE DETAILS */}
+    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold text-gray-800">
+        Vehicle Details
+      </h2>
 
-      <select
-        name="fuelType"
-        value={form.fuelType}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      >
-        <option value="">Fuel Type</option>
-        {FUEL_TYPES.map((fuel) => (
-          <option key={fuel} value={fuel}>
-            {fuel}
-          </option>
-        ))}
-      </select>
+      <div className="grid md:grid-cols-3 gap-4">
+        <input
+          name="kmDriven"
+          type="number"
+          placeholder="KM Driven"
+          value={form.kmDriven}
+          onChange={handleChange}
+          className="input"
+        />
 
-      <select
-        name="transmission"
-        value={form.transmission}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      >
-        <option value="">Transmission</option>
-        {TRANSMISSIONS.map((transmission) => (
-          <option key={transmission.value} value={transmission.value}>
-            {transmission.label}
-          </option>
-        ))}
-      </select>
+        <input
+          name="gears"
+          type="number"
+          placeholder="Gears"
+          value={form.gears}
+          onChange={handleChange}
+          className="input"
+        />
 
-      <select
-        name="driveType"
-        value={form.driveType}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      >
-        <option value="">Drive Type</option>
-        {DRIVE_TYPES.map((driveType) => (
-          <option key={driveType} value={driveType}>
-            {driveType}
-          </option>
-        ))}
-      </select>
+        <input
+          name="ownerCount"
+          type="number"
+          placeholder="Owner Count"
+          value={form.ownerCount}
+          onChange={handleChange}
+          className="input"
+        />
+      </div>
 
-      <input
-        name="gears"
-        type="number"
-        placeholder="Gears"
-        value={form.gears}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+      <div className="grid md:grid-cols-3 gap-4">
+        <select
+          name="fuelType"
+          value={form.fuelType}
+          onChange={handleChange}
+          className="input"
+        >
+          <option value="">Fuel Type</option>
+          {FUEL_TYPES.map((fuel) => (
+            <option key={fuel} value={fuel}>
+              {fuel}
+            </option>
+          ))}
+        </select>
 
-      <input
-        name="ownerCount"
-        type="number"
-        placeholder="Owner Count"
-        value={form.ownerCount}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+        <select
+          name="transmission"
+          value={form.transmission}
+          onChange={handleChange}
+          className="input"
+        >
+          <option value="">Transmission</option>
+          {TRANSMISSIONS.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
 
-      <input
-        name="city"
-        placeholder="City"
-        value={form.city}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+        <select
+          name="driveType"
+          value={form.driveType}
+          onChange={handleChange}
+          className="input"
+        >
+          <option value="">Drive Type</option>
+          {DRIVE_TYPES.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
 
-      <input
-        name="state"
-        placeholder="State"
-        value={form.state}
-        onChange={handleChange}
-        className="px-3 py-2 text-black border rounded-lg border-slate-200"
-      />
+    {/* LOCATION */}
+    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold text-gray-800">
+        Location
+      </h2>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <input
+          name="city"
+          placeholder="City"
+          value={form.city}
+          onChange={handleChange}
+          className="input"
+        />
+
+        <input
+          name="state"
+          placeholder="State"
+          value={form.state}
+          onChange={handleChange}
+          className="input"
+        />
+      </div>
+    </div>
+
+    {/* FEATURES */}
+    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold text-gray-800">
+        Features
+      </h2>
 
       <input
         name="features"
-        placeholder="Features (comma separated)"
+        placeholder="Sunroof, Camera, Leather seats"
         value={form.features}
         onChange={handleChange}
-        className="col-span-1 px-3 py-2 text-black border rounded-lg md:col-span-2 border-slate-200"
+        className="input"
       />
+    </div>
 
-      <input
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={handleImageChange}
-        className="col-span-1 md:col-span-2"
-      />
+    {/* IMAGES */}
+    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold text-gray-800">
+        Images
+      </h2>
 
-      <div className="flex flex-wrap col-span-1 gap-3 md:col-span-2">
+      <label className="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition">
+        <p className="text-gray-500">
+          Click to upload images
+        </p>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          hidden
+          onChange={handleImageChange}
+        />
+      </label>
+
+      <div className="flex flex-wrap gap-3">
         {previewImages.map((src, index) => (
           <img
             key={`${src}-${index}`}
             src={src}
             alt="preview"
-            className="object-cover w-20 h-20 rounded-lg"
+            className="w-24 h-24 object-cover rounded-lg"
           />
         ))}
       </div>
+    </div>
 
-      {brandsLoading && <p className="text-sm text-slate-500">Loading brands…</p>}
-      {brandsError && <p className="text-sm text-red-500">Failed to load brands</p>}
-      {error && <p className="col-span-1 text-sm text-red-500 md:col-span-2">{error}</p>}
-      {successMessage && (
-        <p className="col-span-1 text-sm text-emerald-600 md:col-span-2">{successMessage}</p>
+    {/* STATUS */}
+    <div className="space-y-2">
+      {brandsLoading && (
+        <p className="text-sm text-gray-500">Loading brands…</p>
       )}
+      {brandsError && (
+        <p className="text-sm text-red-500">
+          Failed to load brands
+        </p>
+      )}
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
+      )}
+      {successMessage && (
+        <p className="text-sm text-emerald-600">
+          {successMessage}
+        </p>
+      )}
+    </div>
 
+    {/* SUBMIT */}
+    <div className="text-right">
       <button
         type="submit"
         disabled={submitLoading}
-        className="col-span-1 py-2 font-medium text-white bg-slate-900 rounded-lg md:col-span-2"
+        className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50"
       >
         {submitLoading
           ? isEditMode
             ? "Updating..."
             : "Creating..."
           : isEditMode
-            ? "Update Car"
-            : "Create Car"}
+          ? "Update Car"
+          : "Create Car"}
       </button>
-    </form>
-  );
-};
-
-export default CarForm;
+    </div>
+  </form>
+);
+}

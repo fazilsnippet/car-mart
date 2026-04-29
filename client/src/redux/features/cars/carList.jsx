@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useGetCarsQuery } from "./carApi";
-// ❌ removed useGetBrandsQuery (now using backend facets)
 import CarCard from "./carCard";
 import CarFilters from "./CarFilters";
 import { useSearchParams } from "react-router-dom";
@@ -98,7 +97,6 @@ export default function CarList() {
 
  
   
-
 return (
   <QueryWrapper
     data={data}
@@ -113,113 +111,124 @@ return (
       const facets = data?.filters || {};
 
       return (
-        <div className="px-4 py-6 sm:px-6 lg:px-8 bg-background text-foreground">
-      {/* 🔥 Updating indicator */}
-      {isFetching && (
-<div className="mb-2 text-sm text-foreground/70">Updating...</div>      )}
+        <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
+          {/* 🔄 Updating indicator */}
+          {isFetching && (
+            <div className="mb-4 text-sm text-gray-500">
+              Updating results...
+            </div>
+          )}
 
-      {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
-      {isFilterOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setIsFilterOpen(false)}
-          />           
-           <div className="absolute left-0 top-0 bottom-0 w-[92vw] max-w-sm bg-background text-foreground shadow-xl overflow-y-auto">
-            <CarFilters
-              brands={facets.brands || []} // ✅ from backend
-              facets={facets}
-              value={filters}
-              onChange={updateFilters}
-              onClose={() => setIsFilterOpen(false)}
-              compact
-            />
-          </div>
-        </div>
-      )}
+          {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
+          {isFilterOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setIsFilterOpen(false)}
+              />
+              <div className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-sm bg-white shadow-xl overflow-y-auto p-4">
+                <CarFilters
+                  brands={facets.brands || []}
+                  facets={facets}
+                  value={filters}
+                  onChange={updateFilters}
+                  onClose={() => setIsFilterOpen(false)}
+                  compact
+                />
+              </div>
+            </div>
+          )}
 
-      <div className="mx-auto max-w-7xl">
-        {/* ---------------- HEADER ---------------- */}
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Buy used cars
-            </h1>
-            <p className="mt-1 text-sm text-foreground/60">
-              {total} result{total !== 1 ? "s" : ""} found
-            </p>
-          </div>
+          <div className="max-w-7xl mx-auto">
+            {/* ---------------- HEADER ---------------- */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Buy Used Cars
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  {total} result{total !== 1 ? "s" : ""} found
+                </p>
+              </div>
 
-          <button
-            onClick={() => setIsFilterOpen(true)}
-className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border rounded-xl lg:hidden border-slate-200 bg-background text-foreground hover:bg-background/80"          >
-            
-            <HiOutlineAdjustments className="w-5 h-5" />
-            Filters
-          </button>
-        </div>
+              <button
+                onClick={() => setIsFilterOpen(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow transition"
+              >
+                <HiOutlineAdjustments className="w-5 h-5" />
+                Filters
+              </button>
+            </div>
 
-        <div className="grid grid-cols-12 gap-6">
-          {/* ---------------- DESKTOP SIDEBAR ---------------- */}
-<div className="sticky self-start hidden lg:block lg:col-span-4 xl:col-span-3 top-20 h-fit">
-            <CarFilters
-              brands={facets.brands || []} 
-              facets={facets}
-              value={filters}
-              onChange={updateFilters}
-            />
-          </div>
-
-          {/* ---------------- RESULTS ---------------- */}
-          <div className="col-span-12 lg:col-span-8 xl:col-span-9">
-            {cars.length === 0 ? (
-<div className="p-10 text-center border shadow-sm bg-background text-foreground rounded-2xl border-slate-100">                No cars match your filters.
-                <div className="mt-4">
-                  <button
-                    onClick={() => setSearchParams({})} // ✅ CLEAN RESET
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
-                  >
-                    <HiOutlineX className="w-4 h-4" />
-                    Clear filters
-                  </button>
+            <div className="grid grid-cols-12 gap-6">
+              {/* ---------------- SIDEBAR ---------------- */}
+              <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
+                <div className="sticky top-20 bg-white rounded-2xl shadow-sm p-4">
+                  <CarFilters
+                    brands={facets.brands || []}
+                    facets={facets}
+                    value={filters}
+                    onChange={updateFilters}
+                  />
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {cars.map((car) => (
-                    <CarCard key={car._id} car={car} />
-                  ))}
-                </div>
 
-                {/* ---------------- PAGINATION ---------------- */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
-                    
-                    {Array.from({ length: totalPages }).map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() =>
-                          updateFilters({ page: i + 1 }) // ✅ FIXED
-                        }
-                        className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                          filters.page === i + 1
-                            ? "bg-indigo-600 text-white"
-: "bg-background border border-slate-200 text-foreground" }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+              {/* ---------------- RESULTS ---------------- */}
+              <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
+                {cars.length === 0 ? (
+                  <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+                    <p className="text-gray-500 text-lg">
+                      No cars match your filters 🚫
+                    </p>
+
+                    <button
+                      onClick={() => setSearchParams({})}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
+                    >
+                      <HiOutlineX className="w-4 h-4" />
+                      Clear filters
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    {/* CAR GRID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {cars.map((car) => (
+                        <CarCard key={car._id} car={car} />
+                      ))}
+                    </div>
+
+                    {/* PAGINATION */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center flex-wrap gap-2 pt-4">
+                        {Array.from({ length: totalPages }).map((_, i) => {
+                          const active = filters.page === i + 1;
+
+                          return (
+                            <button
+                              key={i}
+                              onClick={() =>
+                                updateFilters({ page: i + 1 })
+                              }
+                              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+                                active
+                                  ? "bg-indigo-600 text-white shadow"
+                                  : "bg-white border border-gray-200 hover:shadow-sm"
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-           </div>
       );
     }}
   </QueryWrapper>
-);
-}
+);}

@@ -5,18 +5,35 @@ const EmiCalculator = ({
   defaultRate = 9,
   defaultTenure = 5,
 }) => {
-  const [downPayment, setDownPayment] = useState(price * 0.1);
+  const [manualPrice, setManualPrice] = useState("");
   const [rate, setRate] = useState(defaultRate);
   const [tenure, setTenure] = useState(defaultTenure);
 
-  // 🔥 Loan derived from price
-  const loan = useMemo(() => price - downPayment, [price, downPayment]);
+  // ✅ Decide which price to use
+  const effectivePrice = price || Number(manualPrice) || 0;
+
+  const [downPayment, setDownPayment] = useState(effectivePrice * 0.1);
+
+  // 🔥 Update downpayment when price source changes
+  useEffect(() => {
+    if (effectivePrice) {
+      setDownPayment(effectivePrice * 0.1);
+    }
+  }, [effectivePrice]);
+
+  // 🔥 Loan calculation
+  const loan = useMemo(
+    () => effectivePrice - downPayment,
+    [effectivePrice, downPayment]
+  );
 
   const emiData = useMemo(() => {
     const monthlyRate = rate / 12 / 100;
     const months = tenure * 12;
 
-    if (!loan || months === 0) return { emi: 0, totalPayment: 0, totalInterest: 0 };
+    if (!loan || months === 0) {
+      return { emi: 0, totalPayment: 0, totalInterest: 0 };
+    }
 
     if (monthlyRate === 0) {
       const emi = loan / months;
@@ -39,59 +56,84 @@ const EmiCalculator = ({
     return { emi, totalPayment, totalInterest };
   }, [loan, rate, tenure]);
 
-  // 🔥 Reset downpayment when price changes
-  useEffect(() => {
-    setDownPayment(price * 0.1);
-  }, [price]);
-
   return (
-    <div className="p-4 border bg-background text-forground rounded-xl">
-      <h3 className="mb-4 font-semibold">EMI Calculator</h3>
+    <div className="p-5 bg-white rounded-2xl shadow-sm space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800">
+        EMI Calculator
+      </h3>
 
-      <p className="mb-2 text-sm text-gray-500">
-        Car Price: ₹ {price.toLocaleString()}
-      </p>
+      {/* 🔥 Show input ONLY if no API price */}
+      {!price && (
+        <div>
+          <label className="text-sm text-gray-600">
+            Enter Amount
+          </label>
+          <input
+            type="number"
+            placeholder="Enter car price"
+            value={manualPrice}
+            onChange={(e) => setManualPrice(e.target.value)}
+            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none"
+          />
+        </div>
+      )}
+
+      {/* SHOW PRICE */}
+      {effectivePrice > 0 && (
+        <p className="text-sm text-gray-500">
+          Car Price: ₹ {effectivePrice.toLocaleString("en-IN")}
+        </p>
+      )}
 
       {/* DOWN PAYMENT */}
-      <div className="mb-3">
-        <label className="text-sm">Down Payment</label>
+      <div>
+        <label className="text-sm text-gray-600">
+          Down Payment
+        </label>
         <input
           type="number"
           value={downPayment}
           onChange={(e) => setDownPayment(Number(e.target.value))}
-          className="w-full p-2 border rounded"
+          className="input mt-1"
         />
       </div>
 
       {/* RATE */}
-      <div className="mb-3">
-        <label className="text-sm">Interest Rate (%)</label>
+      <div>
+        <label className="text-sm text-gray-600">
+          Interest Rate (%)
+        </label>
         <input
           type="number"
-            step="0.01"
+          step="0.01"
           value={rate}
-          onChange={(e) => setRate((e.target.value))}
-          className="w-full p-2 border rounded"
+          onChange={(e) => setRate(Number(e.target.value))}
+          className="input mt-1"
         />
       </div>
-        
+
       {/* TENURE */}
-      <div className="mb-3">
-        <label className="text-sm">Tenure (years)</label>
+      <div>
+        <label className="text-sm text-gray-600">
+          Tenure (years)
+        </label>
         <input
           type="number"
           value={tenure}
           onChange={(e) => setTenure(Number(e.target.value))}
-          className="w-full p-2 border rounded"
+          className="input mt-1"
         />
       </div>
 
       {/* RESULT */}
-      <div className="p-3 mt-4 bg-gray-500 rounded">
-        <p className="font-semibold">
+      <div className="p-4 bg-gray-50 rounded-xl">
+        <p className="text-lg font-semibold text-gray-800">
           EMI: ₹ {emiData.emi.toFixed(0)}
         </p>
-        <p>Total Interest: ₹ {emiData.totalInterest.toFixed(0)}</p>
+        <p className="text-sm text-gray-600">
+          Total Interest: ₹{" "}
+          {emiData.totalInterest.toFixed(0)}
+        </p>
       </div>
     </div>
   );

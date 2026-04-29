@@ -6,23 +6,27 @@ import {
 
 const FILTERS = ["all", "active", "banned"];
 
+const statusStyles = {
+  active: "bg-emerald-100 text-emerald-700",
+  banned: "bg-red-100 text-red-700",
+};
+
 export default function AdminUsers() {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // 🔥 debounce search
+  // 🔥 debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
-    }, 500);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [search]);
 
-  // 🔥 memo query params
   const queryParams = useMemo(() => {
     return {
       page,
@@ -32,7 +36,8 @@ export default function AdminUsers() {
     };
   }, [page, filter, debouncedSearch]);
 
-  const { data, isLoading, isFetching } = useGetAllUsersQuery(queryParams);
+  const { data, isLoading, isFetching } =
+    useGetAllUsersQuery(queryParams);
 
   const [toggleBanUser, { isLoading: toggling }] =
     useToggleBanUserMutation();
@@ -43,8 +48,12 @@ export default function AdminUsers() {
 
   const totalPages = pagination.totalPages || 1;
 
-  // 🔥 handle ban/unban
   const handleToggleBan = async (user) => {
+    const confirm = window.confirm(
+      `${user.isBanned ? "Unban" : "Ban"} this user?`
+    );
+    if (!confirm) return;
+
     try {
       await toggleBanUser({
         userId: user._id,
@@ -56,26 +65,47 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* 🔹 Top Stats (using your backend counts properly) */}
-      <div className="flex gap-4">
-        <div className="p-3 text-sm rounded-lg bg-slate-100">
-          Total Users: {counts.totalUsers || 0}
+    <div className="space-y-5">
+
+      {/* 🔹 HEADER */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground">
+          Users
+        </h1>
+        <p className="text-sm text-foreground/60">
+          Manage platform users
+        </p>
+      </div>
+
+      {/* 🔹 STATS */}
+      <div className="grid grid-cols-2 gap-4 sm:max-w-md">
+        <div className="p-4 border rounded-xl bg-background">
+          <p className="text-sm text-foreground/60">Total Users</p>
+          <p className="text-lg font-semibold">
+            {counts.totalUsers || 0}
+          </p>
         </div>
-        <div className="p-3 text-sm rounded-lg bg-rose-100 text-rose-600">
-          Banned: {counts.bannedUsers || 0}
+
+        <div className="p-4 border rounded-xl bg-background">
+          <p className="text-sm text-foreground/60">Banned</p>
+          <p className="text-lg font-semibold text-red-600">
+            {counts.bannedUsers || 0}
+          </p>
         </div>
       </div>
 
-      {/* 🔹 Filters */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      {/* 🔹 FILTERS */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+        {/* SEARCH */}
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, username, email..."
-          className="px-3 py-2 text-sm border rounded-lg border-slate-200"
+          placeholder="Search users..."
+          className="w-full px-3 py-2 text-sm border rounded-lg sm:max-w-xs border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
 
+        {/* FILTER BUTTONS */}
         <div className="flex gap-2">
           {FILTERS.map((f) => (
             <button
@@ -84,10 +114,10 @@ export default function AdminUsers() {
                 setFilter(f);
                 setPage(1);
               }}
-              className={`px-3 py-2 text-sm rounded-lg ${
+              className={`px-3 py-2 text-sm rounded-lg capitalize ${
                 filter === f
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 text-slate-600"
+                  ? "bg-indigo-600 text-white"
+                  : "border border-slate-200 text-foreground/70"
               }`}
             >
               {f}
@@ -96,94 +126,120 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      {/* 🔹 Table */}
-      {isLoading ? (
-        <p className="text-sm text-slate-500">Loading users...</p>
-      ) : users.length === 0 ? (
-        <p className="text-sm text-slate-500">No users found.</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-xl border-slate-200">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="px-4 py-3 text-left">User</th>
-                <th className="px-4 py-3 text-left">Role</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id} className="border-t">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{user.fullName || user.userName}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                  </td>
-
-                  <td className="px-4 py-3">{user.role}</td>
-
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-1 text-xs rounded ${
-                        user.isBanned
-                          ? "bg-rose-100 text-rose-600"
-                          : "bg-emerald-100 text-emerald-600"
-                      }`}
-                    >
-                      {user.isBanned ? "BANNED" : "ACTIVE"}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleToggleBan(user)}
-                      disabled={toggling || user.role === "ADMIN"}
-                      className={`px-3 py-1 text-xs text-white rounded ${
-                        user.isBanned
-                          ? "bg-emerald-600"
-                          : "bg-rose-600"
-                      } ${
-                        user.role === "ADMIN"
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                    >
-                      {user.isBanned ? "Unban" : "Ban"}
-                    </button>
-                  </td>
+      {/* 🔹 TABLE */}
+      <div className="border rounded-2xl bg-background text-foreground border-slate-200 overflow-hidden">
+        {isLoading ? (
+          <div className="p-6 text-sm text-foreground/60">
+            Loading users...
+          </div>
+        ) : users.length === 0 ? (
+          <div className="p-10 text-center text-sm text-foreground/60">
+            No users found
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-foreground/70">
+                <tr>
+                  <th className="px-4 py-3 text-left">User</th>
+                  <th className="px-4 py-3 text-left">Role</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
 
-      {/* 🔹 Pagination */}
+              <tbody>
+                {users.map((user) => {
+                  const isBanned = user.isBanned;
+
+                  return (
+                    <tr
+                      key={user._id}
+                      className="border-t hover:bg-slate-50/50 transition"
+                    >
+                      {/* USER */}
+                      <td className="px-4 py-3">
+                        <p className="font-medium">
+                          {user.fullName || user.userName}
+                        </p>
+                        <p className="text-xs text-foreground/60">
+                          {user.email}
+                        </p>
+                      </td>
+
+                      {/* ROLE */}
+                      <td className="px-4 py-3 capitalize">
+                        {user.role}
+                      </td>
+
+                      {/* STATUS */}
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            isBanned
+                              ? statusStyles.banned
+                              : statusStyles.active
+                          }`}
+                        >
+                          {isBanned ? "BANNED" : "ACTIVE"}
+                        </span>
+                      </td>
+
+                      {/* ACTION */}
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleToggleBan(user)}
+                          disabled={toggling || user.role === "ADMIN"}
+                          className={`px-3 py-1 text-xs font-medium text-white rounded-lg ${
+                            isBanned
+                              ? "bg-emerald-600 hover:bg-emerald-700"
+                              : "bg-red-500 hover:bg-red-600"
+                          } ${
+                            user.role === "ADMIN"
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
+                          {isBanned ? "Unban" : "Ban"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 🔹 PAGINATION */}
       <div className="flex items-center justify-between">
         <button
           disabled={page === 1}
           onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+          className="px-3 py-1 text-sm border rounded-lg border-slate-200 disabled:opacity-50"
         >
           Prev
         </button>
 
-        <span className="text-sm">
-          Page {page} / {totalPages}
+        <span className="text-sm text-foreground/70">
+          Page {page} of {totalPages}
         </span>
 
         <button
           disabled={page === totalPages}
           onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+          className="px-3 py-1 text-sm border rounded-lg border-slate-200 disabled:opacity-50"
         >
           Next
         </button>
       </div>
 
+      {/* 🔹 FETCHING */}
       {isFetching && (
-        <p className="text-xs text-slate-400">Refreshing...</p>
+        <p className="text-xs text-foreground/50">
+          Updating...
+        </p>
       )}
     </div>
   );

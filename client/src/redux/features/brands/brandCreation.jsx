@@ -40,54 +40,50 @@ const onSubmit = async (data, e) => {
     console.error(err);
   }
 };
+<div className="max-w-md p-6 mx-auto bg-white shadow rounded-xl">
+  <h2 className="mb-4 text-xl font-semibold">Create Brand</h2>
 
-  return (
-    <div className="max-w-md p-6 mx-auto bg-white shadow rounded-xl">
-      <h2 className="mb-4 text-xl font-semibold">Create Brand</h2>
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div>
+      <label className="block text-sm font-medium">Brand Name</label>
+      <input
+        {...register("name")}
+        placeholder="Enter brand name"
+        className="w-full p-2 border rounded"
+      />
 
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium">Brand Name</label>
-          <input
-            {...register("name")}
-            placeholder="Enter brand name"
-            className="w-full p-2 border rounded"
-          />
-          {errors.name && (
-            <p className="text-sm text-red-500">
-              {errors.name.message}
-            </p>
-          )}
-        </div>
+      {errors.name && (
+        <p className="text-sm text-red-500">
+          {errors.name.message}
+        </p>
+      )}
 
-       
-
-      
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full p-2 text-white bg-black rounded hover:opacity-90"
-        >
-          {isLoading ? "Creating..." : "Create Brand"}
-        </button>
-
-        {/* Backend Error */}
-        {isError && (
-          <p className="mt-2 text-sm text-red-500">
-            {error?.data?.message || "Failed to create brand"}
-          </p>
-        )}
-
-        {/* Success */}
-        {isSuccess && (
-          <p className="mt-2 text-sm text-green-600">
-            Brand created successfully!
-          </p>
-        )}
-      </form>
+      {/* SLUG PREVIEW */}
+      <p className="mt-1 text-xs text-gray-500">
+        Slug: {watch("name")?.toLowerCase().replace(/\s+/g, "-")}
+      </p>
     </div>
-  );}
+
+    <button
+      type="submit"
+      disabled={isLoading}
+      className="w-full p-2 text-white bg-black rounded hover:opacity-90"
+    >
+      {isLoading ? "Creating..." : "Create Brand"}
+    </button>
+
+    {isError && (
+      <p className="mt-2 text-sm text-red-500">
+        {error?.data?.message || "Failed to create brand"}
+      </p>
+    )}
+
+    {isSuccess && (
+      <p className="mt-2 text-sm text-green-600">
+        Brand created successfully!
+      </p>
+    )}
+  </form>
+</div>
+}

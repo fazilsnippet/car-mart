@@ -52,7 +52,7 @@ const ChatPage = lazy(() =>
   import("./redux/features/chats/chatPage.jsx")
 );
 const EmiCalculator = lazy(() => import("./utils/emiCalculator.jsx"))
-const CarForm = lazy(() => import("./redux/features/carSell/carForm.jsx"))
+const CreateCarPage = lazy(() => import("./redux/features/carSell/createCarSellPage.jsx"))
 
 const MyListingsPage =lazy(()=> import  ("./redux/features/carSell/myListingPage.jsx"))
 
@@ -292,7 +292,7 @@ function App() {
             element={
               <Suspense fallback={<div>Loading...</div>}>
                 <PrivateRoute>
-                  <CarForm />
+                  <CreateCarPage />
                 </PrivateRoute>
               </Suspense>
             }

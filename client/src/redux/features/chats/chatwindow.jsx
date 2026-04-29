@@ -173,7 +173,6 @@
 //     </div>
 //   );
 // }
-
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -181,11 +180,10 @@ import {
   useSendMessageMutation,
   chatApi,
 } from "./chatApi";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { joinConversation } from "../../../utils/socket";
 
 export default function ChatWindow({ conversation, onBack }) {
-
   const dispatch = useDispatch();
   const userId = useSelector((state) => state.auth?.user?._id);
   const conversationId = conversation?._id;
@@ -196,19 +194,15 @@ export default function ChatWindow({ conversation, onBack }) {
     { skip: !conversationId }
   );
 
-  const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
+  const [sendMessage, { isLoading: isSending }] =
+    useSendMessageMutation();
   const [text, setText] = useState("");
 
-  // =========================
-  // ✅ SORT (ASC → bottom latest)
-  // =========================
   const messages = [...(data?.data || [])].sort(
     (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
   );
 
-  // =========================
-  // ✅ SOCKET LISTENER
-  // =========================
+  /* SOCKET */
   useEffect(() => {
     const socket = joinConversation(conversationId);
     if (!socket || !conversationId) return;
@@ -216,7 +210,6 @@ export default function ChatWindow({ conversation, onBack }) {
     const handler = ({ message }) => {
       if (message.conversation !== conversationId) return;
 
-      // ❌ ignore own messages (avoid duplicates)
       const senderId =
         typeof message.sender === "object"
           ? message.sender._id
@@ -230,14 +223,8 @@ export default function ChatWindow({ conversation, onBack }) {
           { conversationId },
           (draft) => {
             if (!draft.data) draft.data = [];
-
-            const exists = draft.data.some(
-              (m) => m._id === message._id
-            );
-
-            if (!exists) {
-              draft.data.push(message);
-            }
+            const exists = draft.data.some((m) => m._id === message._id);
+            if (!exists) draft.data.push(message);
           }
         )
       );
@@ -247,54 +234,47 @@ export default function ChatWindow({ conversation, onBack }) {
     return () => socket.off("newMessage", handler);
   }, [conversationId, dispatch, userId]);
 
-  // =========================
-  // ✅ AUTO SCROLL
-  // =========================
+  /* AUTO SCROLL */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // =========================
-  // ✅ SEND MESSAGE
-  // =========================
+  /* SEND */
   const handleSend = async () => {
-    if (!text.trim() || !conversationId) return;
-
-    try {
-      await sendMessage({ conversationId, text, userId }).unwrap();
-      setText("");
-    } catch (e) {
-      console.error("Send failed:", e);
-    }
+    if (!text.trim()) return;
+    await sendMessage({ conversationId, text, userId });
+    setText("");
   };
 
-  if (!conversation) {
-    return <div>Select a conversation</div>;
-  }
+  if (!conversation) return null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gray-50">
 
       {/* HEADER */}
-    <div className="p-3 font-semibold border-b flex items-center gap-3">
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b">
+        <button
+          onClick={onBack}
+          className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 md:hidden"
+        >
+          <ArrowLeft size={18} />
+        </button>
 
-  {/* BACK BUTTON */}
-  <button
-    onClick={onBack}
-    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-green text-black"
-  >
-    <ArrowLeft />
-  </button>
-
-  {/* TITLE */}
- <span className="flex-1 min-w-0 truncate">
-  {conversation.car?.title || "Conversation"}
-</span>
-</div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-800 truncate">
+            {conversation.car?.title || "Conversation"}
+          </p>
+          <p className="text-xs text-gray-400">
+            Active conversation
+          </p>
+        </div>
+      </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto">
-        {isFetching && <p>Loading...</p>}
+      <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto">
+        {isFetching && (
+          <p className="text-sm text-gray-400">Loading messages...</p>
+        )}
 
         {messages.map((m) => {
           const isMe =
@@ -308,13 +288,26 @@ export default function ChatWindow({ conversation, onBack }) {
               className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[70%] p-2 rounded-lg text-sm ${
-                  isMe ? "bg-green-200" : "bg-orange-300"
-                }`}
+                className={`
+                  max-w-[75%] px-4 py-2 rounded-2xl text-sm shadow-sm
+                  ${
+                    isMe
+                      ? "bg-indigo-600 text-white rounded-br-md"
+                      : "bg-white text-gray-800 border rounded-bl-md"
+                  }
+                `}
               >
-                <p className="text-black">{m.text}</p>
-                <p className="mt-1 text-xs text-gray-500">
-                  {new Date(m.createdAt).toLocaleTimeString()}
+                <p>{m.text}</p>
+
+                <p
+                  className={`mt-1 text-[10px] ${
+                    isMe ? "text-white/70" : "text-gray-400"
+                  }`}
+                >
+                  {new Date(m.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               </div>
             </div>
@@ -325,22 +318,24 @@ export default function ChatWindow({ conversation, onBack }) {
       </div>
 
       {/* INPUT */}
-      <div className="flex gap-2 p-3 border-t">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 px-4 py-2 border rounded-full"
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        />
+      <div className="p-3 bg-white border-t">
+        <div className="flex items-center gap-2 px-3 py-2 border rounded-full shadow-sm bg-gray-50">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 text-sm bg-transparent outline-none"
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          />
 
-        <button
-          onClick={handleSend}
-          disabled={isSending}
-          className="px-5 py-2 text-white bg-orange-400 rounded-full"
-        >
-          {isSending ? "Sending..." : "Send"}
-        </button>
+          <button
+            onClick={handleSend}
+            disabled={isSending}
+            className="p-2 text-white transition bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50"
+          >
+            <Send size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

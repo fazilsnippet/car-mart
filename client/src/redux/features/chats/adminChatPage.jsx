@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   useGetConversationsQuery,
   useGetMessagesQuery,
   useSendMessageMutation,
 } from "./chatApi";
 import { joinConversation } from "../../../utils/socket";
+import { Send } from "lucide-react";
 
 export default function AdminChatPage() {
-  const dispatch = useDispatch();
   const userId = useSelector((state) => state.auth?.user?._id);
 
   const prevScrollHeight = useRef(0);
@@ -29,17 +29,16 @@ export default function AdminChatPage() {
 
   const [sendMessage] = useSendMessageMutation();
 
-  // RESET SCROLL
+  /* RESET */
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     if (!prevScrollHeight.current) {
       el.scrollTop = el.scrollHeight;
     }
   }, [selectedConvo?._id]);
 
-  // MERGE PAGINATION
+  /* MERGE */
   useEffect(() => {
     if (!messageData?.data) return;
 
@@ -47,7 +46,6 @@ export default function AdminChatPage() {
 
     setAllMessages((prev) => {
       const ids = new Set(prev.map((m) => m._id));
-
       const merged = [
         ...incoming.filter((m) => !ids.has(m._id)),
         ...prev,
@@ -59,7 +57,7 @@ export default function AdminChatPage() {
     });
   }, [messageData]);
 
-  // SOCKET
+  /* SOCKET */
   useEffect(() => {
     const socket = joinConversation(selectedConvo?._id);
     if (!socket || !selectedConvo) return;
@@ -75,9 +73,7 @@ export default function AdminChatPage() {
       if (senderId === userId) return;
 
       setAllMessages((prev) => {
-        const exists = prev.some((m) => m._id === message._id);
-        if (exists) return prev;
-
+        if (prev.some((m) => m._id === message._id)) return prev;
         return [...prev, message];
       });
     };
@@ -86,7 +82,7 @@ export default function AdminChatPage() {
     return () => socket.off("newMessage", handler);
   }, [selectedConvo?._id, userId]);
 
-  // AUTO SCROLL
+  /* SCROLL */
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -98,92 +94,94 @@ export default function AdminChatPage() {
     }
   }, [allMessages]);
 
-  // LOAD MORE
   const handleScroll = (e) => {
     const el = e.target;
 
     if (el.scrollTop <= 10 && messageData?.pagination?.hasMore) {
       prevScrollHeight.current = el.scrollHeight;
-      setPage((prev) => prev + 1);
+      setPage((p) => p + 1);
     }
   };
 
-  // SEND
   const handleSend = async () => {
-    if (!message.trim() || !selectedConvo?._id) return;
+    if (!message.trim()) return;
 
-    try {
-      await sendMessage({
-        conversationId: selectedConvo._id,
-        text: message.trim(),
-        userId,
-      }).unwrap();
+    await sendMessage({
+      conversationId: selectedConvo._id,
+      text: message.trim(),
+      userId,
+    });
 
-      setMessage("");
-    } catch (err) {
-      console.error(err);
-    }
+    setMessage("");
   };
 
   return (
-    <div className="grid h-[600px] grid-cols-[300px,1fr] border rounded-2xl overflow-hidden bg-white">
+    <div className="grid h-[calc(100vh-80px)] grid-cols-[320px,1fr] bg-gray-50 rounded-2xl overflow-hidden border">
 
-      {/* LEFT PANEL */}
-      <div className="flex flex-col min-h-0 border-r">
-        <div className="p-3 font-semibold border-b bg-gray-50">
-          Chats
+      {/* LEFT */}
+      <div className="flex flex-col bg-white border-r">
+
+        <div className="px-4 py-3 font-semibold border-b">
+          Conversations
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {conversations.map((c) => (
-            <div
+            <button
               key={c._id}
               onClick={() => {
                 setSelectedConvo(c);
                 setAllMessages([]);
                 setPage(1);
               }}
-              className={`p-3 cursor-pointer border-b hover:bg-gray-100 ${
-                selectedConvo?._id === c._id ? "bg-gray-200" : ""
-              }`}
+              className={`w-full text-left px-4 py-3 border-b transition
+                ${
+                  selectedConvo?._id === c._id
+                    ? "bg-indigo-50"
+                    : "hover:bg-gray-50"
+                }
+              `}
             >
-              <p className="font-medium">{c.car?.title}</p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-sm font-semibold text-gray-800 truncate">
+                {c.car?.title}
+              </p>
+
+              <p className="text-xs text-gray-500 truncate mt-1">
                 {c.lastMessage?.text || "No messages yet"}
               </p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* RIGHT PANEL */}
-      <div className="flex flex-col h-full min-h-0">
+      {/* RIGHT */}
+      <div className="flex flex-col bg-white">
 
         {!selectedConvo ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-400">
             Select a conversation
           </div>
         ) : (
           <>
             {/* HEADER */}
-            <div className="flex items-center gap-3 p-3 border-b bg-gray-50">
+            <div className="flex items-center gap-3 px-4 py-3 border-b">
               <button
                 onClick={() => {
                   setSelectedConvo(null);
                   setAllMessages([]);
                   setPage(1);
                 }}
-                className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                className="px-2 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 ←
               </button>
 
               <div>
-                <p className="font-semibold">
+                <p className="text-sm font-semibold text-gray-800">
                   {selectedConvo.car?.title}
                 </p>
-                <p className="text-xs text-gray-500">
-                  Conversation
+                <p className="text-xs text-gray-400">
+                  Active chat
                 </p>
               </div>
             </div>
@@ -192,7 +190,7 @@ export default function AdminChatPage() {
             <div
               ref={containerRef}
               onScroll={handleScroll}
-              className="flex-1 min-h-0 p-4 space-y-3 overflow-y-auto bg-gray-50"
+              className="flex-1 px-4 py-4 space-y-3 overflow-y-auto bg-gray-50"
             >
               {allMessages.map((msg) => {
                 const senderId =
@@ -205,14 +203,19 @@ export default function AdminChatPage() {
                 return (
                   <div
                     key={msg._id}
-                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                    className={`flex ${
+                      isMe ? "justify-end" : "justify-start"
+                    }`}
                   >
                     <div
-                      className={`px-3 py-2 rounded-xl text-sm max-w-xs break-words shadow ${
-                        isMe
-                          ? "bg-blue-500 text-white"
-                          : "bg-white text-gray-800 border"
-                      }`}
+                      className={`
+                        max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow-sm
+                        ${
+                          isMe
+                            ? "bg-indigo-600 text-white rounded-br-md"
+                            : "bg-white border text-gray-800 rounded-bl-md"
+                        }
+                      `}
                     >
                       {msg.text}
                     </div>
@@ -228,27 +231,25 @@ export default function AdminChatPage() {
             </div>
 
             {/* INPUT */}
-            <div className="flex items-end gap-2 p-3 bg-white border-t">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={1}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="flex-1 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Type message..."
-              />
+            <div className="p-3 border-t bg-white">
+              <div className="flex items-center gap-2 px-3 py-2 border rounded-full bg-gray-50">
+                <input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 text-sm bg-transparent outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSend();
+                  }}
+                />
 
-              <button
-                onClick={handleSend}
-                className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-              >
-                Send
-              </button>
+                <button
+                  onClick={handleSend}
+                  className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
             </div>
           </>
         )}

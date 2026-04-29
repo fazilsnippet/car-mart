@@ -22,12 +22,10 @@ export const connectSocket = (userId) => {
   });
 
   socket.on("connect", () => {
-    console.log("✅ Socket connected:", socket.id);
     socket.emit("joinUser", { userId });
   });
 
   socket.on("reconnect", () => {
-    console.log("🔄 Socket reconnected:", socket.id);
     socket.emit("joinUser", { userId });
   });
 
@@ -43,7 +41,6 @@ export const connectSocket = (userId) => {
 
 
   socket.on("connect_error", (error) => {
-    console.error("❌ Socket connection error:", error.message);
   });
 
   return socket;
@@ -61,7 +58,6 @@ export const listenForMessages = () => {
   if (!socket) return;
 
   socket.on("newMessage", ({ message, conversationId }) => {
-    console.log("📩 New message received:", message);
 
     // Update getMessages cache
     store.dispatch(

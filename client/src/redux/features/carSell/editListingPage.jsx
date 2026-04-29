@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   useGetCarSellByIdQuery,
   useUpdateCarSellMutation,
-} from "./carSellApi.js";
+} from "./carSellApi";
 import CarForm from "./carForm.jsx";
 
 const EditListingPage = () => {
@@ -42,7 +42,6 @@ const EditListingPage = () => {
       // 🔥 simple UX improvement
       navigate("/carSell"); // or your listings page
     } catch (err) {
-      console.error(err);
     }
   };
 
