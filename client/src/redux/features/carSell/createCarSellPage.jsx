@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCreateCarSellMutation } from "./carSellApi";
-import CarForm from "./CarForm";
+import CarForm from "./carForm";
 
 const CreateCarPage = () => {
   const navigate = useNavigate();
