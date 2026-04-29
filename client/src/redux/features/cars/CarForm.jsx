@@ -120,15 +120,15 @@ const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
 
   const submitLoading = isCreating || isUpdating;
 return (
-  <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-6 py-6">
+  <form onSubmit={handleSubmit} className="max-w-5xl py-6 mx-auto space-y-6">
     
     {/* BASIC INFO */}
-    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
       <h2 className="text-lg font-semibold text-gray-800">
         Basic Information
       </h2>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <input
           name="title"
           placeholder="Car Title"
@@ -146,7 +146,7 @@ return (
         />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <select
           name="brand"
           value={form.brand}
@@ -185,12 +185,12 @@ return (
     </div>
 
     {/* VEHICLE DETAILS */}
-    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
       <h2 className="text-lg font-semibold text-gray-800">
         Vehicle Details
       </h2>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <input
           name="kmDriven"
           type="number"
@@ -219,7 +219,7 @@ return (
         />
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <select
           name="fuelType"
           value={form.fuelType}
@@ -265,12 +265,12 @@ return (
     </div>
 
     {/* LOCATION */}
-    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
       <h2 className="text-lg font-semibold text-gray-800">
         Location
       </h2>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <input
           name="city"
           placeholder="City"
@@ -290,7 +290,7 @@ return (
     </div>
 
     {/* FEATURES */}
-    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
       <h2 className="text-lg font-semibold text-gray-800">
         Features
       </h2>
@@ -305,12 +305,12 @@ return (
     </div>
 
     {/* IMAGES */}
-    <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
       <h2 className="text-lg font-semibold text-gray-800">
         Images
       </h2>
 
-      <label className="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition">
+      <label className="block p-6 text-center transition border-2 border-gray-300 border-dashed cursor-pointer rounded-xl hover:border-indigo-500">
         <p className="text-gray-500">
           Click to upload images
         </p>
@@ -329,7 +329,7 @@ return (
             key={`${src}-${index}`}
             src={src}
             alt="preview"
-            className="w-24 h-24 object-cover rounded-lg"
+            className="object-cover w-24 h-24 rounded-lg"
           />
         ))}
       </div>
@@ -360,7 +360,7 @@ return (
       <button
         type="submit"
         disabled={submitLoading}
-        className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+        className="px-6 py-3 font-medium text-white transition bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50"
       >
         {submitLoading
           ? isEditMode
@@ -374,3 +374,5 @@ return (
   </form>
 );
 }
+
+export default CarForm;
