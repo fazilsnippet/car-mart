@@ -63,8 +63,11 @@ const sendSignupOtp = asyncHandler(async (req, res) => {
     console.log("Signup OTP:", otpCode);
   }
 
-  await sendEmail(email, "Signup OTP", `Your OTP is ${otpCode}`);
-
+await sendEmail({
+  to: email,
+  subject: "Signup OTP",
+  text: `Your OTP is ${otpCode}`,
+});
   return res.status(200).json(
     new ApiResponse(200, {}, "OTP sent to your email")
   );

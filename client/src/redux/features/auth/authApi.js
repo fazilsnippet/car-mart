@@ -3,12 +3,13 @@ import { baseApi } from "../../api/baseApi";
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-   sendSignupOtp: builder.mutation({
-     query: (email) => ({ url: "/otp/signup/sendotp",
-       method: "POST",
-        body: { email }, 
-      }), 
-    }), 
+  sendSignupOtp: builder.mutation({
+  query: ({ email }) => ({
+    url: "/otp/signup/sendotp",
+    method: "POST",
+    body: { email },
+  }),
+}), 
    registerUser: builder.mutation({
      query: (formData) => ({ url: "/users/register",
        method: "POST",

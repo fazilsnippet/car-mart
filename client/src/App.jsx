@@ -23,6 +23,7 @@ const BookingCreate = lazy(() =>
 const NotFound = lazy(() => import("./pages/NotFound"));
 // const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Dashboard = lazy(() => import("./pages/newDashboard"));
+const AdminChatPage = lazy(() => import("./redux/features/chats/adminChatPage.jsx"));
 const CarList = lazy(() => import("./redux/features/cars/carList"));
 const BrandCreation = lazy(() =>
   import("./redux/features/brands/brandCreation")
@@ -135,6 +136,17 @@ function App() {
               </Suspense>
             }
           />
+              <Route
+            path="/admin/chat"
+            element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <PrivateRoute adminOnly>
+                  <AdminChatPage />
+                </PrivateRoute>
+              </Suspense>
+            }
+          />
+
            {/* <Route
         index
         element={

@@ -19,8 +19,11 @@ export const sendSignupOtp = async (req, res) => {
       expiryMinutes: 5,
     });
 
-    await sendEmail(email, "Signup OTP", `Your OTP is ${otpCode}`);
-
+await sendEmail({
+  to: email,
+  subject: "Signup OTP",
+  text: `Your OTP is ${otpCode}`,
+});
     res.json({ message: "OTP sent for registration" });
 
   } catch (err) {
@@ -64,11 +67,12 @@ export const sendForgotPasswordOtp = async (req, res) => {
       expiryMinutes: 5,
     });
 
-    await sendEmail(
-      email,
-      "Forgot Password OTP",
-      `Your OTP is ${otpCode}`
-    );
+   
+    await sendEmail({
+  to: email,
+  subject: "forgot password OTP",
+  text: `Your OTP is ${otpCode}`,
+});
 
     res.json({ message: "OTP sent for password reset" });
 
@@ -121,11 +125,12 @@ export const sendUpdatePasswordOtp = async (req, res) => {
       expiryMinutes: 5,
     });
 
-    await sendEmail(
-      email,
-      "Password Update OTP",
-      `Your OTP is ${otpCode}`
-    );
+   
+    await sendEmail({
+  to: email,
+  subject: "Password Update OTP",
+  text: `Your OTP is ${otpCode}`,
+});
 
     res.json({ message: "OTP sent for password update" });
 

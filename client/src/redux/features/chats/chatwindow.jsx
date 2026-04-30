@@ -255,7 +255,7 @@ export default function ChatWindow({ conversation, onBack }) {
       <div className="flex items-center gap-3 px-4 py-3 bg-white border-b">
         <button
           onClick={onBack}
-          className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 md:hidden"
+          className="flex items-center justify-center rounded-full w-9 h-9 hover:bg-gray-100 md:hidden"
         >
           <ArrowLeft size={18} />
         </button>

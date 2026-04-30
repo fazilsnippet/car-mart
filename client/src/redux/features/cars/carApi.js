@@ -68,54 +68,84 @@ const toCarFormData = (data, { includePrice = true } = {}) => {
   return formData;
 };
 const cleanParams = (params = {}) => {
-  return Object.fromEntries(
-    Object.entries(params)
-      .map(([key, value]) => {
-        if (Array.isArray(value)) {
-          const filtered = value
-            .filter((v) => v !== "" && v != null)
-            .sort();
+  const result = {};
 
-          if (!filtered.length) return null;
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === "" || value == null) return;
 
-          return [key, filtered.join(",")];
-        }
+    // 🔥 arrays → CSV (backend supports this)
+    if (Array.isArray(value)) {
+      const filtered = value
+        .filter((v) => v !== "" && v != null)
+        .sort();
 
-        if (value === "" || value == null) return null;
+      if (filtered.length) {
+        result[key] = filtered.join(",");
+      }
+      return;
+    }
 
-        return [key, value];
-      })
-      .filter(Boolean)
-  );
+    // 🔥 normalize numbers (important)
+    if (
+      ["page", "limit", "minYear", "maxYear", "minKm", "maxKm", "priceMin", "priceMax"].includes(key)
+    ) {
+      const num = Number(value);
+      if (!isNaN(num)) {
+        result[key] = num;
+      }
+      return;
+    }
+
+    result[key] = value;
+  });
+
+  return result;
 };
 
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCars: builder.query({
-      query: (params = {}) => ({
-        url: "/car",
-        params: cleanParams(params),
-      }),
+   getCars: builder.query({
+  query: (params = {}) => {
+    const cleaned = cleanParams(params);
 
-      serializeQueryArgs: ({ queryArgs }) => {
-        return JSON.stringify(cleanParams(queryArgs));
-      },
+    // ❗ FIX: prevent conflicting filters (matches backend logic)
+    if (cleaned.priceBucket) {
+      delete cleaned.priceMin;
+      delete cleaned.priceMax;
+    }
 
-      keepUnusedDataFor: 300,
-      refetchOnReconnect: true,
-      refetchOnFocus: true,
+    return {
+      url: "/car",
+      params: cleaned,
+    };
+  },
 
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result.data.map(({ _id }) => ({
-                type: "Car",
-                id: _id,
-              })),
-              { type: "Car", id: "LIST" },
-            ]
-          : [{ type: "Car", id: "LIST" }],
-    }),
+  serializeQueryArgs: ({ queryArgs }) => {
+    const cleaned = cleanParams(queryArgs);
+
+    if (cleaned.priceBucket) {
+      delete cleaned.priceMin;
+      delete cleaned.priceMax;
+    }
+
+    return JSON.stringify(cleaned);
+  },
+
+  keepUnusedDataFor: 300,
+  refetchOnReconnect: true,
+  refetchOnFocus: true,
+
+  providesTags: (result) =>
+    result?.data
+      ? [
+          ...result.data.map(({ _id }) => ({
+            type: "Car",
+            id: _id,
+          })),
+          { type: "Car", id: "LIST" },
+        ]
+      : [{ type: "Car", id: "LIST" }],
+}),
  getCarById: builder.query({
       query: (id) => `/car/${id}`,
       transformResponse: (response) => response.data,

@@ -203,20 +203,28 @@ const toMongoValues = (values) =>
       ? new mongoose.Types.ObjectId(v)
       : v
   );
+
+// 🔒 escape regex to prevent injection
+const escapeRegex = (str) =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const buildMatch = (filters, exclude) => {
   const match = {
     lifecycleStatus: "ACTIVE",
   };
 
-const searchQuery =
-  typeof filters.q === "string" ? filters.q.trim() : "";
+  /* ---------------- TEXT SEARCH ---------------- */
+  const searchQuery =
+    typeof filters.q === "string" ? filters.q.trim() : "";
 
-const isTextSearch = searchQuery.length > 0;
+  if (searchQuery.length > 0) {
+    match.title = {
+      $regex: escapeRegex(searchQuery),
+      $options: "i",
+    };
+  }
 
-if (isTextSearch) {
-  match.title = { $regex: searchQuery, $options: "i" };
-}
-
+  /* ---------------- IN FILTERS ---------------- */
   const applyInFilter = (field) => {
     if (filters[field] && exclude !== field) {
       const values = normalizeToArray(filters[field]);
@@ -231,35 +239,85 @@ if (isTextSearch) {
   applyInFilter("fuelType");
   applyInFilter("transmission");
 
-  // Handle price bucket from frontend (e.g., "0-5", "5-10", "20+")
-  if (filters.priceBucket && exclude !== "price") {
+  /* ---------------- PRICE ---------------- */
+  const hasBucket =
+    filters.priceBucket && exclude !== "price";
+
+  const hasRange =
+    filters.priceMin || filters.priceMax;
+
+  // ❗ FIX: bucket OR range, never merge both
+  if (hasBucket && !hasRange) {
     const bucketMap = {
       "0-5": [0, 500000],
       "5-10": [500000, 1000000],
       "10-15": [1000000, 1500000],
       "15-20": [1500000, 2000000],
-      "20+": [2000000, Infinity],
+      "20+": [2000000, null],
     };
 
     const [min, max] = bucketMap[filters.priceBucket] || [];
-    
+
     if (min !== undefined) {
       match.price = {};
-      if (min !== undefined) match.price.$gte = min;
-      if (max !== Infinity) match.price.$lte = max;
+      if (Number.isFinite(min)) match.price.$gte = min;
+      if (Number.isFinite(max)) match.price.$lte = max;
     }
   }
 
-  // Also handle direct priceMin/priceMax if provided
-  if (filters.priceMin || filters.priceMax) {
-    match.price = match.price || {};
+  if (hasRange) {
+    match.price = {};
 
-    if (filters.priceMin) match.price.$gte = Number(filters.priceMin);
-    if (filters.priceMax) match.price.$lte = Number(filters.priceMax);
+    if (filters.priceMin != null) {
+      const min = Number(filters.priceMin);
+      if (!isNaN(min)) match.price.$gte = min;
+    }
+
+    if (filters.priceMax != null) {
+      const max = Number(filters.priceMax);
+      if (!isNaN(max)) match.price.$lte = max;
+    }
+  }
+
+  /* ---------------- YEAR ---------------- */
+  if (
+    (filters.minYear || filters.maxYear) &&
+    exclude !== "year"
+  ) {
+    match.year = {};
+
+    if (filters.minYear != null) {
+      const min = Number(filters.minYear);
+      if (!isNaN(min)) match.year.$gte = min;
+    }
+
+    if (filters.maxYear != null) {
+      const max = Number(filters.maxYear);
+      if (!isNaN(max)) match.year.$lte = max;
+    }
+  }
+
+  /* ---------------- KM ---------------- */
+  if (
+    (filters.minKm || filters.maxKm) &&
+    exclude !== "kmDriven"
+  ) {
+    match.kmDriven = {};
+
+    if (filters.minKm != null) {
+      const min = Number(filters.minKm);
+      if (!isNaN(min)) match.kmDriven.$gte = min;
+    }
+
+    if (filters.maxKm != null) {
+      const max = Number(filters.maxKm);
+      if (!isNaN(max)) match.kmDriven.$lte = max;
+    }
   }
 
   return match;
 };
+
 export const getCars = asyncHandler(async (req, res) => {
   const {
     q,
@@ -270,12 +328,10 @@ export const getCars = asyncHandler(async (req, res) => {
     ...filters
   } = req.query;
 
-  // 🔒 SAFE PAGINATION
   const safePage = Math.max(1, Number(page));
   const safeLimit = Math.min(20, Number(limit));
   const skip = (safePage - 1) * safeLimit;
 
-  // 🔒 SAFE SORTING
   const allowedSortFields = ["price", "createdAt", "year"];
   const sortField = allowedSortFields.includes(sortBy)
     ? sortBy
@@ -285,17 +341,19 @@ export const getCars = asyncHandler(async (req, res) => {
     [sortField]: order === "asc" ? 1 : -1,
   };
 
-  // 🔥 MATCH CACHE (avoid recomputation)
   const matchCache = {};
 
   const getMatch = (exclude) => {
-    if (!matchCache[exclude || "base"]) {
-      matchCache[exclude || "base"] = buildMatch(
+    const key = exclude || "base";
+
+    if (!matchCache[key]) {
+      matchCache[key] = buildMatch(
         { q, ...filters },
         exclude
       );
     }
-    return matchCache[exclude || "base"];
+
+    return matchCache[key];
   };
 
   const baseMatch = getMatch();
@@ -309,7 +367,6 @@ export const getCars = asyncHandler(async (req, res) => {
           { $skip: skip },
           { $limit: safeLimit },
         ],
-        
 
         totalCount: [
           { $match: baseMatch },
@@ -321,7 +378,14 @@ export const getCars = asyncHandler(async (req, res) => {
           {
             $bucket: {
               groupBy: "$price",
-              boundaries: [0, 500000, 1000000, 1500000, 2000000, 10000000],
+              boundaries: [
+                0,
+                500000,
+                1000000,
+                1500000,
+                2000000,
+                10000000,
+              ],
               default: "Other",
               output: { count: { $sum: 1 } },
             },
@@ -339,19 +403,17 @@ export const getCars = asyncHandler(async (req, res) => {
           { $group: { _id: "$transmission", count: { $sum: 1 } } },
           { $sort: { count: -1 } },
         ],
-        
 
         brands: [
           { $match: getMatch("brand") },
           { $group: { _id: "$brand", count: { $sum: 1 } } },
           {
-  
-    $lookup: {
-      from: "brands",
-      localField: "_id",
-      foreignField: "_id",
-      as: "brand",
-    },
+            $lookup: {
+              from: "brands",
+              localField: "_id",
+              foreignField: "_id",
+              as: "brand",
+            },
           },
           {
             $unwind: {
@@ -369,8 +431,9 @@ export const getCars = asyncHandler(async (req, res) => {
           { $sort: { count: -1 } },
         ],
 
+        // ❗ FIX: keep consistent with rest of filters
         newest: [
-          { $match: { lifecycleStatus: "ACTIVE" } },
+          { $match: getMatch() },
           { $sort: { createdAt: -1 } },
           { $limit: 8 },
         ],

@@ -69,31 +69,41 @@ export default function CarList() {
 
   /* ---------------- UPDATE FILTERS ---------------- */
   const updateFilters = (newFilters) => {
-    const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams);
 
-    Object.entries(newFilters).forEach(([key, value]) => {
-      if (
-        value === "" ||
-        value === null ||
-        value === undefined ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        params.delete(key);
-      } else if (Array.isArray(value)) {
-        params.delete(key);
-        value.forEach((v) => params.append(key, v));
-      } else {
-        params.set(key, value);
-      }
-    });
-
-    // ✅ Reset page only if not explicitly changing page
-    if (!("page" in newFilters)) {
-      params.set("page", 1);
+  Object.entries(newFilters).forEach(([key, value]) => {
+    if (
+      value === "" ||
+      value === null ||
+      value === undefined ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      params.delete(key);
+    } else if (Array.isArray(value)) {
+      params.delete(key);
+      value.forEach((v) => params.append(key, v));
+    } else {
+      params.set(key, value);
     }
+  });
 
-    setSearchParams(params);
-  };
+  // ❗ FIX: prevent price conflicts (matches backend)
+  if ("priceBucket" in newFilters) {
+    params.delete("priceMin");
+    params.delete("priceMax");
+  }
+
+  if ("priceMin" in newFilters || "priceMax" in newFilters) {
+    params.delete("priceBucket");
+  }
+
+  // reset page
+  if (!("page" in newFilters)) {
+    params.set("page", 1);
+  }
+
+  setSearchParams(params);
+};
 
  
   
@@ -105,19 +115,11 @@ return (
     isFetching={isFetching}
   >
     {(data) => {
-      const cars = data?.data || [];
-      const total = data?.total || 0;
-      const totalPages = data?.totalPages || 1;
-      const facets = data?.filters || {};
+      
 
       return (
-        <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
-          {/* 🔄 Updating indicator */}
-          {isFetching && (
-            <div className="mb-4 text-sm text-gray-500">
-              Updating results...
-            </div>
-          )}
+        <div className="min-h-screen px-4 py-6 bg-gray-50 sm:px-6 lg:px-8">
+          
 
           {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
           {isFilterOpen && (
@@ -139,7 +141,7 @@ return (
             </div>
           )}
 
-          <div className="max-w-7xl mx-auto">
+          <div className="mx-auto max-w-7xl">
             {/* ---------------- HEADER ---------------- */}
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -153,7 +155,7 @@ return (
 
               <button
                 onClick={() => setIsFilterOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow transition"
+                className="flex items-center gap-2 px-4 py-2 transition bg-white border border-gray-200 shadow-sm lg:hidden rounded-xl hover:shadow"
               >
                 <HiOutlineAdjustments className="w-5 h-5" />
                 Filters
@@ -163,7 +165,7 @@ return (
             <div className="grid grid-cols-12 gap-6">
               {/* ---------------- SIDEBAR ---------------- */}
               <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
-                <div className="sticky top-20 bg-white rounded-2xl shadow-sm p-4">
+                <div className="sticky p-4 bg-white shadow-sm top-20 rounded-2xl">
                   <CarFilters
                     brands={facets.brands || []}
                     facets={facets}
@@ -174,10 +176,10 @@ return (
               </div>
 
               {/* ---------------- RESULTS ---------------- */}
-              <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
+              <div className="col-span-12 space-y-6 lg:col-span-8 xl:col-span-9">
                 {cars.length === 0 ? (
-                  <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-                    <p className="text-gray-500 text-lg">
+                  <div className="p-12 text-center bg-white shadow-sm rounded-2xl">
+                    <p className="text-lg text-gray-500">
                       No cars match your filters 🚫
                     </p>
 
@@ -192,7 +194,7 @@ return (
                 ) : (
                   <>
                     {/* CAR GRID */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                       {cars.map((car) => (
                         <CarCard key={car._id} car={car} />
                       ))}
@@ -200,7 +202,7 @@ return (
 
                     {/* PAGINATION */}
                     {totalPages > 1 && (
-                      <div className="flex justify-center flex-wrap gap-2 pt-4">
+                      <div className="flex flex-wrap justify-center gap-2 pt-4">
                         {Array.from({ length: totalPages }).map((_, i) => {
                           const active = filters.page === i + 1;
 
