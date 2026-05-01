@@ -23,7 +23,7 @@ export const startConversation = async (req, res) => {
     if (!carId || !mongoose.Types.ObjectId.isValid(carId)) {
       return res.status(400).json({
         success: false,
-        message: "Valid carId is required",
+        message: "Valid carId is required to start conversation",
       });
     }
 
@@ -87,18 +87,229 @@ export const startConversation = async (req, res) => {
   }
 };
 
+// export const sendMessage = async (req, res) => {
+//   try {
+//     const { conversationId, text } = req.body;
+//     const trimmedText = text?.trim();
+
+//     if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Valid conversationId is required",
+//       });
+//     }
+
+//     if (!trimmedText) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Message text is required",
+//       });
+//     }
+
+//     const conversation = await Conversation.findById(conversationId);
+
+//     if (!conversation) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Conversation not found",
+//       });
+//     }
+
+//     const userId = req.user._id.toString();
+
+//     // ✅ strict participant check (admin included)
+//     const isParticipant = conversation.participants.some(
+//       (id) => id.toString() === userId
+//     );
+
+//     if (!isParticipant) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "Not authorized",
+//       });
+//     }
+
+//     const message = await Message.create({
+//       conversation: conversationId,
+//       sender: req.user._id,
+//       text: trimmedText,
+//     });
+
+//     // ✅ update conversation metadata
+//     conversation.lastMessage = message._id;
+//     conversation.updatedAt = new Date();
+
+//     // ✅ safe Map handling
+//     if (!conversation.unreadCounts) {
+//       conversation.unreadCounts = new Map();
+//     }
+
+//     conversation.participants.forEach((id) => {
+//       const strId = id.toString();
+//       if (strId !== userId) {
+//         const current = conversation.unreadCounts.get(strId) || 0;
+//         conversation.unreadCounts.set(strId, current + 1);
+//       }
+//     });
+
+//     await conversation.save();
+
+//     // ✅ populate sender (better UX)
+//     const populatedMessage = await message.populate("sender", "name avatar");
+
+//     // 🔥 SOCKET EMIT
+//     const io = req.app.get("io");
+//     // io.to(conversationId.toString()).emit("newMessage", {
+//     //   message: populatedMessage,
+//     //   conversationId,
+//     // });
+//     io.to(conversationId.toString()).emit("newMessage", populatedMessage);
+
+//     return res.status(201).json({
+//       success: true,
+//       data: populatedMessage,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
+const ADMIN_ID = process.env.ADMIN_ID; // ✅ single source of truth
+
+// export const sendMessage = async (req, res) => {
+//   try {
+//     const { carId, conversationId, text } = req.body;
+
+//     const senderId = req.user._id.toString();
+//     const trimmedText = text?.trim();
+
+//     // =========================
+//     // VALIDATION
+//     // =========================
+//     if (!trimmedText) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Message text is required",
+//       });
+//     }
+
+//     if (!ADMIN_ID) {
+//       return res.status(500).json({
+//         success: false,
+//         message: "Admin ID not configured",
+//       });
+//     }
+
+//     if (senderId === ADMIN_ID.toString()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Admin cannot initiate chat",
+//       });
+//     }
+
+//     // =========================
+//     // RESOLVE carId SAFELY
+//     // =========================
+//     let finalCarId = carId;
+
+//     if (!finalCarId && conversationId) {
+//       const convo = await Conversation.findById(conversationId).select("car");
+//       finalCarId = convo?.car;
+//     }
+
+//     if (!finalCarId || !mongoose.Types.ObjectId.isValid(finalCarId)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Valid carId is required",
+//       });
+//     }
+
+//     // =========================
+//     // BUILD PARTICIPANTS
+//     // =========================
+//     const participants = [senderId, ADMIN_ID.toString()].sort();
+//     const uniqueKey = `${participants.join("_")}_${finalCarId}`;
+
+//     // =========================
+//     // FIND OR CREATE CONVERSATION
+//     // =========================
+//     let conversation = await Conversation.findOne({ uniqueKey });
+
+//     if (!conversation) {
+//       conversation = await Conversation.create({
+//         participants,
+//         car: finalCarId,
+//         uniqueKey,
+//         unreadCounts: {
+//           [senderId]: 0,
+//           [ADMIN_ID]: 0,
+//         },
+//       });
+//     }
+
+//     // =========================
+//     // CREATE MESSAGE
+//     // =========================
+//     const message = await Message.create({
+//       conversation: conversation._id,
+//       sender: senderId,
+//       text: trimmedText,
+//     });
+
+//     conversation.lastMessage = message._id;
+//     conversation.updatedAt = new Date();
+
+//     await conversation.save();
+
+//     const populatedMessage = await message.populate(
+//       "sender",
+//       "name avatar"
+//     );
+
+//     // =========================
+//     // SOCKET
+//     // =========================
+//     const io = req.app.get("io");
+//     io.to(conversation._id.toString()).emit(
+//       "newMessage",
+//       populatedMessage
+//     );
+
+//     return res.status(201).json({
+//       success: true,
+//       data: {
+//         message: populatedMessage,
+//         conversationId: conversation._id,
+//       },
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
+
 export const sendMessage = async (req, res) => {
   try {
-    const { conversationId, text } = req.body;
+    const { carId, conversationId, text } = req.body;
+
+    const senderId = req.user._id;
+    const adminId = process.env.ADMIN_ID;
+
     const trimmedText = text?.trim();
 
-    if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid conversationId is required",
-      });
-    }
-
+    // =========================
+    // VALIDATION
+    // =========================
     if (!trimmedText) {
       return res.status(400).json({
         success: false,
@@ -106,73 +317,114 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    const conversation = await Conversation.findById(conversationId);
+    let receiverId;
+    let conversation;
 
-    if (!conversation) {
-      return res.status(404).json({
-        success: false,
-        message: "Conversation not found",
+    // =========================
+    // EXISTING CONVERSATION FLOW
+    // =========================
+    if (conversationId) {
+      conversation = await Conversation.findById(conversationId);
+
+      if (!conversation) {
+        return res.status(404).json({
+          success: false,
+          message: "Conversation not found",
+        });
+      }
+
+      // determine receiver dynamically
+      receiverId = conversation.participants.find(
+        (p) => p.toString() !== senderId.toString()
+      );
+
+    } else {
+      // =========================
+      // NEW / FIND CONVERSATION
+      // =========================
+
+      // decide receiver based on role
+      if (req.user.role === "admin") {
+        return res.status(400).json({
+          success: false,
+          message: "Admin cannot start conversation without conversationId",
+        });
+      }
+
+      receiverId = adminId;
+
+      conversation = await Conversation.findOne({
+        car: carId || null,
+        participants: { $all: [senderId, receiverId] },
       });
+
+      if (!conversation) {
+        conversation = await Conversation.create({
+          participants: [senderId, receiverId],
+          car: carId || null,
+          unreadCounts: {
+            [receiverId]: 1,
+            [senderId]: 0,
+          },
+        });
+      }
     }
 
-    const userId = req.user._id.toString();
-
-    // ✅ strict participant check (admin included)
-    const isParticipant = conversation.participants.some(
-      (id) => id.toString() === userId
-    );
-
-    if (!isParticipant) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized",
-      });
-    }
-
+    // =========================
+    // CREATE MESSAGE
+    // =========================
     const message = await Message.create({
-      conversation: conversationId,
-      sender: req.user._id,
+      conversation: conversation._id,
+      sender: senderId,
       text: trimmedText,
     });
 
-    // ✅ update conversation metadata
+    // =========================
+    // UPDATE CONVERSATION
+    // =========================
     conversation.lastMessage = message._id;
     conversation.updatedAt = new Date();
 
-    // ✅ safe Map handling
-    if (!conversation.unreadCounts) {
-      conversation.unreadCounts = new Map();
-    }
-
-    conversation.participants.forEach((id) => {
-      const strId = id.toString();
-      if (strId !== userId) {
-        const current = conversation.unreadCounts.get(strId) || 0;
-        conversation.unreadCounts.set(strId, current + 1);
-      }
-    });
+    // increment unread for receiver
+    conversation.unreadCounts.set(
+      receiverId.toString(),
+      (conversation.unreadCounts.get(receiverId.toString()) || 0) + 1
+    );
 
     await conversation.save();
 
-    // ✅ populate sender (better UX)
-    const populatedMessage = await message.populate("sender", "name avatar");
+    // =========================
+    // POPULATE ONLY IF NEW
+    // =========================
+    let populatedConversation = null;
 
-    // 🔥 SOCKET EMIT
-    const io = req.app.get("io");
-    // io.to(conversationId.toString()).emit("newMessage", {
-    //   message: populatedMessage,
-    //   conversationId,
-    // });
-    io.to(conversationId.toString()).emit("newMessage", populatedMessage);
+    if (!conversationId) {
+      populatedConversation = await Conversation.findById(conversation._id)
+        .populate("participants", "name")
+        .populate("car", "title images")
+        .lean();
+    }
 
+    // =========================
+    // RESPONSE
+    // =========================
     return res.status(201).json({
       success: true,
-      data: populatedMessage,
+      message: {
+        _id: message._id,
+        text: message.text,
+        sender: message.sender,
+        createdAt: message.createdAt,
+      },
+      conversation: populatedConversation, // null if existing
     });
+
   } catch (error) {
+    console.error("SendMessage Error:", error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to send message",
     });
   }
 };

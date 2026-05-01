@@ -23,14 +23,14 @@
 //       navigate("/chat");
 //     }
 //   }}
-//       className="p-2 rounded-full hover:bg-gray-200 block md:hidden"
+//       className="block p-2 rounded-full hover:bg-gray-200 md:hidden"
 //     >
 //       <ArrowLeft />
 //     </button>
 
 //       <button
 //       onClick={() => navigate(-1)}
-//       className="p-2 rounded-full hover:bg-gray-200 hidden md:block"
+//       className="hidden p-2 rounded-full hover:bg-gray-200 md:block"
 //     >
 //       <ArrowLeft />
 //     </button>
@@ -73,33 +73,66 @@
 //     </div>
 //   );
 // }
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ConversationList from "./conversationList";
 import ChatWindow from "./chatwindow";
 
 export default function ChatPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const intentCar = location.state?.carSnapshot || null;
+
   const [selectedConversation, setSelectedConversation] = useState(null);
 
-  return (
-    <div className="h-dvh bg-gray-50 flex">
+  const isIntentMode = !!intentCar;
+  const isChatMode = !!selectedConversation || isIntentMode;
 
-      {/* LEFT PANEL */}
+  // =========================
+  // HANDLE FIRST MESSAGE SUCCESS
+  // =========================
+  const handleConversationCreated = (conversationId) => {
+    setSelectedConversation({
+      _id: conversationId,
+      car: intentCar,
+    });
+
+    // clear intent after conversion
+    navigate("/chat", { replace: true });
+  };
+
+  // =========================
+  // BACK HANDLER
+  // =========================
+  const handleBack = () => {
+    if (selectedConversation) {
+      setSelectedConversation(null);
+    } else if (isIntentMode) {
+      navigate("/chat", { replace: true });
+    }
+  };
+
+  return (
+    <div className="flex h-dvh bg-gray-50">
+
+      {/* =========================
+          LEFT PANEL
+      ========================= */}
       <div
         className={`
           w-full md:w-[35%] lg:w-[30%]
           border-r border-gray-200
           bg-white
           flex flex-col
-          transition-all duration-300
-          ${selectedConversation ? "hidden md:flex" : "flex"}
+          ${isChatMode ? "hidden md:flex" : "flex"}
         `}
       >
-        {/* HEADER */}
-        <div className="p-4 border-b border-gray-100 font-semibold text-gray-800">
+        <div className="p-4 font-semibold border-b">
           Messages
         </div>
 
-        {/* LIST */}
         <div className="flex-1 overflow-y-auto">
           <ConversationList
             onSelectConversation={setSelectedConversation}
@@ -108,36 +141,40 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* RIGHT PANEL */}
+      {/* =========================
+          RIGHT PANEL
+      ========================= */}
       <div
         className={`
           w-full md:flex-1
           flex flex-col
           bg-white
-          transition-all duration-300
-          ${!selectedConversation ? "hidden md:flex" : "flex"}
+          ${!isChatMode ? "hidden md:flex" : "flex"}
         `}
       >
-        {selectedConversation ? (
+
+        {/* =========================
+            CHAT WINDOW
+        ========================= */}
+        {isChatMode && (
           <ChatWindow
             conversation={selectedConversation}
-            onBack={() => setSelectedConversation(null)}
+            car={intentCar}
+            onBack={handleBack}
+            onConversationCreated={handleConversationCreated}
           />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            
-            {/* EMPTY STATE */}
-            <div className="max-w-sm">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-2xl">
-                💬
-              </div>
+        )}
 
-              <h2 className="text-lg font-semibold text-gray-800">
-                Your messages
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Select a conversation to start chatting with sellers.
+        {/* =========================
+            EMPTY STATE
+        ========================= */}
+        {!isChatMode && (
+          <div className="flex items-center justify-center h-full text-center">
+            <div>
+              <div className="text-2xl">💬</div>
+              <h2 className="font-semibold">Your messages</h2>
+              <p className="text-sm text-gray-500">
+                Select a chat to start
               </p>
             </div>
           </div>

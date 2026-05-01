@@ -12,7 +12,9 @@ const chatRouter = express.Router();
 
 chatRouter.post("/start", verifyJWT, startConversation);
 chatRouter.post("/message", verifyJWT, sendMessage);
-chatRouter.get("/:conversationId/messages", verifyJWT, getMessages);
-chatRouter.get("/", verifyJWT, getConversations);
+chatRouter.get("/messages/:conversationId", verifyJWT, getMessages);
+// chatRouter.get("/:conversationId/messages", verifyJWT, getMessages);
+// chatRouter.get("/", verifyJWT, getConversations);
+chatRouter.get("/conversations", verifyJWT, getConversations);
 
 export default chatRouter;
