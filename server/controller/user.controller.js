@@ -684,17 +684,33 @@ const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
     res.status(500).json({ message: "Server error" });
   }
 };
-
 export const getCurrentUser = asyncHandler(async (req, res) => {
   if (!req.user) {
     throw new ApiError(401, "Unauthorized");
   }
-  
+
+  // 🔥 Always sanitize
+  const safeUser = {
+    _id: req.user._id,
+    fullName: req.user.fullName,
+    email: req.user.email,
+    role: req.user.role,
+  };
 
   return res.status(200).json(
-    new ApiResponse(200, req.user, "User fetched successfully")
+    new ApiResponse(200, safeUser, "User fetched successfully")
   );
 });
+// export const getCurrentUser = asyncHandler(async (req, res) => {
+//   if (!req.user) {
+//     throw new ApiError(401, "Unauthorized");
+//   }
+  
+
+//   return res.status(200).json(
+//     new ApiResponse(200, req.user, "User fetched successfully")
+//   );
+// });
 export {
   sendSignupOtp,
   registerUser,

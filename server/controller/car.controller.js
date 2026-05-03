@@ -742,9 +742,16 @@ export const updateCarPrice = async (req, res) => {
 
   const car = await Car.findById(carId);
 
-  if (car.price > newPrice) {
+  if (!car) {
+    return res.status(404).json({ message: "Car not found" });
+  }
+
+  const oldPrice = car.price;
+
+  if (oldPrice > newPrice) {
     await notificationQueue.add("price_drop", {
       carId,
+      oldPrice,   // ✅ FIXED
       newPrice
     });
   }

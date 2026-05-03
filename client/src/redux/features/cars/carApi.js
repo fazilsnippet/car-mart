@@ -1,48 +1,44 @@
 import { baseApi } from "../../api/baseApi";
-
-const toCarFormData = (data, { includePrice = true } = {}) => {
+export const toCarFormData = (data, { includePrice = true } = {}) => {
   if (data instanceof FormData) return data;
 
   const formData = new FormData();
 
-  // 🔥 FIX features → always array
-  const formattedFeatures =
-    typeof data.features === "string"
-      ? data.features.split(",").map(f => f.trim()).filter(Boolean)
-      : data.features;
+  // ✅ Clone safely
+  const payload = structuredClone(data);
 
-  // 🔥 FIX location → ensure nested object
-  const location =
-    data.location ||
-    (data.city || data.state
-      ? {
-          city: data.city,
-          state: data.state
-        }
-      : undefined);
+  // 🔹 Normalize features
+  if (payload.features) {
+    payload.features =
+      typeof payload.features === "string"
+        ? payload.features
+            .split(",")
+            .map((f) => f.trim())
+            .filter(Boolean)
+        : payload.features;
+  }
 
-  // 🔥 Build payload
-  const payload = {
-    ...data,
-    features: formattedFeatures,
-    location
-  };
+  // 🔹 Normalize location
+  if (!payload.location && (payload.city || payload.state)) {
+    payload.location = {
+      city: payload.city,
+      state: payload.state,
+    };
+  }
 
-  // ❌ remove root-level city/state (important)
   delete payload.city;
   delete payload.state;
 
-  if (!includePrice) {
-    delete payload.price;
-  }
+  if (!includePrice) delete payload.price;
 
-  // 🔥 Separate images
-  const images = payload.images || [];
+  // 🔹 Extract images
+  const images = Array.isArray(payload.images) ? payload.images : [];
   delete payload.images;
 
-  // 🔥 Remove empty values
+  // 🔹 Clean empty fields
   Object.keys(payload).forEach((key) => {
     const value = payload[key];
+
     if (
       value === "" ||
       value === null ||
@@ -53,20 +49,93 @@ const toCarFormData = (data, { includePrice = true } = {}) => {
     }
   });
 
-  // 🔥 Send as ONE JSON field
-  formData.append("data", JSON.stringify(payload));
+  // ✅ IMPORTANT: flatten instead of JSON (better compatibility)
+  Object.entries(payload).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => formData.append(`${key}[]`, v));
+    } else if (typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
 
-  // 🔥 Append images
-  if (Array.isArray(images)) {
-    images.forEach((file) => {
-      if (file) {
-        formData.append("images", file);
-      }
-    });
-  }
+  // 🔹 Append only REAL files
+  images.forEach((file) => {
+    if (file instanceof File) {
+      formData.append("images", file);
+    }
+  });
 
   return formData;
 };
+// const toCarFormData = (data, { includePrice = true } = {}) => {
+//   if (data instanceof FormData) return data;
+
+//   const formData = new FormData();
+
+//   // 🔥 FIX features → always array
+//   const formattedFeatures =
+//     typeof data.features === "string"
+//       ? data.features.split(",").map(f => f.trim()).filter(Boolean)
+//       : data.features;
+
+//   // 🔥 FIX location → ensure nested object
+//   const location =
+//     data.location ||
+//     (data.city || data.state
+//       ? {
+//           city: data.city,
+//           state: data.state
+//         }
+//       : undefined);
+
+//   // 🔥 Build payload
+//   const payload = {
+//     ...data,
+//     features: formattedFeatures,
+//     location
+//   };
+
+//   // ❌ remove root-level city/state (important)
+//   delete payload.city;
+//   delete payload.state;
+
+//   if (!includePrice) {
+//     delete payload.price;
+//   }
+
+//   // 🔥 Separate images
+//   const images = payload.images || [];
+//   delete payload.images;
+
+//   // 🔥 Remove empty values
+//   Object.keys(payload).forEach((key) => {
+//     const value = payload[key];
+//     if (
+//       value === "" ||
+//       value === null ||
+//       value === undefined ||
+//       (Array.isArray(value) && value.length === 0)
+//     ) {
+//       delete payload[key];
+//     }
+//   });
+
+//   // 🔥 Send as ONE JSON field
+//   formData.append("data", JSON.stringify(payload));
+
+//   // 🔥 Append images
+//   if (Array.isArray(images)) {
+//     images.forEach((file) => {
+//       if (file) {
+//         formData.append("images", file);
+//       }
+//     });
+//   }
+
+//   return formData;
+// };
 const cleanParams = (params = {}) => {
   const result = {};
 

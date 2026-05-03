@@ -8,7 +8,7 @@ const AdminCars = lazy(() => import("../redux/features/cars/carList.jsx"));
 const AdminUsers = lazy(() => import("../redux/features/users/allUsers.jsx"));
 const AdminChatPage = lazy(() => import("../redux/features/chats/adminChatPage.jsx"));
 const AdminBrands = lazy(() => import("../redux/features/brands/adminBrand.jsx"));
-
+const AdminCarsManager = lazy(() => import("../redux/features/cars/adminCars.jsx"));
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "bookings", label: "Bookings", admin: true },
@@ -16,6 +16,7 @@ const TABS = [
   { key: "users", label: "Users", admin: true },
   { key: "chat", label: "Chats", admin: true },
   { key: "brands", label: "Brands", admin: true },
+  { key: "carsManager", label: "Cars Manager", admin: true },
 ];
 
 // 🔹 Component map (clean pattern)
@@ -25,6 +26,7 @@ const TAB_COMPONENTS = {
   users: AdminUsers,
   chat: AdminChatPage,
   brands: AdminBrands,
+  carsManager: AdminCarsManager,
 };
 
 function TabButton({ active, onClick, children }) {

@@ -292,8 +292,12 @@ export const notificationWorker = new Worker(
             Booking.find({ car: objectCarId }).select("user"),
             Conversation.find({ car: objectCarId }).select("participants")
           ]);
-
-          const wishlistSet = new Set(wishlistUsers.map(u => u.user.toString()));
+const wishlistSet = new Set(
+  wishlistUsers
+    .map(u => u.user?.toString())
+    .filter(Boolean)
+);
+          // const wishlistSet = new Set(wishlistUsers.map(u => u.user.toString()));
           const bookingSet = new Set(bookingUsers.map(u => u.user.toString()));
 
           const enquirySet = new Set(
@@ -301,10 +305,17 @@ export const notificationWorker = new Worker(
               conv.participants.map(id => id.toString())
             ).filter(id => !ADMIN_ID || id !== ADMIN_ID)
           );
-
-          if (job.name === "price_drop") {
-            [...wishlistSet, ...enquirySet].forEach(id => finalUserSet.add(id));
-          } else {
+if (job.name === "price_drop") {
+  await sendEmail({
+    to: user.email,
+    subject: "Price Dropped!",
+    text: `The car you wishlisted is now ₹${newPrice}`
+  });
+}
+          // if (job.name === "price_drop") {
+          //   [...wishlistSet, ...enquirySet].forEach(id => finalUserSet.add(id));
+          // }
+           else {
             [...wishlistSet, ...bookingSet, ...enquirySet].forEach(id =>
               finalUserSet.add(id)
             );
@@ -356,8 +367,12 @@ export const notificationWorker = new Worker(
       // =========================
       // 💾 INSERT INTO DB
       // =========================
-      await Notification.insertMany(notifications, { ordered: false }); // ✅ safer
-
+      // await Notification.insertMany(notifications, { ordered: false }); // ✅ safer
+try {
+  await Notification.insertMany(notifications, { ordered: false });
+} catch (err) {
+  console.error("❌ Notification insert failed:", err);
+}
 
     } catch (err) {
     }
@@ -391,7 +406,10 @@ function getTitle(event) {
 function getMessage(event, data) {
   switch (event) {
     case "price_drop":
-      return `Car price is now ₹${data.newPrice}`;
+  const drop = data.oldPrice - data.newPrice;
+  return `Price dropped by ₹${drop}! Now ₹${data.newPrice}`;
+    // case "price_drop":
+    //   return `Car price is now ₹${data.newPrice}`;
     case "car_sold":
       return "This car has been sold";
     case "car_inactive":

@@ -24,13 +24,51 @@ export const wishlistApi = baseApi.injectEndpoints({
     // -------------------------
     // Toggle Wishlist
     // -------------------------
+// toggleWishlist: builder.mutation({
+//   query: (carId) => ({
+//     url: "/wishlist/toggle",
+//     method: "POST",
+//     body: { carId },
+//   }),
+
+
+//   async onQueryStarted(carId, { dispatch, queryFulfilled }) {
+//     const patchResult = dispatch(
+//       wishlistApi.util.updateQueryData(
+//         "getWishlist",
+//         undefined,
+//         (draft) => {
+//           const index = draft.findIndex(
+//             (item) => item.car?._id === carId
+//           );
+
+//           if (index > -1) {
+//             // remove
+//             draft.splice(index, 1);
+//           } else {
+//             // add (minimal structure)
+//             draft.push({
+//               car: { _id: carId }
+//             });
+//           }
+//         }
+//       )
+//     );
+
+//     try {
+//       await queryFulfilled;
+//     } catch {
+//       patchResult.undo(); // rollback
+//     }
+//   },
+// }),
+
 toggleWishlist: builder.mutation({
   query: (carId) => ({
     url: "/wishlist/toggle",
     method: "POST",
     body: { carId },
   }),
-
 
   async onQueryStarted(carId, { dispatch, queryFulfilled }) {
     const patchResult = dispatch(
@@ -39,17 +77,12 @@ toggleWishlist: builder.mutation({
         undefined,
         (draft) => {
           const index = draft.findIndex(
-            (item) => item.car?._id === carId
+            (item) => item.car?._id?.toString() === carId.toString()
           );
 
+          // ✅ only handle REMOVE optimistically
           if (index > -1) {
-            // remove
             draft.splice(index, 1);
-          } else {
-            // add (minimal structure)
-            draft.push({
-              car: { _id: carId }
-            });
           }
         }
       )
@@ -57,8 +90,14 @@ toggleWishlist: builder.mutation({
 
     try {
       await queryFulfilled;
+
+      // 🔥 always refetch for correctness
+      dispatch(
+        wishlistApi.util.invalidateTags([{ type: "Wishlist", id: "LIST" }])
+      );
+
     } catch {
-      patchResult.undo(); // rollback
+      patchResult.undo();
     }
   },
 }),

@@ -85,7 +85,7 @@ export default function HomePage() {
             >
               <img
                 src={item.img}
-                className="w-20 h-20 mx-auto mb-4 rounded-full object-cover"
+                className="object-cover w-20 h-20 mx-auto mb-4 rounded-full"
               />
               <h4 className="text-lg font-semibold">{item.title}</h4>
               <p className="mt-2 text-sm text-gray-500">
@@ -155,7 +155,9 @@ export default function HomePage() {
         <h3 className="mb-4 text-3xl font-bold">
           Ready to Drive Your Dream?
         </h3>
-        <button className="px-8 py-3 mt-4 text-black bg-white rounded-full hover:scale-105">
+        <button
+         onClick={() => navigate("/cars-list")} 
+        className="px-8 py-3 mt-4 text-black bg-white rounded-full hover:scale-105">
           Browse Cars
         </button>
       </section>

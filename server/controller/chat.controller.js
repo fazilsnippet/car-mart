@@ -298,11 +298,142 @@ const ADMIN_ID = process.env.ADMIN_ID; // ✅ single source of truth
 
 
 
+// export const sendMessage = async (req, res) => {
+//   try {
+//     const { carId, conversationId, text } = req.body;
+
+//     const senderId = req.user._id;
+//     const adminId = process.env.ADMIN_ID;
+
+//     const trimmedText = text?.trim();
+
+//     // =========================
+//     // VALIDATION
+//     // =========================
+//     if (!trimmedText) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Message text is required",
+//       });
+//     }
+
+//     let receiverId;
+//     let conversation;
+
+//     // =========================
+//     // EXISTING CONVERSATION FLOW
+//     // =========================
+//     if (conversationId) {
+//       conversation = await Conversation.findById(conversationId);
+
+//       if (!conversation) {
+//         return res.status(404).json({
+//           success: false,
+//           message: "Conversation not found",
+//         });
+//       }
+
+//       // determine receiver dynamically
+//       receiverId = conversation.participants.find(
+//         (p) => p.toString() !== senderId.toString()
+//       );
+
+//     } else {
+//       // =========================
+//       // NEW / FIND CONVERSATION
+//       // =========================
+
+//       // decide receiver based on role
+//       if (req.user.role === "admin") {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Admin cannot start conversation without conversationId",
+//         });
+//       }
+
+//       receiverId = adminId;
+
+//       conversation = await Conversation.findOne({
+//         car: carId || null,
+//         participants: { $all: [senderId, receiverId] },
+//       });
+
+//       if (!conversation) {
+//         conversation = await Conversation.create({
+//           participants: [senderId, receiverId],
+//           car: carId || null,
+//           unreadCounts: {
+//             [receiverId]: 1,
+//             [senderId]: 0,
+//           },
+//         });
+//       }
+//     }
+
+//     // =========================
+//     // CREATE MESSAGE
+//     // =========================
+//     const message = await Message.create({
+//       conversation: conversation._id,
+//       sender: senderId,
+//       text: trimmedText,
+//     });
+
+//     // =========================
+//     // UPDATE CONVERSATION
+//     // =========================
+//     conversation.lastMessage = message._id;
+//     conversation.updatedAt = new Date();
+
+//     // increment unread for receiver
+//     conversation.unreadCounts.set(
+//       receiverId.toString(),
+//       (conversation.unreadCounts.get(receiverId.toString()) || 0) + 1
+//     );
+
+//     await conversation.save();
+
+//     // =========================
+//     // POPULATE ONLY IF NEW
+//     // =========================
+//     let populatedConversation = null;
+
+//     if (!conversationId) {
+//       populatedConversation = await Conversation.findById(conversation._id)
+//         .populate("participants", "name")
+//         .populate("car", "title images")
+//         .lean();
+//     }
+
+//     // =========================
+//     // RESPONSE
+//     // =========================
+//     return res.status(201).json({
+//       success: true,
+//       message: {
+//         _id: message._id,
+//         text: message.text,
+//         sender: message.sender,
+//         createdAt: message.createdAt,
+//       },
+//       conversation: populatedConversation, // null if existing
+//     });
+
+//   } catch (error) {
+//     console.error("SendMessage Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to send message",
+//     });
+//   }
+// };
+
 export const sendMessage = async (req, res) => {
   try {
     const { carId, conversationId, text } = req.body;
 
-    const senderId = req.user._id;
+    const senderId = req.user?._id;
     const adminId = process.env.ADMIN_ID;
 
     const trimmedText = text?.trim();
@@ -310,6 +441,13 @@ export const sendMessage = async (req, res) => {
     // =========================
     // VALIDATION
     // =========================
+    if (!senderId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
     if (!trimmedText) {
       return res.status(400).json({
         success: false,
@@ -317,13 +455,30 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(adminId)) {
+      return res.status(500).json({
+        success: false,
+        message: "Invalid ADMIN_ID configuration",
+      });
+    }
+
     let receiverId;
     let conversation;
 
+    const sender = senderId.toString();
+    const admin = adminId.toString();
+
     // =========================
-    // EXISTING CONVERSATION FLOW
+    // EXISTING CONVERSATION
     // =========================
     if (conversationId) {
+      if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid conversationId",
+        });
+      }
+
       conversation = await Conversation.findById(conversationId);
 
       if (!conversation) {
@@ -333,38 +488,68 @@ export const sendMessage = async (req, res) => {
         });
       }
 
-      // determine receiver dynamically
+      // find receiver safely
       receiverId = conversation.participants.find(
-        (p) => p.toString() !== senderId.toString()
+        (p) => p.toString() !== sender
       );
 
+      if (!receiverId) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid conversation participants",
+        });
+      }
     } else {
       // =========================
-      // NEW / FIND CONVERSATION
+      // NEW CONVERSATION
       // =========================
 
-      // decide receiver based on role
       if (req.user.role === "admin") {
         return res.status(400).json({
           success: false,
-          message: "Admin cannot start conversation without conversationId",
+          message: "Admin cannot start conversation",
         });
       }
 
-      receiverId = adminId;
+      receiverId = admin;
 
+      // 🔒 prevent self-chat
+      if (sender === receiverId) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot create conversation with yourself",
+        });
+      }
+
+      // 🔒 enforce exactly 2 unique participants
+      const participants = [...new Set([sender, receiverId])];
+
+      if (participants.length !== 2) {
+        return res.status(400).json({
+          success: false,
+          message: "Conversation must have exactly 2 unique participants",
+        });
+      }
+
+      // 🔑 uniqueKey (IMPORTANT)
+      const uniqueKey = [sender, receiverId, carId || "noCar"]
+        .sort()
+        .join("_");
+
+      // 🔍 find existing safely
       conversation = await Conversation.findOne({
-        car: carId || null,
-        participants: { $all: [senderId, receiverId] },
+        uniqueKey,
       });
 
+      // 🆕 create if not exists
       if (!conversation) {
         conversation = await Conversation.create({
-          participants: [senderId, receiverId],
+          participants,
           car: carId || null,
+          uniqueKey,
           unreadCounts: {
             [receiverId]: 1,
-            [senderId]: 0,
+            [sender]: 0,
           },
         });
       }
@@ -385,11 +570,24 @@ export const sendMessage = async (req, res) => {
     conversation.lastMessage = message._id;
     conversation.updatedAt = new Date();
 
-    // increment unread for receiver
-    conversation.unreadCounts.set(
-      receiverId.toString(),
-      (conversation.unreadCounts.get(receiverId.toString()) || 0) + 1
-    );
+    const receiverKey = receiverId.toString();
+
+    // ensure unreadCounts is initialized
+    if (!conversation.unreadCounts) {
+      conversation.unreadCounts = {};
+    }
+
+    const currentUnread =
+      conversation.unreadCounts.get?.(receiverKey) ||
+      conversation.unreadCounts[receiverKey] ||
+      0;
+
+    // handle both Map and Object fallback
+    if (conversation.unreadCounts.set) {
+      conversation.unreadCounts.set(receiverKey, currentUnread + 1);
+    } else {
+      conversation.unreadCounts[receiverKey] = currentUnread + 1;
+    }
 
     await conversation.save();
 
@@ -416,9 +614,8 @@ export const sendMessage = async (req, res) => {
         sender: message.sender,
         createdAt: message.createdAt,
       },
-      conversation: populatedConversation, // null if existing
+      conversation: populatedConversation,
     });
-
   } catch (error) {
     console.error("SendMessage Error:", error);
 
