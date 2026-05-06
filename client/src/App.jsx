@@ -58,7 +58,7 @@ const CreateCarPage = lazy(() => import("./redux/features/carSell/createCarSellP
 const MyListingsPage =lazy(()=> import  ("./redux/features/carSell/myListingPage.jsx"))
 
 const EditListingPage =lazy(() => import ("./redux/features/carSell/editListingPage.jsx"))
-
+import ScrollToTop from "./utils/scrollToTop.jsx";
 import HomePage from "./pages/homePage.jsx";
 
 function App() {
@@ -120,6 +120,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    <ScrollToTop />
         <Header/>
       <Routes>
         {/* ✅ ROOT (NO LAZY) */}

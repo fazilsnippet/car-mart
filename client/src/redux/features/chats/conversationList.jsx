@@ -29,11 +29,11 @@ export default function ConversationList({ onSelectConversation, selectedId }) {
   const conversations = data?.data || [];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background text-foreground">
 
       {/* HEADER */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h2 className="text-base font-semibold text-gray-800">
+      <div className="flex items-center justify-between p-4 border-b border-color bg-background text-foreground">
+        <h2 className="text-base font-semibold text-foreground">
           Conversations
         </h2>
 
@@ -47,7 +47,7 @@ export default function ConversationList({ onSelectConversation, selectedId }) {
 
       {/* EMPTY STATE */}
       {conversations.length === 0 ? (
-        <div className="flex items-center justify-center flex-1 text-sm text-gray-500">
+        <div className="flex items-center justify-center flex-1 text-sm text-foreground">
           No conversations yet
         </div>
       ) : (
@@ -69,11 +69,11 @@ export default function ConversationList({ onSelectConversation, selectedId }) {
                 key={conv._id}
                 onClick={() => onSelectConversation(conv)}
                 className={`w-full text-left px-4 py-3 flex gap-3 items-start transition
-                  ${isActive ? "bg-indigo-50" : "hover:bg-gray-50"}
+                  ${isActive ? "bg-indigo-50" : "hover:bg-gray-500"}
                 `}
               >
                 {/* AVATAR */}
-                <div className="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
+                <div className="flex items-center justify-center text-sm font-semibold text-gray-600 rounded-full w-11 h-11 bg-foreground text-foreground shrink-0">
                   {other?.name?.[0] || "U"}
                 </div>
 
@@ -81,7 +81,7 @@ export default function ConversationList({ onSelectConversation, selectedId }) {
                 <div className="flex-1 min-w-0">
 
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-gray-800 truncate">
+                    <p className="text-sm font-semibold truncate text-foreground">
                       {conv.car?.title || other?.name || "Conversation"}
                     </p>
 

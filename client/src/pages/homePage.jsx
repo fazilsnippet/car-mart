@@ -48,7 +48,7 @@ export default function HomePage() {
       </section>
 
       {/* 🔥 FLOATING SEARCH */}
-      <div className="relative z-20 max-w-5xl px-4 mx-auto -mt-10">
+      {/* <div className="relative z-20 max-w-5xl px-4 mx-auto -mt-10">
         <div className="flex flex-col gap-4 p-4 shadow-xl md:flex-row rounded-2xl bg-white/80 backdrop-blur-lg">
           <input
             className="flex-1 p-3 border rounded-lg"
@@ -64,7 +64,7 @@ export default function HomePage() {
             Search
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* 🔥 WHY US */}
       <section className="px-6 py-20">

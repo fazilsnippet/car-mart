@@ -544,10 +544,10 @@ export default function ChatWindow({
   // 🧱 UI
   // =========================
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-background text-foreground">
 
       {/* HEADER */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b">
+      <div className="flex items-center gap-3 px-4 py-3 border-b bg-background">
         <button
           onClick={onBack}
           className="flex items-center justify-center rounded-full w-9 h-9 hover:bg-gray-100 md:hidden"
@@ -556,7 +556,7 @@ export default function ChatWindow({
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate">
+          <p className="text-sm font-semibold truncate text-foreground">
             {conversation?.car?.title || car?.title || "Support Chat"}
           </p>
           <p className="text-xs text-gray-400">
@@ -610,13 +610,13 @@ export default function ChatWindow({
       </div>
 
       {/* INPUT */}
-      <div className="p-3 bg-white border-t">
-        <div className="flex items-center gap-2 px-3 py-2 border rounded-full shadow-sm bg-gray-50">
+      <div className="p-3 border-t bg-background">
+        <div className="flex items-center gap-2 px-3 py-2 border rounded-full shadow-sm bg-gray-50 ">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 text-sm bg-transparent outline-none"
+            className="flex-1 text-sm text-black bg-transparent outline-none"
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
 

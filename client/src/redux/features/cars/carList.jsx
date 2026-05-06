@@ -118,7 +118,7 @@ return (
       
 
       return (
-        <div className="min-h-screen px-4 py-6 bg-gray-50 sm:px-6 lg:px-8">
+        <div className="min-h-screen px-4 py-6 bg-background text-foreground sm:px-6 lg:px-8">
           
 
           {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
@@ -145,17 +145,17 @@ return (
             {/* ---------------- HEADER ---------------- */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="text-3xl font-bold text-foreground">
                   Buy Used Cars
                 </h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-foreground/70">
                   {total} result{total !== 1 ? "s" : ""} found
                 </p>
               </div>
 
               <button
                 onClick={() => setIsFilterOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 transition bg-white border border-gray-200 shadow-sm lg:hidden rounded-xl hover:shadow"
+                className="flex items-center gap-2 px-4 py-2 transition border shadow-sm bg-background text-foreground border-color lg:hidden rounded-xl hover:shadow"
               >
                 <HiOutlineAdjustments className="w-5 h-5" />
                 Filters
@@ -178,8 +178,8 @@ return (
               {/* ---------------- RESULTS ---------------- */}
               <div className="col-span-12 space-y-6 lg:col-span-8 xl:col-span-9">
                 {cars.length === 0 ? (
-                  <div className="p-12 text-center bg-white shadow-sm rounded-2xl">
-                    <p className="text-lg text-gray-500">
+                  <div className="p-12 text-center shadow-sm bg-background text-foreground rounded-2xl">
+                    <p className="text-lg text-foreground/70">
                       No cars match your filters 🚫
                     </p>
 

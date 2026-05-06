@@ -115,7 +115,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-dvh bg-gray-50">
+    <div className="flex h-dvh bg-background text-foreground">
 
       {/* =========================
           LEFT PANEL
@@ -124,7 +124,7 @@ export default function ChatPage() {
         className={`
           w-full md:w-[35%] lg:w-[30%]
           border-r border-gray-200
-          bg-white
+          bg-background
           flex flex-col
           ${isChatMode ? "hidden md:flex" : "flex"}
         `}
@@ -148,7 +148,7 @@ export default function ChatPage() {
         className={`
           w-full md:flex-1
           flex flex-col
-          bg-white
+          bg-background
           ${!isChatMode ? "hidden md:flex" : "flex"}
         `}
       >

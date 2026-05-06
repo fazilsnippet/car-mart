@@ -375,7 +375,7 @@ const Input = ({ value, onChange, type = "text", placeholder }) => (
     value={value || ""}
     onChange={onChange}
     placeholder={placeholder}
-    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+    className="w-full px-4 py-3 transition border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
   />
 );
 
@@ -383,7 +383,7 @@ const Button = ({ children, loading, ...props }) => (
   <button
     {...props}
     disabled={loading}
-    className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+    className="px-5 py-2.5 rounded-xl bg-indigo-600 text-black font-medium hover:bg-indigo-700 transition disabled:opacity-50"
   >
     {loading ? "..." : children}
   </button>
@@ -410,8 +410,8 @@ const BottomSheet = ({ open, onClose, title, children }) => {
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="w-12 h-1.5 bg-gray-300 mx-auto mb-4 rounded-full" />
-        <h2 className="mb-5 text-lg font-semibold text-gray-800">
+        <div className="w-12 h-1.5 bg-background mx-auto mb-4 rounded-full" />
+        <h2 className="mb-5 text-lg font-semibold text-foreground">
           {title}
         </h2>
         {children}
@@ -449,9 +449,9 @@ const ProfileInfo = ({ user, refetch }) => {
         <div className="relative">
           <img
             src={preview || user?.avatar?.url || "/default-avatar.png"}
-            className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 shadow-sm"
+            className="object-cover w-24 h-24 border-2 border-gray-200 rounded-full shadow-sm"
           />
-          <label className="absolute bottom-1 right-1 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow">
+          <label className="absolute p-2 text-white bg-indigo-600 rounded-full shadow cursor-pointer bottom-1 right-1">
             <Pencil className="w-4 h-4" />
             <input
               type="file"
@@ -496,7 +496,7 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-black">
       <Input
         type="password"
         placeholder="Old Password"
@@ -533,7 +533,7 @@ const MyProfile = () => {
   const [activeSheet, setActiveSheet] = useState(null);
 
   if (isLoading)
-    return <p className="text-center mt-10 text-gray-500">Loading...</p>;
+    return <p className="mt-10 text-center text-gray-500">Loading...</p>;
 
   if (isError || !isAuthenticated)
     return <Navigate to="/login" replace />;
@@ -558,36 +558,36 @@ const MyProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 py-6 bg-retroblack">
+      <div className="max-w-3xl mx-auto ">
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center justify-between mb-8 ">
           <button
             onClick={() => window.history.back()}
-            className="p-2 rounded-lg hover:bg-gray-200 transition"
+            className="p-2 transition rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft />
           </button>
 
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-200 transition"
+            className="p-2 transition rounded-lg hover:bg-gray-200"
           >
             {theme === "dark" ? <Sun /> : <Moon />}
           </button>
         </div>
 
         {/* PROFILE CARD */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 text-center mb-6">
+        <div className="p-6 mb-6 text-center shadow-sm bg-background rounded-2xl">
           <img
             src={user?.avatar?.url || "/default-avatar.png"}
-            className="w-24 h-24 mx-auto rounded-full object-cover mb-3 shadow-sm"
+            className="object-cover w-24 h-24 mx-auto mb-3 rounded-full shadow-sm"
           />
-          <h2 className="text-lg font-semibold text-gray-800">
+          <h2 className="text-lg font-semibold text-foreground">
             {user?.fullName}
           </h2>
-          <p className="text-gray-500 text-sm">{user?.email}</p>
-          <p className="text-indigo-600 text-sm mt-1">
+          <p className="text-sm text-foreground">{user?.email}</p>
+          <p className="mt-1 text-sm text-indigo-600">
             @{user?.userName}
           </p>
         </div>
@@ -598,12 +598,12 @@ const MyProfile = () => {
             <button
               key={item.action}
               onClick={() => handleClick(item.action)}
-              className="w-full flex justify-between items-center bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition"
+              className="flex items-center justify-between w-full p-4 text-black transition shadow-sm bg-background bg-retroblack text-foreground rounded-xl hover:shadow-md"
             >
-              <span className="text-gray-700 font-medium">
+              <span className="font-medium text-foreground">
                 {item.label}
               </span>
-              <span className="text-gray-400">›</span>
+              <span className="text-foreground">›</span>
             </button>
           ))}
         </div>

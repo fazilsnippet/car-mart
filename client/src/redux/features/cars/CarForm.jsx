@@ -120,11 +120,11 @@ const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
 
   const submitLoading = isCreating || isUpdating;
 return (
-  <form onSubmit={handleSubmit} className="max-w-5xl py-6 mx-auto space-y-6">
+  <form onSubmit={handleSubmit} className="max-w-5xl py-6 mx-auto space-y-6 bg-background">
     
     {/* BASIC INFO */}
-    <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
-      <h2 className="text-lg font-semibold text-gray-800">
+    <div className="p-5 space-y-4 shadow-sm bg-retroblack rounded-2xl">
+      <h2 className="text-lg font-semibold text-foreground">
         Basic Information
       </h2>
 
@@ -186,7 +186,7 @@ return (
 
     {/* VEHICLE DETAILS */}
     <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
-      <h2 className="text-lg font-semibold text-gray-800">
+      <h2 className="text-lg font-semibold text-foreground">
         Vehicle Details
       </h2>
 
@@ -266,7 +266,7 @@ return (
 
     {/* LOCATION */}
     <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
-      <h2 className="text-lg font-semibold text-gray-800">
+      <h2 className="text-lg font-semibold text-foreground">
         Location
       </h2>
 
@@ -291,7 +291,7 @@ return (
 
     {/* FEATURES */}
     <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
-      <h2 className="text-lg font-semibold text-gray-800">
+      <h2 className="text-lg font-semibold text-foreground">
         Features
       </h2>
 
@@ -306,12 +306,12 @@ return (
 
     {/* IMAGES */}
     <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
-      <h2 className="text-lg font-semibold text-gray-800">
+      <h2 className="text-lg font-semibold text-foreground">
         Images
       </h2>
 
       <label className="block p-6 text-center transition border-2 border-gray-300 border-dashed cursor-pointer rounded-xl hover:border-indigo-500">
-        <p className="text-gray-500">
+        <p className="text-foreground">
           Click to upload images
         </p>
         <input
@@ -338,7 +338,7 @@ return (
     {/* STATUS */}
     <div className="space-y-2">
       {brandsLoading && (
-        <p className="text-sm text-gray-500">Loading brands…</p>
+        <p className="text-sm text-foreground">Loading brands…</p>
       )}
       {brandsError && (
         <p className="text-sm text-red-500">

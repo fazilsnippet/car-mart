@@ -471,13 +471,55 @@ const slugSchema = Joi.object({
   // limit: Joi.number().integer().min(1).max(50).default(12)
 });
 
+// export const getCarBySlug = async (req, res, next) => {
+//   try {
+//     // 🔹 Validate params + query together
+//     const { error, value } = slugSchema.validate({
+//       slug: req.params.slug,
+//       // page: req.query.page,
+//       // limit: req.query.limit,
+//     });
+
+//     if (error) {
+//       return res.status(400).json({
+//         success: false,
+//         message: error.details[0].message,
+//       });
+//     }
+
+//     const { slug } = value;
+
+//     // 🔹 Normalize slug safely
+//     const normalizedSlug = slug.toLowerCase();
+
+//     const car = await Car.findOne({
+//       lifecycleStatus: "ACTIVE",
+//       slug: normalizedSlug,
+//     })
+//       .populate("brand", "name")
+//       .lean();
+
+//     if (!car) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Car not found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       data: car,
+//     });
+
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 export const getCarBySlug = async (req, res, next) => {
   try {
-    // 🔹 Validate params + query together
     const { error, value } = slugSchema.validate({
       slug: req.params.slug,
-      // page: req.query.page,
-      // limit: req.query.limit,
     });
 
     if (error) {
@@ -489,14 +531,14 @@ export const getCarBySlug = async (req, res, next) => {
 
     const { slug } = value;
 
-    // 🔹 Normalize slug safely
-    const normalizedSlug = slug.toLowerCase();
-
     const car = await Car.findOne({
       lifecycleStatus: "ACTIVE",
-      slug: normalizedSlug,
+      slug: slug.toLowerCase(),
     })
       .populate("brand", "name")
+      .select(
+        "title variant brand slug year price kmDriven fuelType transmission driveType ownerCount location features images"
+      ) // 🔥 only required fields
       .lean();
 
     if (!car) {
@@ -508,14 +550,12 @@ export const getCarBySlug = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: car,
+      data: car, 
     });
-
   } catch (error) {
     next(error);
   }
 };
-
 export const getCarById = async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

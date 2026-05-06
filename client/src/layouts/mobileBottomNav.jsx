@@ -16,7 +16,7 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background md:hidden">
+    <div className="fixed bottom-0 left-0 w-full border-t z-60 bg-background md:hidden">
       <div className="flex justify-around py-2">
 
         {navItems.map((item, i) => {

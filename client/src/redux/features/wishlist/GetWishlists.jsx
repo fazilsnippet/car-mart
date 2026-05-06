@@ -67,8 +67,8 @@ export default function GetWishlists() {
     <section className="max-w-6xl p-6 mx-auto space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">My Wishlist</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="text-3xl font-bold text-foreground">My Wishlist</h1>
+          <p className="text-sm text-foreground">
             {wishlistItems.length} saved {wishlistItems.length === 1 ? "car" : "cars"}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function GetWishlists() {
         <button
           onClick={handleClear}
           disabled={!wishlistItems.length || isClearing}
-          className="px-4 py-2 text-sm font-medium text-white transition rounded-lg bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-medium text-red-600 transition bg-indigo-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isClearing ? "Clearing..." : "Clear Wishlist"}
         </button>

@@ -4,18 +4,18 @@ import { HiOutlineChevronDown, HiOutlineX } from "react-icons/hi";
 /* ---------------- SECTION ---------------- */
 
 const Section = ({ id, title, children, open, onToggle }) => (
-  <div className="border-b border-gray-100 py-3">
+  <div className="py-3 border-b border-color">
     <button
       type="button"
       onClick={() => onToggle(id)}
       className="flex items-center justify-between w-full"
     >
-      <span className="text-sm font-semibold text-gray-800">
+      <span className="text-sm font-semibold text-foreground">
         {title}
       </span>
 
       <HiOutlineChevronDown
-        className={`w-5 h-5 text-gray-400 transition-transform ${
+        className={`w-5 h-5 text-foreground transition-transform ${
           open[id] ? "rotate-180" : ""
         }`}
       />
@@ -31,7 +31,7 @@ const CheckRow = ({ label, count, checked, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-gray-50 transition"
+    className="flex items-center justify-between w-full px-2 py-2 transition rounded-lg hover:bg-gray-50"
   >
     <span className="flex items-center gap-3">
       <span
@@ -42,15 +42,15 @@ const CheckRow = ({ label, count, checked, onClick }) => (
         }`}
       >
         {checked && (
-          <span className="w-2 h-2 bg-white rounded-sm" />
+          <span className="w-2 h-2 rounded-sm bg-background" />
         )}
       </span>
 
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-sm text-foreground">{label}</span>
     </span>
 
     {typeof count === "number" && (
-      <span className="text-xs text-gray-400">({count})</span>
+      <span className="text-xs text-foreground/70">({count})</span>
     )}
   </button>
 );
@@ -121,16 +121,16 @@ export default function CarFilters({
       className={`${
         compact
           ? ""
-          : "bg-white rounded-2xl shadow-sm border border-gray-100"
+          : "bg-background rounded-2xl shadow-sm border border-gray-100"
       }`}
     >
       {/* HEADER */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-background text-foreground">
         <div>
-          <h2 className="text-base font-semibold text-gray-800">
+          <h2 className="text-base font-semibold text-foreground">
             Filters
           </h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-foreground/70">
             Refine your results
           </p>
         </div>
@@ -138,9 +138,9 @@ export default function CarFilters({
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition"
+            className="p-2 transition rounded-lg hover:bg-gray-100"
           >
-            <HiOutlineX className="w-5 h-5 text-gray-600" />
+            <HiOutlineX className="w-5 h-5 text-foreground" />
           </button>
         )}
       </div>
@@ -216,10 +216,10 @@ export default function CarFilters({
         </Section>
 
         {/* ACTIONS */}
-        <div className="sticky bottom-0 bg-white pt-4 mt-6 flex gap-3">
+        <div className="sticky bottom-0 flex gap-3 pt-4 mt-6 bg-background">
           <button
             onClick={resetFilters}
-            className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            className="flex-1 py-2.5 text-sm font-medium border border-color rounded-xl hover:bg-slate-700 transition"
           >
             Reset
           </button>

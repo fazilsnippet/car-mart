@@ -9,10 +9,10 @@ const Input = ({ error, ...props }) => (
   <div>
     <input
       {...props}
-      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+      className="w-full px-4 py-3 transition border border-gray-200 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
     />
     {error && (
-      <p className="text-sm text-red-500 mt-1">{error.message}</p>
+      <p className="mt-1 text-sm text-red-500">{error.message}</p>
     )}
   </div>
 );
@@ -21,18 +21,18 @@ const Select = ({ error, children, ...props }) => (
   <div>
     <select
       {...props}
-      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+      className="w-full px-4 py-3 text-lg font-semibold text-gray-500 transition border border-gray-200 rounded-xl bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500"
     >
       {children}
     </select>
     {error && (
-      <p className="text-sm text-red-500 mt-1">{error.message}</p>
+      <p className="mt-1 text-sm text-red-500">{error.message}</p>
     )}
   </div>
 );
 
 const Section = ({ title, children }) => (
-  <div className="bg-white p-5 rounded-2xl shadow-sm space-y-4">
+  <div className="p-5 space-y-4 bg-white shadow-sm rounded-2xl">
     <h2 className="text-lg font-semibold text-gray-800">
       {title}
     </h2>
@@ -89,11 +89,13 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
       images: files.length > 0 ? files : undefined,
     });
   };
+  const fuelOptions = ["Petrol", "Diesel", "Electric", "Hybrid", "CNG", "LPG"];
+const transmissionOptions = ["Manual", "Automatic"];
 
   return (
     <form
       onSubmit={handleSubmit(onSubmitHandler)}
-      className="max-w-4xl mx-auto space-y-6 py-6"
+      className="max-w-4xl py-6 mx-auto space-y-6 bg-background"
     >
       {/* BASIC INFO */}
       <Section title="Basic Information">
@@ -103,7 +105,7 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
           error={errors.title}
         />
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             {...register("phoneNumber")}
             placeholder="Phone Number"
@@ -125,7 +127,7 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
               <img
                 key={i}
                 src={img.url}
-                className="w-24 h-24 object-cover rounded-lg"
+                className="object-cover w-24 h-24 rounded-lg"
               />
             ))}
 
@@ -133,14 +135,14 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
               <img
                 key={i}
                 src={URL.createObjectURL(file)}
-                className="w-24 h-24 object-cover rounded-lg"
+                className="object-cover w-24 h-24 rounded-lg"
               />
             ))}
           </div>
         )}
 
-        <label className="block border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition">
-          <p className="text-gray-500">
+        <label className="block p-6 text-center transition border-2 border-dashed cursor-pointer border-color rounded-xl hover:border-indigo-500">
+          <p className="text-black">
             Click to upload images (max 12)
           </p>
           <input
@@ -161,7 +163,7 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
 
       {/* CAR DETAILS */}
       <Section title="Car Details">
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             {...register("brand")}
             placeholder="Brand"
@@ -175,9 +177,9 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <Select {...register("fuelType")} error={errors.fuelType}>
-            <option value="">Fuel Type</option>
+        {/* <div className="grid gap-4 md:grid-cols-2 ">
+          <Select className="" {...register("fuelType")} error={errors.fuelType}>
+            <option className=" text-foreground" value="">Fuel Type</option>
             <option value="Petrol">Petrol</option>
             <option value="Diesel">Diesel</option>
             <option value="Electric">Electric</option>
@@ -194,9 +196,29 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
             <option value="Manual">Manual</option>
             <option value="Automatic">Automatic</option>
           </Select>
-        </div>
+        </div> */}
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid gap-4 md:grid-cols-2 ">
+  <Select {...register("fuelType")} error={errors.fuelType}>
+    <option value="">Fuel Type</option>
+    {fuelOptions.map((fuel) => (
+      <option key={fuel} value={fuel}>
+        {fuel}
+      </option>
+    ))}
+  </Select>
+
+  <Select {...register("transmission")} error={errors.transmission}>
+    <option value="">Transmission</option>
+    {transmissionOptions.map((type) => (
+      <option key={type} value={type}>
+        {type}
+      </option>
+    ))}
+  </Select>
+</div>
+
+        <div className="grid gap-4 md:grid-cols-3">
           <Input
             type="number"
             {...register("kmDriven")}
@@ -237,7 +259,7 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
         <textarea
           {...register("conditionNotes")}
           placeholder="Describe car condition..."
-          className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-4 py-3 text-gray-500 border border-color rounded-xl bg-background-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </Section>
 
@@ -245,7 +267,7 @@ const CarForm = ({ defaultValues, onSubmit, isEditing, isLoading }) => {
       <div className="text-right">
         <button
           disabled={isLoading}
-          className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+          className="px-6 py-3 font-medium text-white transition bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50"
         >
           {isLoading ? "Submitting..." : isEditing ? "Update Car" : "Post Car"}
         </button>
