@@ -74,15 +74,15 @@ const CarDetailPage = () => {
 const [direction, setDirection] = useState(0); // -1 left, +1 right
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-const next = () => {
-  setDirection(1);
-  setActiveIndex((i) => (i + 1) % total);
-};
+// const next = () => {
+//   setDirection(1);
+//   setActiveIndex((i) => (i + 1) % total);
+// };
 
-const prev = () => {
-  setDirection(-1);
-  setActiveIndex((i) => (i === 0 ? total - 1 : i - 1));
-};
+// const prev = () => {
+//   setDirection(-1);
+//   setActiveIndex((i) => (i === 0 ? total - 1 : i - 1));
+// };
   const isSaved = wishlist.some(
     (i) => i.car?._id === carData?._id
   );
@@ -134,8 +134,18 @@ const prev = () => {
   if (isLoading) return <Loading />;
   if (isError || !carData) return <div>Car not found</div>;
 
-  const images = carData.images || [];
-  const total = images.length;
+const images = carData.images || [];
+const total = images.length;
+
+const next = () => {
+  setDirection(1);
+  setActiveIndex((i) => (i + 1) % total);
+};
+
+const prev = () => {
+  setDirection(-1);
+  setActiveIndex((i) => (i === 0 ? total - 1 : i - 1));
+};
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
