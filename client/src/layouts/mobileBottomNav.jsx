@@ -17,29 +17,28 @@ const MobileBottomNav = () => {
 
   return (
     <div className="fixed bottom-0 left-0 w-full border-t z-60 bg-background md:hidden">
-      <div className="flex justify-around py-2">
+  <div className="flex justify-around h-16">
+    {navItems.map((item, i) => {
+      if (item.auth && !user) return null;
 
-        {navItems.map((item, i) => {
-          if (item.auth && !user) return null;
+      const ActiveIcon = item.icon;
+      const isActive = location.pathname === item.path;
 
-          const ActiveIcon = item.icon;
-          const isActive = location.pathname === item.path;
+      return (
+        <button
+          key={i}
+          onClick={() => navigate(item.path)}
+          className={`flex flex-col items-center text-xs ${
+            isActive ? "text-orange-500" : "text-gray-500"
+          }`}
+        >
+          <ActiveIcon size={24} />
+        </button>
+      );
+    })}
+  </div>
+</div>
 
-          return (
-            <button
-              key={i}
-              onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center text-xs ${
-                isActive ? "text-orange-500" : "text-gray-500"
-              }`}
-            >
-              <ActiveIcon size={20} />
-            </button>
-          );
-        })}
-
-      </div>
-    </div>
   );
 };
 
