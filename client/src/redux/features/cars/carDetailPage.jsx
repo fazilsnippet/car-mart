@@ -303,7 +303,7 @@ const prev = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={handleBook}
-                className="py-3 text-white bg-indigo-600 rounded-xl"
+                className="py-3 text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
               >
                 Book
               </button>
@@ -319,7 +319,7 @@ const prev = () => {
                 onClick={() =>
                   (window.location.href = "tel:+919916262484")
                 }
-                className="py-3 border rounded-xl"
+                className="py-3 border rounded-xl "
               >
                 Call
               </button>
@@ -328,7 +328,7 @@ const prev = () => {
                 onClick={() =>
                   window.open("https://wa.me/919916262484")
                 }
-                className="py-3 text-white bg-green-500 rounded-xl"
+                className="py-3 text-white bg-green-500 rounded-xl hover:bg-green-600"
               >
                 WhatsApp
               </button>
@@ -343,7 +343,7 @@ const prev = () => {
                   {carData.features.map((f, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1 text-xs text-gray-800 bg-gray-200 rounded-full"
+                      className="px-3 py-1 text-xs text-gray-800 bg-gray-200 rounded-md"
                     >
                       {f}
                     </span>

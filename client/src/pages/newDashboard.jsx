@@ -4,7 +4,7 @@ import { HiOutlineArrowRight } from "react-icons/hi";
 
 // 🔹 Lazy-loaded modules
 const AdminBookings = lazy(() => import("../redux/features/bookings/adminBookings.jsx"));
-const AdminCars = lazy(() => import("../redux/features/cars/carList.jsx"));
+// const AdminCars = lazy(() => import("../redux/features/cars/carList.jsx"));
 const AdminUsers = lazy(() => import("../redux/features/users/allUsers.jsx"));
 const AdminChatPage = lazy(() => import("../redux/features/chats/adminChatPage.jsx"));
 const AdminBrands = lazy(() => import("../redux/features/brands/adminBrand.jsx"));
@@ -12,7 +12,7 @@ const AdminCarsManager = lazy(() => import("../redux/features/cars/adminCars.jsx
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "bookings", label: "Bookings", admin: true },
-  { key: "cars", label: "Cars", admin: true },
+  // { key: "cars", label: "Cars", admin: true },
   { key: "users", label: "Users", admin: true },
   { key: "chat", label: "Chats", admin: true },
   { key: "brands", label: "Brands", admin: true },
@@ -22,7 +22,7 @@ const TABS = [
 // 🔹 Component map (clean pattern)
 const TAB_COMPONENTS = {
   bookings: AdminBookings,
-  cars: AdminCars,
+  // cars: AdminCars,
   users: AdminUsers,
   chat: AdminChatPage,
   brands: AdminBrands,
@@ -65,10 +65,10 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Welcome, {user?.fullName || user?.userName}
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-foreground">
             {isAdmin
               ? "Manage your platform efficiently"
               : "Explore latest car listings"}
@@ -86,7 +86,7 @@ export default function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 ">
         {visibleTabs.map((tab) => (
           <TabButton
             key={tab.key}
@@ -99,7 +99,7 @@ export default function Dashboard() {
       </div>
 
       {/* Content */}
-      <div className="p-5 bg-white border rounded-2xl border-slate-200">
+      <div className="p-5 border bg-background text-foreground rounded-2xl border-slate-200">
         {activeTab === "overview" ? (
           <div className="text-sm text-slate-500">
             Overview content

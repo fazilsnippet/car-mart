@@ -119,7 +119,7 @@ export default function AdminChatPage() {
     if (!selectedConvo) return null;
 
     return (
-      <div className="flex flex-col h-full bg-white">
+      <div className="flex flex-col h-full bg-background">
         {/* HEADER */}
         <div className="flex items-center gap-3 px-4 py-3 border-b">
           {showBack && (
@@ -140,7 +140,7 @@ export default function AdminChatPage() {
         <div
           ref={containerRef}
           onScroll={handleScroll}
-          className="flex-1 px-4 py-4 space-y-3 overflow-y-auto bg-gray-50"
+          className="flex-1 px-4 py-4 space-y-3 overflow-y-auto bg-background"
         >
           {allMessages.map((msg) => {
             const senderId =
@@ -161,7 +161,7 @@ export default function AdminChatPage() {
                   className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl text-sm ${
                     isMe
                       ? "bg-indigo-600 text-white"
-                      : "bg-white border"
+                      : "bg-white text-black border"
                   }`}
                 >
                   {msg.text}
@@ -181,7 +181,7 @@ export default function AdminChatPage() {
               placeholder="Type a message..."
             />
             <button onClick={handleSend}>
-              <Send size={16} />
+              <Send size={18} />
             </button>
           </div>
         </div>
@@ -190,13 +190,13 @@ export default function AdminChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-gray-50 border rounded-2xl overflow-hidden">
+    <div className="h-[calc(100vh-80px)] bg-background border rounded-2xl overflow-hidden text-foreground">
 
       {/* 💻 DESKTOP */}
      <div className="hidden h-full gap-4 p-4 bg-gray-100 md:flex">
 
   {/* LEFT PAGE */}
-  <div className="w-[320px] bg-white rounded-2xl shadow-sm border flex flex-col overflow-hidden">
+  <div className="w-[320px] bg-background rounded-2xl shadow-sm border flex flex-col overflow-hidden">
     <div className="px-4 py-3 font-semibold border-b">
       Conversations
     </div>
@@ -208,14 +208,14 @@ export default function AdminChatPage() {
           onClick={() => setSelectedConvo(c)}
           className={`w-full text-left px-4 py-3 border-b ${
             selectedConvo?._id === c._id
-              ? "bg-indigo-50"
-              : "hover:bg-gray-50"
+              ? "bg-gray-500"
+              : "hover:bg-gray-400"
           }`}
         >
           <p className="text-sm font-semibold truncate">
             {c.car?.title}
           </p>
-          <p className="text-xs text-gray-500 truncate">
+          <p className="text-xs truncate text-foreground">
             {c.lastMessage?.text || "No messages yet"}
           </p>
         </button>
@@ -224,9 +224,9 @@ export default function AdminChatPage() {
   </div>
 
   {/* RIGHT PAGE */}
-  <div className="flex flex-col flex-1 overflow-hidden bg-white border shadow-sm rounded-2xl">
+  <div className="flex flex-col flex-1 overflow-hidden border shadow-sm bg-background rounded-2xl">
     {!selectedConvo ? (
-      <div className="flex items-center justify-center h-full text-gray-400">
+      <div className="flex items-center justify-center h-full text-foreground">
         Select a conversation
       </div>
     ) : (
@@ -238,7 +238,7 @@ export default function AdminChatPage() {
       {/* 📱 MOBILE */}
       <div className="h-full md:hidden">
         {!selectedConvo ? (
-          <div className="flex flex-col h-full bg-white">
+          <div className="flex flex-col h-full bg-background">
             <div className="px-4 py-3 font-semibold border-b">
               Conversations
             </div>
