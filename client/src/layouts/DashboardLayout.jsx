@@ -195,12 +195,13 @@ export default function DashboardLayout() {
 
       <div className="flex flex-col flex-1 min-h-screen bg-background text-foreground">
 
-        <main className="flex-1 p-8">
-          <div className="mx-auto max-w-7xl">
-            <Outlet />
-          </div>
-           <MobileBottomNav />
-        </main>
+     <main className="flex-1 p-8 h-[120vh]">
+  <div className="mx-auto max-w-7xl">
+    <Outlet />
+  </div>
+  <MobileBottomNav />
+</main>
+
 
       </div>
     </div>
