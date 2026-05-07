@@ -1,3 +1,6 @@
+
+import NotFound from "../pages/NotFound.jsx"
+
 const QueryWrapper = ({
   data,
   error,
@@ -9,7 +12,7 @@ const QueryWrapper = ({
 
   // 🚨 Full offline fallback (only if no data at all)
   if (error && !hasData) {
-    return <OfflinePage />;
+    return <NotFound />;
   }
 
   return (
