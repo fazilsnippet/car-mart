@@ -194,8 +194,8 @@ export default function DashboardLayout() {
       {/* MAIN AREA */}
 
       <div className="flex flex-col flex-1 min-h-screen bg-background text-foreground">
-
-     <main className="flex-1 p-8 h-[120vh]">
+<main className="flex-1 p-4 md:p-8 pb-28">
+     {/* <main className="flex-1 p-8 h-[120vh]"> */}
   <div className="mx-auto max-w-7xl">
     <Outlet />
   </div>
