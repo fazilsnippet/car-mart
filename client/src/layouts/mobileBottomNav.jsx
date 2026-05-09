@@ -194,7 +194,10 @@ const MobileBottomNav = () => {
   <div className="w-16"  />
 
   {/* RIGHT SIDE */}
-  <div className="flex items-center justify-around flex-1">
+  {/* <div className="flex items-center justify-around flex-1"> */}
+    {/* RIGHT */}
+{/* RIGHT */}
+<div className="flex items-center gap-1 ml-3 md:gap-2 shrink-0 md:ml-0">
     {navItems.slice(3).map((item, i) => {
 
       const Icon = item.icon;
