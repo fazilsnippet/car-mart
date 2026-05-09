@@ -37,7 +37,7 @@ const Header = () => {
 
   return (
     <>
-<header className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-7xl bg-background">
+<header className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-7xl bg-background rounded-3xl ">
   <div
     className="
       flex items-center
@@ -103,7 +103,7 @@ const Header = () => {
 
     {/* SEARCH */}
     <div
-      className="flex items-center flex-1 px-3 py-2 mx-2 border md:mx-6 rounded-2xl border-color bg-background backdrop-blur-lg focus-within:ring-2 focus-within:ring-indigo-700/40"
+      className="flex items-center flex-1 px-3 py-2 mx-1 border md:mx-6 rounded-2xl border-color bg-background backdrop-blur-lg focus-within:ring-2 focus-within:ring-indigo-700/40"
     >
       <Search
         size={18}

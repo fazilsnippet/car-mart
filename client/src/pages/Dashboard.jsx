@@ -339,7 +339,7 @@ function AdminDashboard({ user }) {
                               type="button"
                               onClick={() => handleAssignBooking(booking._id)}
                               disabled={assigningBooking}
-                              className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-lg"
+                              className="px-3 py-1 text-xs font-medium text-white rounded-lg bg-slate-900"
                             >
                               Assign to me
                             </button>
@@ -472,7 +472,7 @@ function AdminDashboard({ user }) {
                           type="button"
                           onClick={() => handleDeleteCar(car._id)}
                           disabled={deletingCar}
-                          className="px-3 py-2 text-xs font-medium text-white bg-rose-600 rounded-lg"
+                          className="px-3 py-2 text-xs font-medium text-white rounded-lg bg-rose-600"
                         >
                           Delete
                         </button>
@@ -493,7 +493,7 @@ function AdminDashboard({ user }) {
                         type="button"
                         onClick={() => handlePriceUpdate(car._id, car.price)}
                         disabled={updatingPrice}
-                        className="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg"
+                        className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-slate-900"
                       >
                         Update price
                       </button>
@@ -678,19 +678,19 @@ export default function Dashboard() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100">
-                <HiOutlineShieldCheck className="h-4 w-4" />
+                <HiOutlineShieldCheck className="w-4 h-4" />
                 Admin access enabled
               </div>
               <h2 className="text-2xl font-bold">Your premium admin center is ready</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">
+              <p className="max-w-2xl mt-2 text-sm text-slate-300">
                 Manage bookings, inventory, user access, and wishlist insights from the dedicated `/admin` workspace.
               </p>
             </div>
             <button
               onClick={() => navigate("/admin")}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white rounded-full text-slate-900"
             >
-              Open admin center <HiOutlineArrowRight className="h-4 w-4" />
+              Open admin center <HiOutlineArrowRight className="w-4 h-4" />
             </button>
           </div>
         </section>

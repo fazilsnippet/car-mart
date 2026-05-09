@@ -196,7 +196,6 @@ const MobileBottomNav = () => {
   {/* RIGHT SIDE */}
   <div className="flex items-center justify-around flex-1">
     {navItems.slice(3).map((item, i) => {
-      if (item.auth && !user) return null;
 
       const Icon = item.icon;
 
@@ -206,7 +205,13 @@ const MobileBottomNav = () => {
       return (
         <button
           key={i}
-          onClick={() => navigate(item.path)}
+         onClick={() =>
+  navigate(
+    item.auth && !user
+      ? "/login"
+      : item.path
+  )
+}
           className="flex flex-col items-center justify-center gap-1 transition-all duration-300 "
         >
           <Icon
