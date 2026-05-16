@@ -211,7 +211,7 @@ const prev = () => {
                     key={i}
                     src={img.url}
                     onClick={() => setIsOpen(true)}
-                    className="w-full flex-shrink-0 h-[260px] sm:h-[420px] lg:h-[520px] object-contain cursor-pointer"
+                    className="object-contain w-full cursor-pointer shrink-0 h-65 sm:h-105 lg:h-130"
                   />
                 ))}
               </div>
