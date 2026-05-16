@@ -30,42 +30,26 @@ const transporter =
     secure: false,
     family: 4,
 
+    requireTLS: true,
+
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
   });
 
-export const sendEmail = async ({
-  to,
-  subject,
-  text,
-  html,
-}) => {
-  if (!to) {
-    throw new Error(
-      "No recipient email provided"
-    );
-  }
+  export const sendEmail = async ({ to, subject, text, html }) => {
+  if (!to) throw new Error("No recipient email provided");
 
-  try {
-    await transporter.sendMail({
-      from: `"CARMART" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    console.log(
-      "Email sent successfully"
-    );
-  } catch (error) {
-    console.error(
-      "Email sending error:",
-      error
-    );
-
-    throw error;
-  }
+  await transporter.sendMail({
+    from: `"CARMART" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    text,
+    html,
+  });
 };
