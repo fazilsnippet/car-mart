@@ -407,7 +407,7 @@ export default function Signup() {
 
       <div className="w-full max-w-md p-8 space-y-6 bg-white/90 backdrop-blur-xl rounded-2xl">
 
-        <h2 className="text-2xl font-bold text-center">
+        <h2 className="text-2xl font-bold text-center text-black">
           Create Account
         </h2>
 
@@ -425,7 +425,7 @@ export default function Signup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={otpSent}
-              className="w-full p-3 border rounded-lg disabled:bg-gray-200"
+              className="w-full p-3 text-black border rounded-lg"
             />
 
             {errors.email && <p className="text-red-500">{errors.email}</p>}
