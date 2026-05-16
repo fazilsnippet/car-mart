@@ -20,8 +20,8 @@ app.use(express.json());
 
 app.use(
   cors({
-        origin:process.env.FRONTEND_LOCAL_URL,
-    // origin:process.env.FRONTEND_PROD_URL,
+        // origin:process.env.FRONTEND_LOCAL_URL,
+    origin:process.env.FRONTEND_PROD_URL,
     credentials: true,
   })
 );
