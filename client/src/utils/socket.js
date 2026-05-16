@@ -13,7 +13,7 @@ export const connectSocket = (userId) => {
   }
 
   const socketUrl =
-    import.meta.env.VITE_SOCKET_URL ?? import.meta.env.REACT_APP_SOCKET_URL;
+    import.meta.env.VITE_SOCKET_URL 
 
   socket = io(socketUrl, {
     transports: ["websocket", "polling"],
