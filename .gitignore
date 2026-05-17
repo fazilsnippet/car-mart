@@ -19,4 +19,8 @@ server/.env
 server/.env.development.local
 server/.env.test.local
 server/.env.production.local
+<<<<<<< HEAD
 server/.env.local
+=======
+server/.env.local
+>>>>>>> 9cfaab4ad484ba596a7b268001efd324f7bd5bd1
