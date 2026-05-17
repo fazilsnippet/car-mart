@@ -56,28 +56,55 @@
 
 
 
-import nodemailer from "nodemailer";
+import axios from "axios";
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
+export const sendOtpEmail = async (to, otp) => {
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "Car Mart",
+          email: process.env.EMAIL_FROM,
+        },
 
-  family: 4,
+        to: [
+          {
+            email: to,
+          },
+        ],
 
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
+        subject: "Your OTP Code",
 
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+        htmlContent: `
+          <div>
+            <h2>Your OTP</h2>
+            <p>Your OTP is:</p>
+            <h1>${otp}</h1>
+          </div>
+        `,
+      },
 
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("EMAIL SENT:", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Brevo API Error:",
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
+};
 
 export const sendEmail = async ({
   to,
