@@ -7,6 +7,10 @@ client/node_modules
 client/dist
 client/.env
 
+.env
+.env.*
+server/.env
+server/.env.*
 # server
 server/node_modules
 server/uploads
