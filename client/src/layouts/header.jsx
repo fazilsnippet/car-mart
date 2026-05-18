@@ -183,8 +183,8 @@ useEffect(() => {
                   }
                   className={`text-sm font-medium transition ${
                     isActive
-                      ? "text-black"
-                      : "text-gray-500 hover:text-black"
+                      ? "text-foreground"
+                      : "text-foreground hover:text-black"
                   }`}
                 >
                   {item.label}
@@ -261,7 +261,7 @@ useEffect(() => {
                 e.key === "Enter" &&
                 handleSearch()
               }
-              className="flex-1 px-3 text-sm bg-transparent outline-none "
+              className="flex-1 px-3 text-sm bg-transparent outline-none text-foreground "
             />
 
             <button
