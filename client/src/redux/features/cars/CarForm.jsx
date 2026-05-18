@@ -42,8 +42,13 @@ const buildFormState = (initialValues = {}) => ({
     : initialValues.features ?? "",
 });
 
-const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
-  const isEditMode = mode === "edit";
+const CarForm = ({
+  mode = "create",
+  initialValues,
+  carId,
+  onSuccess,
+}) => {
+    const isEditMode = mode === "edit";
   const { data: brandsData, isLoading: brandsLoading, isError: brandsError } = useGetBrandsQuery();
   const [createCar, { isLoading: isCreating }] = useCreateCarMutation();
   const [updateCar, { isLoading: isUpdating }] = useUpdateCarMutation();
@@ -54,15 +59,19 @@ const CarForm = ({ mode = "create", initialValues = {}, carId, onSuccess }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [form, setForm] = useState(() => buildFormState(initialValues));
 
-  useEffect(() => {
+useEffect(() => {
+  if (initialValues) {
     setForm(buildFormState(initialValues));
-    setImages([]);
+
     setPreviewImages(
       Array.isArray(initialValues?.images)
         ? initialValues.images.map((image) => image?.url).filter(Boolean)
         : []
     );
-  }, [initialValues]);
+  }
+
+  setImages([]);
+}, [initialValues]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
