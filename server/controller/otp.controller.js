@@ -4,33 +4,270 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { createOtp } from "../utils/generateOtp.js";
 
 
+// export const sendSignupOtp = async (
+//   req,
+//   res
+// ) => {
+//   try {
+//     const { email } = req.body;
+    
+
+//     if (!email) {
+//       return res.status(400).json({
+//         message: "Email is required",
+//       });
+//     }
+
+//     const existingUser =
+//       await User.findOne({ email });
+
+//     if (existingUser) {
+//       return res.status(400).json({
+//         message: "User already exists",
+//       });
+//     }
+
+//     const otpCode = await createOtp({
+//       email,
+//       purpose: "signup",
+//       expiryMinutes: 5,
+//     });
+
+//     await sendEmail({
+//       to: email,
+
+//       subject: "Signup OTP",
+
+//       text: `Your OTP is ${otpCode}`,
+
+//       html: `
+//         <div style="font-family:sans-serif;">
+//           <h2>Car Mart OTP</h2>
+
+//           <p>Your OTP code is:</p>
+
+//           <h1
+//             style="
+//               letter-spacing:4px;
+//               color:#2563eb;
+//             "
+//           >
+//             ${otpCode}
+//           </h1>
+
+//           <p>
+//             This OTP expires in 5
+//             minutes.
+//           </p>
+//         </div>
+//       `,
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message:
+//         "OTP sent for registration",
+//     });
+//   } catch (err) {
+//     console.error(
+//       "Signup OTP Error:",
+//       err
+//     );
+
+//     return res.status(500).json({
+//       success: false,
+//       message:
+//         err.message ||
+//         "Failed to send OTP",
+//     });
+//   }
+// };
+
+
+// export const verifySignupOtp = async (
+//   req,
+//   res
+// ) => {
+//   try {
+//     let { email, otp, password } =
+//       req.body;
+
+//     if (
+//       !email ||
+//       !otp ||
+//       !password
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message:
+//           "Email, OTP and password are required",
+//       });
+//     }
+
+//     email = email
+//       .trim()
+//       .toLowerCase();
+
+//     const existingUser =
+//       await User.findOne({ email });
+
+//     if (existingUser) {
+//       return res.status(400).json({
+//         success: false,
+//         message:
+//           "User already exists",
+//       });
+//     }
+
+//    const otpRecord =
+//   await OTP.findOne({
+//     email,
+//     purpose: "signup",
+//   });
+
+//     if (
+//   !otpRecord ||
+//   !otpRecord.compareOtp(otp)
+// ) {
+//   return res.status(400).json({
+//     success: false,
+//     message: "Invalid OTP",
+//   });
+// }
+
+//     if (
+//       otpRecord.expiresAt <
+//       new Date()
+//     ) {
+//       await OTP.deleteMany({
+//         email,
+//         purpose: "signup",
+//       });
+
+//       return res.status(400).json({
+//         success: false,
+//         message: "OTP expired",
+//       });
+//     }
+
+//     const user = await User.create({
+//       email,
+//       password,
+//     });
+
+//     await OTP.deleteMany({
+//       email,
+//       purpose: "signup",
+//     });
+
+//     return res.status(201).json({
+//       success: true,
+//       message:
+//         "Registration successful",
+
+//       user: {
+//         _id: user._id,
+//         email: user.email,
+//       },
+//     });
+//   } catch (err) {
+//     console.error(
+//       "Verify Signup OTP Error:",
+//       err
+//     );
+
+//     return res.status(500).json({
+//       success: false,
+//       message:
+//         err.message ||
+//         "Registration failed",
+//     });
+//   }
+// };
+
+// controllers/auth.controller.js
+
+
+
+// ==============================
+// SEND SIGNUP OTP
+// ==============================
+
 export const sendSignupOtp = async (
   req,
   res
 ) => {
   try {
-    const { email } = req.body;
+    let { email } = req.body;
+
+    // ==============================
+    // VALIDATION
+    // ==============================
 
     if (!email) {
       return res.status(400).json({
+        success: false,
         message: "Email is required",
       });
     }
+
+    email = email
+      .trim()
+      .toLowerCase();
+
+    // ==============================
+    // CHECK EXISTING USER
+    // ==============================
 
     const existingUser =
       await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists",
+        success: false,
+        message:
+          "User already exists",
       });
     }
+
+    // ==============================
+    // OTP COOLDOWN
+    // ==============================
+
+    const existingOtp =
+      await OTP.findOne({
+        email,
+        purpose: "signup",
+      });
+
+    if (existingOtp) {
+      const cooldown =
+        existingOtp.createdAt.getTime() +
+        60 * 1000 -
+        Date.now();
+
+      if (cooldown > 0) {
+        return res.status(429).json({
+          success: false,
+          message:
+            "Please wait before requesting another OTP",
+        });
+      }
+    }
+
+    // ==============================
+    // CREATE OTP
+    // ==============================
 
     const otpCode = await createOtp({
       email,
       purpose: "signup",
       expiryMinutes: 5,
     });
+
+    // ==============================
+    // SEND EMAIL
+    // ==============================
 
     await sendEmail({
       to: email,
@@ -55,8 +292,8 @@ export const sendSignupOtp = async (
           </h1>
 
           <p>
-            This OTP expires in 5
-            minutes.
+            This OTP expires in
+            5 minutes.
           </p>
         </div>
       `,
@@ -65,11 +302,11 @@ export const sendSignupOtp = async (
     return res.status(200).json({
       success: true,
       message:
-        "OTP sent for registration",
+        "OTP sent successfully",
     });
   } catch (err) {
     console.error(
-      "Signup OTP Error:",
+      "SEND SIGNUP OTP ERROR:",
       err
     );
 
@@ -83,6 +320,10 @@ export const sendSignupOtp = async (
 };
 
 
+// ==============================
+// VERIFY SIGNUP OTP
+// ==============================
+
 export const verifySignupOtp = async (
   req,
   res
@@ -90,6 +331,10 @@ export const verifySignupOtp = async (
   try {
     let { email, otp, password } =
       req.body;
+
+    // ==============================
+    // VALIDATION
+    // ==============================
 
     if (
       !email ||
@@ -107,6 +352,24 @@ export const verifySignupOtp = async (
       .trim()
       .toLowerCase();
 
+    otp = otp.toString().trim();
+
+    // ==============================
+    // PASSWORD VALIDATION
+    // ==============================
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters",
+      });
+    }
+
+    // ==============================
+    // CHECK EXISTING USER
+    // ==============================
+
     const existingUser =
       await User.findOne({ email });
 
@@ -118,19 +381,27 @@ export const verifySignupOtp = async (
       });
     }
 
+    // ==============================
+    // FIND OTP RECORD
+    // ==============================
+
     const otpRecord =
       await OTP.findOne({
         email,
-        otp,
         purpose: "signup",
       });
 
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP",
+        message:
+          "Invalid or expired OTP",
       });
     }
+
+    // ==============================
+    // CHECK EXPIRY
+    // ==============================
 
     if (
       otpRecord.expiresAt <
@@ -147,10 +418,55 @@ export const verifySignupOtp = async (
       });
     }
 
+    // ==============================
+    // VERIFY OTP
+    // ==============================
+
+    const isOtpValid =
+      otpRecord.compareOtp(otp);
+
+    if (!isOtpValid) {
+      otpRecord.attempts += 1;
+
+      await otpRecord.save();
+
+      // ==============================
+      // BLOCK AFTER 5 ATTEMPTS
+      // ==============================
+
+      if (
+        otpRecord.attempts >= 5
+      ) {
+        await OTP.deleteMany({
+          email,
+          purpose: "signup",
+        });
+
+        return res.status(429).json({
+          success: false,
+          message:
+            "Too many failed attempts. Please request a new OTP",
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // ==============================
+    // CREATE USER
+    // ==============================
+
     const user = await User.create({
       email,
       password,
     });
+
+    // ==============================
+    // DELETE OTP
+    // ==============================
 
     await OTP.deleteMany({
       email,
@@ -169,9 +485,21 @@ export const verifySignupOtp = async (
     });
   } catch (err) {
     console.error(
-      "Verify Signup OTP Error:",
+      "VERIFY SIGNUP OTP ERROR:",
       err
     );
+
+    // ==============================
+    // DUPLICATE KEY ERROR
+    // ==============================
+
+    if (err.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "User already exists",
+      });
+    }
 
     return res.status(500).json({
       success: false,
@@ -181,7 +509,6 @@ export const verifySignupOtp = async (
     });
   }
 };
-
 export const sendForgotPasswordOtp = async (req, res) => {
   try {
     const { email } = req.body;

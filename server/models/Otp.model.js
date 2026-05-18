@@ -1,3 +1,71 @@
+// import mongoose from "mongoose";
+// import crypto from "crypto";
+
+// const otpSchema = new mongoose.Schema(
+//   {
+//     email: {
+//       type: String,
+//       required: true,
+//       lowercase: true,
+//       trim: true,
+//     },
+
+//     otp: {
+//       type: String,
+//       required: true,
+//     },
+
+//     purpose: {
+//       type: String,
+//       enum: ["signup", "forgotPassword", "updatePassword"],
+//       required: true,
+//     },
+
+//     attempts: {
+//       type: Number,
+//       default: 0,
+//     },
+
+//   expiresAt: {
+//   type: Date,
+//   required: true,
+//   expires: 0,  // ✅ cleaner way
+// },
+//   },
+//   { timestamps: true }
+// );
+
+
+// // 🔐 HASH OTP BEFORE SAVE
+// otpSchema.pre("save", function () {
+//   if (!this.isModified("otp")) return;
+
+//   this.otp = crypto
+//     .createHash("sha256")
+//     .update(this.otp)
+//     .digest("hex");
+// });
+
+
+// // 🔎 COMPARE METHOD
+// otpSchema.methods.compareOtp = function (candidateOtp) {
+//   const hashed = crypto
+//     .createHash("sha256")
+//     .update(candidateOtp)
+//     .digest("hex");
+
+//   return this.otp === hashed;
+// };
+
+
+// // ⚡ INDEX FOR FAST LOOKUP
+// otpSchema.index({ email: 1, purpose: 1 });
+
+
+// export const OTP = mongoose.model("OTP", otpSchema);
+
+// models/Otp.model.js
+
 import mongoose from "mongoose";
 import crypto from "crypto";
 
@@ -8,6 +76,7 @@ const otpSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
 
     otp: {
@@ -17,7 +86,13 @@ const otpSchema = new mongoose.Schema(
 
     purpose: {
       type: String,
-      enum: ["signup", "forgotPassword", "updatePassword"],
+
+      enum: [
+        "signup",
+        "forgotPassword",
+        "updatePassword",
+      ],
+
       required: true,
     },
 
@@ -26,19 +101,27 @@ const otpSchema = new mongoose.Schema(
       default: 0,
     },
 
-  expiresAt: {
-  type: Date,
-  required: true,
-  expires: 0,  // ✅ cleaner way
-},
+    expiresAt: {
+      type: Date,
+      required: true,
+      expires: 0,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 
-// 🔐 HASH OTP BEFORE SAVE
+// ==============================
+// HASH OTP BEFORE SAVE
+// ==============================
+
 otpSchema.pre("save", function () {
-  if (!this.isModified("otp")) return;
+
+  if (!this.isModified("otp")) {
+    return;
+  }
 
   this.otp = crypto
     .createHash("sha256")
@@ -47,19 +130,32 @@ otpSchema.pre("save", function () {
 });
 
 
-// 🔎 COMPARE METHOD
-otpSchema.methods.compareOtp = function (candidateOtp) {
-  const hashed = crypto
-    .createHash("sha256")
-    .update(candidateOtp)
-    .digest("hex");
+// ==============================
+// COMPARE OTP
+// ==============================
 
-  return this.otp === hashed;
-};
+otpSchema.methods.compareOtp =
+  function (candidateOtp) {
+    const hashedOtp = crypto
+      .createHash("sha256")
+      .update(candidateOtp)
+      .digest("hex");
+
+    return this.otp === hashedOtp;
+  };
 
 
-// ⚡ INDEX FOR FAST LOOKUP
-otpSchema.index({ email: 1, purpose: 1 });
+// ==============================
+// INDEX
+// ==============================
+
+otpSchema.index({
+  email: 1,
+  purpose: 1,
+});
 
 
-export const OTP = mongoose.model("OTP", otpSchema);
+export const OTP = mongoose.model(
+  "OTP",
+  otpSchema
+);
