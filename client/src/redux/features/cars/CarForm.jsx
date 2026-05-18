@@ -134,7 +134,7 @@ return (
           placeholder="Car Title"
           value={form.title}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
 
         <input
@@ -142,7 +142,7 @@ return (
           placeholder="Variant"
           value={form.variant}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
       </div>
 
@@ -151,7 +151,7 @@ return (
           name="brand"
           value={form.brand}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
           disabled={brandsLoading || brandsError}
         >
           <option value="">Select Brand</option>
@@ -168,7 +168,7 @@ return (
           placeholder="Year"
           value={form.year}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
       </div>
 
@@ -179,7 +179,7 @@ return (
           placeholder="Price"
           value={form.price}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
       )}
     </div>
@@ -197,7 +197,7 @@ return (
           placeholder="KM Driven"
           value={form.kmDriven}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
 
         <input
@@ -206,7 +206,7 @@ return (
           placeholder="Gears"
           value={form.gears}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
 
         <input
@@ -215,7 +215,7 @@ return (
           placeholder="Owner Count"
           value={form.ownerCount}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
       </div>
 
@@ -224,7 +224,7 @@ return (
           name="fuelType"
           value={form.fuelType}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         >
           <option value="">Fuel Type</option>
           {FUEL_TYPES.map((fuel) => (
@@ -238,7 +238,7 @@ return (
           name="transmission"
           value={form.transmission}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         >
           <option value="">Transmission</option>
           {TRANSMISSIONS.map((t) => (
@@ -252,7 +252,7 @@ return (
           name="driveType"
           value={form.driveType}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         >
           <option value="">Drive Type</option>
           {DRIVE_TYPES.map((d) => (
@@ -276,7 +276,7 @@ return (
           placeholder="City"
           value={form.city}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
 
         <input
@@ -284,7 +284,7 @@ return (
           placeholder="State"
           value={form.state}
           onChange={handleChange}
-          className="input"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
         />
       </div>
     </div>
@@ -300,7 +300,7 @@ return (
         placeholder="Sunroof, Camera, Leather seats"
         value={form.features}
         onChange={handleChange}
-        className="input"
+        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-foreground"
       />
     </div>
 
