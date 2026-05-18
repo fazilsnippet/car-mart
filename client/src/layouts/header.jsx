@@ -275,7 +275,10 @@ useEffect(() => {
       </header>
 
       {/* SPACER */}
-<div className="h-32 lg:h-2" />    </>
+{/* <div className="h-32 lg:h-2" />  */}
+<div className="h-32 lg:h-0" />  
+
+  </>
   );
 };
 
