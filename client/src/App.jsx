@@ -60,6 +60,9 @@ const MyListingsPage =lazy(()=> import  ("./redux/features/carSell/myListingPage
 const EditListingPage =lazy(() => import ("./redux/features/carSell/editListingPage.jsx"))
 import ScrollToTop from "./utils/scrollToTop.jsx";
 import HomePage from "./pages/homePage.jsx";
+const HelpSupportPage = lazy(() => import("./pages/help.jsx"));
+const SettingsPage = lazy(() => import("./pages/settings.jsx"));
+
 
 function App() {
   const dispatch = useDispatch();
@@ -118,248 +121,266 @@ function App() {
     return <div>Loading app...</div>;
   }
 
-  return (
-    <BrowserRouter>
+return (
+  <BrowserRouter>
     <ScrollToTop />
-        <Header/>
-      <Routes>
-        {/* ✅ ROOT (NO LAZY) */}
-       <Route element={<DashboardLayout />}>
+
+    <Header />
+
+    <Routes>
+      {/* ✅ Layout Routes */}
+      <Route element={<DashboardLayout />}>
+        {/* 🏠 Home */}
         <Route path="/" element={<HomePage />} />
-          {/* 🔒 Admin */}
-          <Route
-            path="/admin"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute adminOnly>
-                  <Dashboard />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-              <Route
-            path="/admin/chat"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute adminOnly>
-                  <AdminChatPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
 
-           {/* <Route
-        index
-        element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          </Suspense>
-        }
-      /> */}
-
-          {/* 🚗 Cars */}
-          <Route
-            path="/car"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute adminOnly>
-                  <CarCreate />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/cars-list"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <CarList />
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/car/:slug"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <CarDetailPage />
-              </Suspense>
-            }
-          />
-
-          {/* 📦 Booking */}
-          <Route
-            path="/booking"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <BookingCreate />
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/myBooking"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <MyBookings />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-
-          {/* 🏷️ Brands */}
-          <Route
-            path="/brandCreation"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute adminOnly>
-                  <BrandCreation />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-<Route
-            path="/myListings"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <MyListingsPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/edit-my-car/:id"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <EditListingPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/brandList"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <BrandList />
-              </Suspense>
-            }
-          />
-
-          {/* 👤 Auth */}
-          <Route
-            path="/login"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Login />
-              </Suspense>
-            }
-          />
-            <Route
-            path="/emiCalculator"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <EmiCalculator />
-              </Suspense>
-            }
-          />
-          
-
-          <Route
-            path="/register"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Register />
-              </Suspense>
-            }
-          />
-
-          {/* 🙍 User */}
-          <Route
-            path="/myProfile"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <MyProfile />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/wishlist"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <GetWishlists />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/sell-car"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <CreateCarPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-
-          {/* 🔔 Notifications */}
-          <Route
-            path="/notifications"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <NotificationsPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
- 
-          {/* 💬 Chat */}
-          <Route
-            path="/chat"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <ChatPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/chat/:conversationId"
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <PrivateRoute>
-                  <ChatPage />
-                </PrivateRoute>
-              </Suspense>
-            }
-          />
-        </Route>
-        
-
-        {/* ❌ 404 */}
+        {/* 🔒 Admin */}
         <Route
-          path="*"
+          path="/admin"
           element={
             <Suspense fallback={<div>Loading...</div>}>
-              <NotFound />
+              <PrivateRoute adminOnly>
+                <Dashboard />
+              </PrivateRoute>
             </Suspense>
           }
         />
-      </Routes>
-    </BrowserRouter>
-  );
-}
 
+        <Route
+          path="/admin/chat"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute adminOnly>
+                <AdminChatPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* 🚗 Cars */}
+        <Route
+          path="/car"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute adminOnly>
+                <CarCreate />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/cars-list"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <CarList />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/car/:slug"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <CarDetailPage />
+            </Suspense>
+          }
+        />
+
+        {/* 📦 Booking */}
+        <Route
+          path="/booking"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <BookingCreate />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/myBooking"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <MyBookings />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* 🏷️ Brands */}
+        <Route
+          path="/brandCreation"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute adminOnly>
+                <BrandCreation />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/brandList"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <BrandList />
+            </Suspense>
+          }
+        />
+
+        {/* 🚘 Listings */}
+        <Route
+          path="/myListings"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <MyListingsPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/edit-my-car/:id"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <EditListingPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/sell-car"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <CreateCarPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+
+        <Route
+          path="/help"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <HelpSupportPage />
+            </Suspense>
+          }
+        />
+  <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
+
+        {/* 👤 Auth */}
+        <Route
+          path="/login"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <Login />
+            </Suspense>
+          }
+        />
+
+
+        <Route
+          path="/register"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <Register />
+            </Suspense>
+          }
+        />
+
+        {/* 👤 User */}
+        <Route
+          path="/myProfile"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <MyProfile />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/wishlist"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <GetWishlists />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* 🔔 Notifications */}
+        <Route
+          path="/notifications"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <NotificationsPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* 💬 Chat */}
+        <Route
+          path="/chat"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <ChatPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/chat/:conversationId"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute>
+                <ChatPage />
+              </PrivateRoute>
+            </Suspense>
+          }
+        />
+
+        {/* 🧮 EMI */}
+        <Route
+          path="/emiCalculator"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <EmiCalculator />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* ❌ 404 */}
+      <Route
+        path="*"
+        element={
+          <Suspense fallback={<div>Loading...</div>}>
+            <NotFound />
+          </Suspense>
+        }
+      />
+    </Routes>
+  </BrowserRouter>
+);
+}
 export default App;
+

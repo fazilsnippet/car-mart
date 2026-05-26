@@ -67,9 +67,9 @@ export default function ConversationList({ onSelectConversation, selectedId }) {
             return (
               <button
                 key={conv._id}
-                onClick={() => onSelectConversation(conv)}
+                onClick={() => onSelectConversation(conv)}hover:bg-gray-50
                 className={`w-full text-left px-4 py-3 flex gap-3 items-start transition
-                  ${isActive ? "bg-indigo-50" : "hover:bg-gray-500"}
+                  ${isActive ? "bg-indigo-50" : "hover:bg-white"}
                 `}
               >
                 {/* AVATAR */}

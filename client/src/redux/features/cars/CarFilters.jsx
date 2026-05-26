@@ -216,7 +216,7 @@ export default function CarFilters({
         </Section>
 
         {/* ACTIONS */}
-        <div className="sticky bottom-0 flex gap-3 pt-4 mt-6 bg-background">
+        <div className="sticky bottom-0 flex gap-3 pt-4 pb-5 mt-6 mb-10">
           <button
             onClick={resetFilters}
             className="flex-1 py-2.5 text-sm font-medium border border-color rounded-xl hover:bg-slate-700 transition"

@@ -8,54 +8,54 @@ const MyListingsPage = () => {
   );
 
   if (isLoading)
-    return <p className="text-center mt-10 text-gray-500">Loading listings...</p>;
+    return <p className="mt-10 text-center text-gray-500">Loading listings...</p>;
 
   if (isError)
     return (
-      <p className="text-center mt-10 text-red-500 font-medium">
+      <p className="mt-10 font-medium text-center text-red-500">
         Failed to load listings
       </p>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen px-4 py-10 bg-gray-50">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">
+        <h1 className="mb-8 text-3xl font-bold text-gray-800">
           My Listings
         </h1>
 
         {cars.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl shadow-sm">
-            <p className="text-gray-500 text-lg">No listings yet 🚗</p>
+          <div className="py-20 text-center bg-white shadow-sm rounded-xl">
+            <p className="text-lg text-gray-500">No listings yet 🚗</p>
           </div>
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {cars.map((car) => (
               <div
                 key={car._id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden group"
+                className="overflow-hidden transition duration-300 bg-white shadow-sm rounded-2xl hover:shadow-lg group"
               >
                 <div className="relative">
                   <img
                     src={car.images?.[0]?.url || "/placeholder.jpg"}
                     alt={car.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition duration-300"
+                    className="object-cover w-full h-48 transition duration-300 group-hover:scale-105"
                   />
-                  <span className="absolute top-3 left-3 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                  <span className="absolute px-3 py-1 text-xs text-white bg-indigo-600 rounded-full shadow top-3 left-3">
                     {car.year}
                   </span>
                 </div>
 
                 <div className="p-5">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1">
+                  <h2 className="mb-1 text-lg font-semibold text-gray-800 line-clamp-1">
                     {car.title}
                   </h2>
 
-                  <p className="text-xl font-bold text-indigo-600 mb-2">
+                  <p className="mb-2 text-xl font-bold text-indigo-600">
                     ₹{car.finalPrice ?? car.expectedPrice}
                   </p>
 
-                  <div className="text-sm text-gray-500 space-y-1 mb-3">
+                  <div className="mb-3 space-y-1 text-sm text-gray-500">
                     <p>
                       {car.fuelType} • {car.kmDriven} km
                     </p>
