@@ -30,8 +30,8 @@ app.use(express.json());
 app.use(
   cors({
     origin:
-    "http://localhost:5173",
-    // "https://car-mart-client.onrender.com",
+    // "http://localhost:5173",
+    "https://car-mart-client.onrender.com",
   credentials: true,
   })
 );
