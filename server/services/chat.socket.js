@@ -66,10 +66,10 @@ io.use((socket, next) => {
     // ✅ SEND MESSAGE (aligned with backend rules)
     socket.on("sendMessage", async ({ conversationId, text }) => {
       try {
-        if (!canSendMessage(userId)) {
-          socket.emit("error", "Too many messages");
-          return;
-        }
+        // if (!canSendMessage(userId)) {
+        //   socket.emit("error", "Too many messages");
+        //   return;
+        // }
 
         const conversation = await Conversation.findById(conversationId);
 
