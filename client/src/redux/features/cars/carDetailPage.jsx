@@ -194,12 +194,17 @@ const prev = () => {
           <div className="space-y-4 lg:sticky lg:top-24">
 
             {/* SLIDER */}
-            <div
-              className="relative overflow-hidden rounded-2xl bg-slate-100"
-              onTouchStart={handleTouchStart}
+<div
+  className="relative -mx-4 overflow-hidden rounded-none sm:rounded-2xl bg-slate-100 sm:mx-0"              onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
+              <button
+  onClick={() => navigate(-1)}
+  className="absolute z-20 flex items-center justify-center w-10 h-10 text-white rounded-full top-4 left-4 bg-black/40 backdrop-blur-sm lg:hidden"
+>
+  <HiOutlineChevronLeft size={22} />
+</button>
               <div
                 className="flex transition-transform duration-500 ease-in-out"
                 style={{
@@ -211,8 +216,7 @@ const prev = () => {
                     key={i}
                     src={img.url}
                     onClick={() => setIsOpen(true)}
-                    className="object-contain w-full cursor-pointer shrink-0 h-65 sm:h-105 lg:h-130"
-                  />
+className="object-contain w-full cursor-pointer shrink-0 h-[340px] sm:h-105 lg:h-130"                  />
                 ))}
               </div>
 
