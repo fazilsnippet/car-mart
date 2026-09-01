@@ -1,5 +1,5 @@
 // Step 1: Import the Car model
-import { Car } from "../../models/car.model.js";
+import { Car } from "../../models/Car.model.js";
 
 // Step 2: Perform BM25 search using MongoDB Atlas Search
 export const bm25Search = async ({
