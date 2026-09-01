@@ -284,8 +284,8 @@
 
 // export default Header;
 
-import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import {
@@ -296,9 +296,9 @@ import {
   Bell,
   ChevronRight,
 } from "lucide-react";
+import { HiOutlineBell } from "react-icons/hi";
 
-import NotificationBell from "../redux/features/notification/notificationbell.jsx";
-import { useTheme } from "../utils/theme.jsx";
+
 
 import bmwlogo from "../assets/bmwlogo.png";
 
@@ -310,7 +310,7 @@ const Header = () => {
     (state) => state.auth
   );
 
-  const { theme, toggleTheme } = useTheme();
+  const searchInputRef = useRef(null);
 
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
@@ -326,6 +326,8 @@ const Header = () => {
 
   const [searchText, setSearchText] =
     useState("");
+
+    
 
   // -----------------------------
   // NAVIGATION
@@ -403,23 +405,37 @@ const Header = () => {
   // SEARCH
   // -----------------------------
 
-  useEffect(() => {
-    const params = new URLSearchParams(
-      location.search
-    );
+useEffect(() => {
+    if (searchOpen) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [searchOpen]);
 
-    setSearchText(params.get("q") || "");
-  }, [location.search]);
+  // Handle typing inside the input
+  const handleInputChange = (e) => {
+    const inputValue = e.target.value;
+
+    // If deleting characters
+    if (inputValue.length < searchText.slice(0, 12).length) {
+      setSearchText((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    // Append new character to the full text
+    const addedChar = inputValue.slice(-1);
+    setSearchText((prev) => prev + addedChar);
+  };
 
   const handleSearch = () => {
     const value = searchText.trim();
-
     const params = new URLSearchParams();
 
     if (value) params.set("q", value);
 
     navigate(`/cars-list?${params.toString()}`);
-
     setSearchOpen(false);
   };
 
@@ -548,20 +564,20 @@ className="object-contain h-8 sm:h-9"
                 <Search size={18} />
               </button>
 
-              {/* THEME */}
-              <button
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-10 h-10 text-white border rounded-full bg-white/10 border-white/10 backdrop-blur-md"
-              >
-                {theme === "dark"
-                  ? "🌙"
-                  : "☀️"}
-              </button>
+            
 
               {/* NOTIFICATIONS */}
               {user && (
                 <div className="hidden md:block">
-                  <NotificationBell />
+                  <button
+                  onClick={() =>
+                    navigate("/notifications")
+                  }
+                  className="flex items-center justify-center w-10 h-10 text-white border rounded-full bg-white/10 border-white/10 backdrop-blur-md hover:bg-white/20"
+                >
+                  <HiOutlineBell />
+                </button>
+                
                 </div>
               )}
 
@@ -748,7 +764,7 @@ className="object-contain h-8 sm:h-9"
                 className="text-white/60"
               />
 
-              <input
+              {/* <input
                 type="search"
                 placeholder="Search luxury cars..."
                 value={searchText}
@@ -763,7 +779,16 @@ className="object-contain h-8 sm:h-9"
                 }
                 autoFocus
                 className="flex-1 text-lg text-white bg-transparent outline-none placeholder:text-white/40"
-              />
+              /> */}
+              <input
+  ref={searchInputRef}
+  type="search"
+  placeholder="Search luxury cars..."
+  value={searchText}
+  onChange={(e) => setSearchText(e.target.value)}
+  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+  className="flex-1 text-lg text-white bg-transparent outline-none placeholder:text-white/40"
+/>
 
               <button
                 onClick={handleSearch}

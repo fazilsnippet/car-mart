@@ -222,16 +222,16 @@ export const sendEmail = async ({
 
     return response.data;
   } catch (error) {
-    console.error(
-      "BREVO ERROR:",
-      error.response?.data ||
-        error.message
-    );
+  
+     console.error("========== BREVO ERROR ==========");
+  console.error("STATUS:", error.response?.status);
+  console.error("DATA:", error.response?.data);
+  console.error("MESSAGE:", error.message);
+  console.error("=================================");
 
-    throw new Error(
-      error.response?.data
-        ?.message ||
-        "Failed to send email"
-    );
+    
+
+    throw error;
+
   }
 };

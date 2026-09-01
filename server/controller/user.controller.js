@@ -313,8 +313,12 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   });
 
 
-  await sendEmail(email, "RESET PASSWORD ", `Your OTP is ${otpCode}`);
-
+  // await sendEmail(email, "RESET PASSWORD ", `Your OTP is ${otpCode}`);
+await sendEmail({
+  to: email,
+  subject: "RESET PASSWORD",
+  text: `Your OTP is ${otpCode}`,
+});
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Reset OTP sent to email"));

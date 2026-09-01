@@ -39,7 +39,7 @@ export default function CarCard({ car }) {
 
         {/* OPTIONAL BADGE */}
         {car?.year && (
-          <span className="absolute px-3 py-1 text-xs text-white bg-indigo-600 rounded-full shadow top-3 left-3">
+          <span className="absolute px-3 py-1 text-xs text-white bg-black rounded-full shadow top-3 left-3">
             {car.year}
           </span>
         )}
@@ -53,25 +53,25 @@ export default function CarCard({ car }) {
           </p>
         )} */}
 
-        <h3 className="text-base font-semibold text-foreground line-clamp-2">
+        <h3 className="text-base font-semibold text-white line-clamp-2">
           {car?.title}
         </h3>
 
         {metaLine && (
-          <p className="text-sm text-foreground">{metaLine}</p>
+          <p className="text-sm text-white/70">{metaLine}</p>
         )}
 
         {locationLine && (
-          <p className="text-sm text-foreground">{locationLine}</p>
+          <p className="text-sm text-white/70">{locationLine}</p>
         )}
 
         {/* PRICE */}
         <div className="flex items-center justify-between pt-2">
-          <p className="text-lg font-bold text-foreground">
+          <p className="text-lg font-bold text-[#D4AF37]">
             ₹ {car?.price?.toLocaleString("en-IN")}
           </p>
 
-          <span className="text-sm font-medium text-indigo-600 transition opacity-0 group-hover:opacity-100">
+          <span className="text-sm font-medium text-white transition opacity-0 group-hover:opacity-100">
             View →
           </span>
         </div>

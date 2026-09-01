@@ -118,7 +118,7 @@ return (
       
 
       return (
-        <div className="min-h-screen px-4 py-6 bg-background text-foreground sm:px-6 lg:px-8">
+        <div className="min-h-screen px-4 py-6 bg-black/95 text-foreground sm:px-6 lg:px-8">
           
 
           {/* ---------------- MOBILE FILTER DRAWER ---------------- */}
@@ -145,10 +145,11 @@ return (
             {/* ---------------- HEADER ---------------- */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-foreground">
-                  Buy Used Cars
+                <h1 className="text-3xl font-bold text-white">
+                  Buy Used
+                  <span className="text-[#D4AF37]"> Cars</span>
                 </h1>
-                <p className="mt-1 text-sm text-foreground/70">
+                <p className="mt-1 text-sm text-white/60">
                   {total} result{total !== 1 ? "s" : ""} found
                 </p>
               </div>
@@ -179,13 +180,13 @@ return (
               <div className="col-span-12 space-y-6 lg:col-span-8 xl:col-span-9">
                 {cars.length === 0 ? (
                   <div className="p-12 text-center shadow-sm bg-background text-foreground rounded-2xl">
-                    <p className="text-lg text-foreground/70">
-                      No cars match your filters 🚫
+                    <p className="text-lg text-white/60">
+                      No cars match your filters 
                     </p>
 
                     <button
                       onClick={() => setSearchParams({})}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-[#D4AF37] text-white rounded-xl hover:bg-[#ecc030] transition"
                     >
                       <HiOutlineX className="w-4 h-4" />
                       Clear filters
@@ -214,7 +215,7 @@ return (
                               }
                               className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                                 active
-                                  ? "bg-indigo-600 text-white shadow"
+                                  ? "bg-[#D4AF37] text-white shadow"
                                   : "bg-white border border-gray-200 hover:shadow-sm"
                               }`}
                             >

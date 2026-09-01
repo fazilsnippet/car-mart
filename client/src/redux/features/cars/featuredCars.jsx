@@ -23,17 +23,17 @@ const FeaturedCarCard = ({ car }) => {
         <img
           src={car?.images?.[0]?.url}
           alt={car?.title}
-          className="object-cover w-full h-full transition-transform duration-700  group-hover:scale-110"
+          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
         />
 
         {/* OVERLAY */}
         <div
-          className="absolute inset-0  bg-gradient-to-t from-black via-black/20 to-transparent"
+          className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"
         />
 
         {/* TOP BADGE */}
         <div
-          className="absolute px-4 py-2 text-xs tracking-widest text-white uppercase rounded-full  top-4 left-4 bg-black/40 backdrop-blur-md"
+          className="absolute px-4 py-2 text-xs tracking-widest text-white uppercase rounded-full top-4 left-4 bg-black/40 backdrop-blur-md"
         >
           Featured
         </div>
@@ -45,7 +45,7 @@ const FeaturedCarCard = ({ car }) => {
           <h3
             className="text-2xl font-bold text-white "
           >
-            {car?.brand} {car?.model}
+            {car?.model}
           </h3>
 
           <p className="mt-2 text-white/70">
@@ -65,7 +65,7 @@ const FeaturedCarCard = ({ car }) => {
             </p>
 
             <button
-              className="px-5 py-2 text-sm font-medium text-black transition bg-white rounded-full  hover:scale-105"
+              className="px-5 py-2 text-sm font-medium text-black transition bg-white rounded-full hover:scale-105"
             >
               View Details
             </button>

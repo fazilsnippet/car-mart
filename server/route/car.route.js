@@ -1,12 +1,17 @@
 import express from "express";
-import { getCars, getCarBySlug, createCar, updateCar, getCarById, deleteCar , markCarAsSold, updateCarPrice} from "../controller/car.controller.js";
+import {
+   getCars, 
+  getCarBySlug, 
+  // createCar,
+   updateCar, getCarById, deleteCar , markCarAsSold, updateCarPrice} from "../controller/car.controller.js";
 import { upload } from "../middleware/multer.js";
 import { verifyJWT, verifyAdmin } from "../middleware/jwt.middleware.js"
 import { validate } from "../middleware/joiValidation.middleware.js";
 import { createSchema } from "../utils/validators/car.validators.js";
 import { updateSchema } from "../utils/validators/car.validators.js";
 import { parseRequestData } from "../middleware/parseRequest.middleware.js";
-
+import {createCar, aiSearchCars} from "../ai/modules/cars/car.controller.js"
+import { askAI } from "../ai/ai.controller.js";
  const carRouter = express.Router();
 
 carRouter.get("/", getCars);
@@ -21,7 +26,7 @@ carRouter.put("/:id/update", verifyJWT, verifyAdmin, upload.array("images", 12),
   updateCar);
 carRouter.delete("/:id/delete", verifyJWT, verifyAdmin, deleteCar);
 // carRouter.patch("/:id/sell", verifyJWT, isAdmin, markCarAsSold);
-
 carRouter.get("/:id", getCarById);
+carRouter.post("/chat", askAI);
 
 export default carRouter;

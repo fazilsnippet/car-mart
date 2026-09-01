@@ -119,4 +119,6 @@ carSchema.index({ lifecycleStatus: 1, wishlistCount: -1 });
 // ⚠️ Optional (only if needed)
 carSchema.index({ soldAt: -1 });
 
-export const Car = mongoose.model("Car", carSchema);  
+// export const Car = mongoose.model("Car", carSchema);  
+export const Car =
+  mongoose.models.Car || mongoose.model("Car", carSchema);

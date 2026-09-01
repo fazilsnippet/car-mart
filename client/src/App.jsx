@@ -62,7 +62,11 @@ import ScrollToTop from "./utils/scrollToTop.jsx";
 import HomePage from "./pages/homePage.jsx";
 const HelpSupportPage = lazy(() => import("./pages/help.jsx"));
 const SettingsPage = lazy(() => import("./pages/settings.jsx"));
-
+// import ForgotPassword from "./redux/features/users/fotgotPassword.jsx";
+// import ResetPassword from "./redux/features/users/resetPassword.jsx";
+const ResetPassword = lazy(() => import("./redux/features/users/resetPassword.jsx"));
+const ForgotPassword = lazy(() => import("./redux/features/users/fotgotPassword.jsx"));
+const Loader = lazy(() => import("./redux/features/ui/loader.jsx"));
 
 function App() {
   const dispatch = useDispatch();
@@ -118,7 +122,7 @@ function App() {
   }, [user]);
 
   if (isLoading) {
-    return <div>Loading app...</div>;
+    return <Loader />;
   }
 
 return (
@@ -137,7 +141,7 @@ return (
         <Route
           path="/admin"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader/>}>
               <PrivateRoute adminOnly>
                 <Dashboard />
               </PrivateRoute>
@@ -148,8 +152,7 @@ return (
         <Route
           path="/admin/chat"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute adminOnly>
+<Suspense fallback={<Loader/>}>              <PrivateRoute adminOnly>
                 <AdminChatPage />
               </PrivateRoute>
             </Suspense>
@@ -160,7 +163,7 @@ return (
         <Route
           path="/car"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader/>}>
               <PrivateRoute adminOnly>
                 <CarCreate />
               </PrivateRoute>
@@ -171,7 +174,7 @@ return (
         <Route
           path="/cars-list"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader/>}>
               <CarList />
             </Suspense>
           }
@@ -180,8 +183,7 @@ return (
         <Route
           path="/car/:slug"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <CarDetailPage />
+<Suspense fallback={<Loader/>}>              <CarDetailPage />
             </Suspense>
           }
         />
@@ -190,7 +192,7 @@ return (
         <Route
           path="/booking"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader/>}>
               <BookingCreate />
             </Suspense>
           }
@@ -199,7 +201,7 @@ return (
         <Route
           path="/myBooking"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader/>}>
               <PrivateRoute>
                 <MyBookings />
               </PrivateRoute>
@@ -211,7 +213,7 @@ return (
         <Route
           path="/brandCreation"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
+<Suspense fallback={<Loader/>}>
               <PrivateRoute adminOnly>
                 <BrandCreation />
               </PrivateRoute>
@@ -222,8 +224,7 @@ return (
         <Route
           path="/brandList"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <BrandList />
+<Suspense fallback={<Loader/>}>              <BrandList />
             </Suspense>
           }
         />
@@ -232,8 +233,7 @@ return (
         <Route
           path="/myListings"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <MyListingsPage />
               </PrivateRoute>
             </Suspense>
@@ -243,8 +243,7 @@ return (
         <Route
           path="/edit-my-car/:id"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <EditListingPage />
               </PrivateRoute>
             </Suspense>
@@ -254,8 +253,7 @@ return (
         <Route
           path="/sell-car"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <CreateCarPage />
               </PrivateRoute>
             </Suspense>
@@ -266,16 +264,14 @@ return (
         <Route
           path="/help"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <HelpSupportPage />
+<Suspense fallback={<Loader/>}>              <HelpSupportPage />
             </Suspense>
           }
         />
   <Route
           path="/settings"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <SettingsPage />
+<Suspense fallback={<Loader/>}>              <SettingsPage />
             </Suspense>
           }
         />
@@ -284,8 +280,7 @@ return (
         <Route
           path="/login"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <Login />
+<Suspense fallback={<Loader/>}>              <Login />
             </Suspense>
           }
         />
@@ -294,18 +289,34 @@ return (
         <Route
           path="/register"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <Register />
+<Suspense fallback={<Loader/>}>              <Register />
             </Suspense>
           }
         />
+
+        <Route
+          path="/forgot-password"
+          element={
+<Suspense fallback={<Loader/>}>              <ForgotPassword />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/reset-password"
+          element={
+<Suspense fallback={<Loader/>}>              <ResetPassword />
+            </Suspense>
+          }
+        />  
+        
+
 
         {/* 👤 User */}
         <Route
           path="/myProfile"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <MyProfile />
               </PrivateRoute>
             </Suspense>
@@ -315,8 +326,7 @@ return (
         <Route
           path="/wishlist"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <GetWishlists />
               </PrivateRoute>
             </Suspense>
@@ -327,8 +337,7 @@ return (
         <Route
           path="/notifications"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <NotificationsPage />
               </PrivateRoute>
             </Suspense>
@@ -339,8 +348,7 @@ return (
         <Route
           path="/chat"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <ChatPage />
               </PrivateRoute>
             </Suspense>
@@ -350,8 +358,7 @@ return (
         <Route
           path="/chat/:conversationId"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PrivateRoute>
+<Suspense fallback={<Loader/>}>              <PrivateRoute>
                 <ChatPage />
               </PrivateRoute>
             </Suspense>
@@ -362,8 +369,7 @@ return (
         <Route
           path="/emiCalculator"
           element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <EmiCalculator />
+<Suspense fallback={<Loader/>}>              <EmiCalculator />
             </Suspense>
           }
         />
@@ -373,8 +379,7 @@ return (
       <Route
         path="*"
         element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <NotFound />
+<Suspense fallback={<Loader/>}>            <NotFound />
           </Suspense>
         }
       />

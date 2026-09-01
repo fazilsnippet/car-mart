@@ -7,184 +7,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import Joi from "joi";
 
 
-// export const buildMatch = (filters, excludeField) => {
-//   const match = {
-//     lifecycleStatus: "ACTIVE"
-//   };
 
-//   if (filters.title) {
-//     match.title = { $regex: filters.title, $options: "i" };
-//   }
-
-//   if (filters.brand && excludeField !== "brand") {
-//   match.brand = {
-//     $in: filters.brand.map((id) => new mongoose.Types.ObjectId(id))
-//   };
-// }
-
-//   if (filters.fuelType && excludeField !== "fuelType") {
-//     match.fuelType = { $in: filters.fuelType };
-//   }
-
-//   if (filters.transmission && excludeField !== "transmission") {
-//     match.transmission = { $in: filters.transmission };
-//   }
-
-//   if (filters.ownerCount) {
-//     match.ownerCount = filters.ownerCount;
-//   }
-
-//   // Year range
-//   if (filters.minYear || filters.maxYear) {
-//     match.year = {};
-//     if (filters.minYear) match.year.$gte = filters.minYear;
-//     if (filters.maxYear) match.year.$lte = filters.maxYear;
-//   }
-
-//   // KM range
-//   if (filters.minKm || filters.maxKm) {
-//     match.kmDriven = {};
-//     if (filters.minKm) match.kmDriven.$gte = filters.minKm;
-//     if (filters.maxKm) match.kmDriven.$lte = filters.maxKm;
-//   }
-
-//   // Price bucket
-//   if (filters.priceBucket && excludeField !== "price") {
-//     const bucketMap = {
-//       "0-5": [0, 500000],
-//       "5-10": [500000, 1000000],
-//       "10-15": [1000000, 1500000],
-//       "15-20": [1500000, 2000000],
-//       "20+": [2000000, Infinity]
-//     };
-
-//     const [min, max] = bucketMap[filters.priceBucket];
-
-//     match.price = {};
-//     if (min !== undefined) match.price.$gte = min;
-//     if (max !== Infinity) match.price.$lte = max;
-//   }
-
-//   return match;
-// };
-
-
-// export const getCars = async (req, res, next) => {
-//   try {
-//     const { value, error } = querySchema.validate(req.query, {
-//       convert: true
-//     });
-
-//     if (error) {
-//       return res.status(400).json({
-//         success: false,
-//         message: error.details[0].message
-//       });
-//     }
-
-//     const { sortBy, order, page, limit } = value;
-
-//     const safePage = Math.max(1, page);
-
-//     const sortStage = {
-//       [sortBy]: order === "asc" ? 1 : -1
-//     };
-
-//     const baseMatch = buildMatch(value);
-
-//     const result = await Car.aggregate([
-//       {
-//         $facet: {
-//           filtered: [
-//             { $match: baseMatch },
-//             { $sort: sortStage },
-//             { $skip: (safePage - 1) * limit },
-//             { $limit: limit }
-//           ],
-
-//           totalCount: [
-//             { $match: baseMatch },
-//             { $count: "count" }
-//           ],
-
-//           priceBuckets: [
-  //             { $match: buildMatch(value, "price") },
-  //             {
-//               $bucket: {
-//                 groupBy: "$price",
-//                 boundaries: [
-//                   0, 500000, 1000000, 1500000, 2000000, 10000000
-//                 ],
-//                 default: "Other",
-//                 output: { count: { $sum: 1 } }
-//               }
-//             }
-//           ],
-
-//           fuelTypes: [
-//             { $match: buildMatch(value, "fuelType") },
-//             { $group: { _id: "$fuelType", count: { $sum: 1 } } },
-//             { $sort: { count: -1 } }
-//           ],
-
-//           transmissions: [
-  //             { $match: buildMatch(value, "transmission") },
-  //             { $group: { _id: "$transmission", count: { $sum: 1 } } },
-//             { $sort: { count: -1 } }
-//           ],
-
-//           brands: [
-//             { $match: buildMatch(value, "brand") },
-//             { $group: { _id: "$brand", count: { $sum: 1 } } },
-//             { $sort: { count: -1 } }
-//           ],
-
-//           newest: [
-//             { $match: { lifecycleStatus: "ACTIVE" } },
-//             { $sort: { createdAt: -1 } },
-//             { $limit: 8 }
-//           ]
-//         }
-//       }
-//     ]);
-
-//     const output = result[0];
-//     const total = output.totalCount[0]?.count || 0;
-
-//     let similarItems = [];
-
-//     if (total > 0 && total < 3 && value.brand?.length) {
-//       similarItems = await Car.find({
-//         lifecycleStatus: "ACTIVE",
-//         brand: { $in: value.brand }
-//       })
-//         .sort({ createdAt: -1 })
-//         .limit(6);
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       total,
-//       page: safePage,
-//       totalPages: Math.ceil(total / limit),
-
-//       filters: {
-//         priceBuckets: output.priceBuckets,
-//         fuelTypes: output.fuelTypes,
-//         transmissions: output.transmissions,
-//         brands: output.brands
-//       },
-
-//       data: output.filtered,
-//       similarItems,
-//       newest: output.newest
-//     });
-
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
+// import { buildMatch } from "./buildMatch.js";
+import { hybridSearch } from "../ai/retrieval/hybridSearch.service.js";
 
 
 const normalizeToArray = (value) => {
@@ -318,21 +143,238 @@ const buildMatch = (filters, exclude) => {
   return match;
 };
 
+// export const getCars = asyncHandler(async (req, res) => {
+//   const {
+//     q,
+//     sortBy = "createdAt",
+//     order = "desc",
+//     page = 1,
+//     limit = 10,
+//     ...filters
+//   } = req.query;
+
+//   const safePage = Math.max(1, Number(page));
+//   const safeLimit = Math.min(20, Number(limit));
+//   const skip = (safePage - 1) * safeLimit;
+
+//   const allowedSortFields = ["price", "createdAt", "year"];
+//   const sortField = allowedSortFields.includes(sortBy)
+//     ? sortBy
+//     : "createdAt";
+
+//   const sortStage = {
+//     [sortField]: order === "asc" ? 1 : -1,
+//   };
+
+//   const matchCache = {};
+
+//   const getMatch = (exclude) => {
+//     const key = exclude || "base";
+
+//     if (!matchCache[key]) {
+//       matchCache[key] = buildMatch(
+//         { q, ...filters },
+//         exclude
+//       );
+//     }
+
+//     return matchCache[key];
+//   };
+
+//   const baseMatch = getMatch();
+
+//   const result = await Car.aggregate([
+//     {
+//       $facet: {
+//         data: [
+//           { $match: baseMatch },
+//           { $sort: sortStage },
+//           { $skip: skip },
+//           { $limit: safeLimit },
+//         ],
+
+//         totalCount: [
+//           { $match: baseMatch },
+//           { $count: "count" },
+//         ],
+
+//         priceBuckets: [
+//           { $match: getMatch("price") },
+//           {
+//             $bucket: {
+//               groupBy: "$price",
+//               boundaries: [
+//                 0,
+//                 500000,
+//                 1000000,
+//                 1500000,
+//                 2000000,
+//                 10000000,
+//               ],
+//               default: "Other",
+//               output: { count: { $sum: 1 } },
+//             },
+//           },
+//         ],
+
+//         fuelTypes: [
+//           { $match: getMatch("fuelType") },
+//           { $group: { _id: "$fuelType", count: { $sum: 1 } } },
+//           { $sort: { count: -1 } },
+//         ],
+
+//         transmissions: [
+//           { $match: getMatch("transmission") },
+//           { $group: { _id: "$transmission", count: { $sum: 1 } } },
+//           { $sort: { count: -1 } },
+//         ],
+
+//         brands: [
+//           { $match: getMatch("brand") },
+//           { $group: { _id: "$brand", count: { $sum: 1 } } },
+//           {
+//             $lookup: {
+//               from: "brands",
+//               localField: "_id",
+//               foreignField: "_id",
+//               as: "brand",
+//             },
+//           },
+//           {
+//             $unwind: {
+//               path: "$brand",
+//               preserveNullAndEmptyArrays: true,
+//             },
+//           },
+//           {
+//             $project: {
+//               _id: 1,
+//               count: 1,
+//               name: "$brand.name",
+//             },
+//           },
+//           { $sort: { count: -1 } },
+//         ],
+
+//         // ❗ FIX: keep consistent with rest of filters
+//         newest: [
+//           { $match: getMatch() },
+//           { $sort: { createdAt: -1 } },
+//           { $limit: 8 },
+//         ],
+//       },
+//     },
+//   ]);
+
+//   const output = result[0];
+//   const total = output.totalCount[0]?.count || 0;
+
+//   res.status(200).json({
+//     success: true,
+//     total,
+//     page: safePage,
+//     totalPages: Math.ceil(total / safeLimit),
+//     filters: {
+//       priceBuckets: output.priceBuckets,
+//       fuelTypes: output.fuelTypes,
+//       transmissions: output.transmissions,
+//       brands: output.brands,
+//     },
+//     data: output.data,
+//     newest: output.newest,
+//   });
+// });
+
+
+// Step 1: Import dependencies
+
+// Step 2: Get Cars (Normal Browse + AI Search)
 export const getCars = asyncHandler(async (req, res) => {
+
+  // ==========================================================
+  // Step 3: Read Query Parameters
+  // ==========================================================
+
   const {
     q,
+    query,
+
     sortBy = "createdAt",
     order = "desc",
+
     page = 1,
     limit = 10,
-    ...filters
+
+    brand,
+    city,
+    state,
+    fuelType,
+    transmission,
+    driveType,
+    lifecycleStatus,
+
+    ...otherFilters
   } = req.query;
+
+  // Accept both ?q= and ?query=
+  const searchQuery = (query ?? q)?.trim();
 
   const safePage = Math.max(1, Number(page));
   const safeLimit = Math.min(20, Number(limit));
   const skip = (safePage - 1) * safeLimit;
 
-  const allowedSortFields = ["price", "createdAt", "year"];
+  // ==========================================================
+  // Step 4: AI SEARCH
+  // ==========================================================
+
+  if (searchQuery) {
+
+    const filters = {
+      brand,
+      city,
+      state,
+      fuelType,
+      transmission,
+      driveType,
+      lifecycleStatus,
+    };
+
+    const cars = await hybridSearch({
+      query: searchQuery,
+      limit: safeLimit,
+      filters,
+    });
+
+    return res.status(200).json({
+      success: true,
+
+      aiSearch: true,
+
+      query: searchQuery,
+
+      total: cars.length,
+
+      page: 1,
+      totalPages: 1,
+
+      filters: {},
+
+      newest: [],
+
+      data: cars,
+    });
+  }
+
+  // ==========================================================
+  // Step 5: NORMAL DATABASE BROWSING
+  // ==========================================================
+
+  const allowedSortFields = [
+    "price",
+    "createdAt",
+    "year",
+  ];
+
   const sortField = allowedSortFields.includes(sortBy)
     ? sortBy
     : "createdAt";
@@ -344,11 +386,23 @@ export const getCars = asyncHandler(async (req, res) => {
   const matchCache = {};
 
   const getMatch = (exclude) => {
+
     const key = exclude || "base";
 
     if (!matchCache[key]) {
+
       matchCache[key] = buildMatch(
-        { q, ...filters },
+        {
+          q,
+          brand,
+          city,
+          state,
+          fuelType,
+          transmission,
+          driveType,
+          lifecycleStatus,
+          ...otherFilters,
+        },
         exclude
       );
     }
@@ -361,6 +415,7 @@ export const getCars = asyncHandler(async (req, res) => {
   const result = await Car.aggregate([
     {
       $facet: {
+
         data: [
           { $match: baseMatch },
           { $sort: sortStage },
@@ -387,26 +442,59 @@ export const getCars = asyncHandler(async (req, res) => {
                 10000000,
               ],
               default: "Other",
-              output: { count: { $sum: 1 } },
+              output: {
+                count: {
+                  $sum: 1,
+                },
+              },
             },
           },
         ],
 
         fuelTypes: [
           { $match: getMatch("fuelType") },
-          { $group: { _id: "$fuelType", count: { $sum: 1 } } },
-          { $sort: { count: -1 } },
+          {
+            $group: {
+              _id: "$fuelType",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
         ],
 
         transmissions: [
           { $match: getMatch("transmission") },
-          { $group: { _id: "$transmission", count: { $sum: 1 } } },
-          { $sort: { count: -1 } },
+          {
+            $group: {
+              _id: "$transmission",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
         ],
 
         brands: [
           { $match: getMatch("brand") },
-          { $group: { _id: "$brand", count: { $sum: 1 } } },
+          {
+            $group: {
+              _id: "$brand",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
           {
             $lookup: {
               from: "brands",
@@ -428,38 +516,56 @@ export const getCars = asyncHandler(async (req, res) => {
               name: "$brand.name",
             },
           },
-          { $sort: { count: -1 } },
+          {
+            $sort: {
+              count: -1,
+            },
+          },
         ],
 
-        // ❗ FIX: keep consistent with rest of filters
         newest: [
           { $match: getMatch() },
-          { $sort: { createdAt: -1 } },
-          { $limit: 8 },
+          {
+            $sort: {
+              createdAt: -1,
+            },
+          },
+          {
+            $limit: 8,
+          },
         ],
       },
     },
   ]);
 
   const output = result[0];
+
   const total = output.totalCount[0]?.count || 0;
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
+
+    aiSearch: false,
+
     total,
+
     page: safePage,
+
     totalPages: Math.ceil(total / safeLimit),
+
     filters: {
       priceBuckets: output.priceBuckets,
       fuelTypes: output.fuelTypes,
       transmissions: output.transmissions,
       brands: output.brands,
     },
-    data: output.data,
-    newest: output.newest,
-  });
-});
 
+    newest: output.newest,
+
+    data: output.data,
+  });
+
+});
 
 
 
@@ -470,51 +576,6 @@ const slugSchema = Joi.object({
   // page: Joi.number().integer().min(1).default(1),
   // limit: Joi.number().integer().min(1).max(50).default(12)
 });
-
-// export const getCarBySlug = async (req, res, next) => {
-//   try {
-//     // 🔹 Validate params + query together
-//     const { error, value } = slugSchema.validate({
-//       slug: req.params.slug,
-//       // page: req.query.page,
-//       // limit: req.query.limit,
-//     });
-
-//     if (error) {
-//       return res.status(400).json({
-//         success: false,
-//         message: error.details[0].message,
-//       });
-//     }
-
-//     const { slug } = value;
-
-//     // 🔹 Normalize slug safely
-//     const normalizedSlug = slug.toLowerCase();
-
-//     const car = await Car.findOne({
-//       lifecycleStatus: "ACTIVE",
-//       slug: normalizedSlug,
-//     })
-//       .populate("brand", "name")
-//       .lean();
-
-//     if (!car) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Car not found",
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: car,
-//     });
-
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 export const getCarBySlug = async (req, res, next) => {
   try {
@@ -582,76 +643,6 @@ export const getCarById = async (req, res, next) => {
 
 
 
-// export const getCar = async (req, res, next) => {
-//   try {
-//     const { identifier } = req.params;
-
-//     let query = [
-//       { slug: identifier.toLowerCase() }
-//     ];
-
-//     if (mongoose.Types.ObjectId.isValid(identifier)) {
-//       query.push({ _id: identifier });
-//     }
-
-//     const car = await Car.findOne({
-//       $or: query,
-//       lifecycleStatus: "ACTIVE",
-//     })
-//       .populate("brand", "name")
-//       .lean();
-
-//     if (!car) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Car not found",
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: car,
-//     });
-
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-// export const getCar = async (req, res, next) => {
-//   try {
-//     const { identifier } = req.params;
-
-//     let query = [
-//       { slug: identifier.toLowerCase() }
-//     ];
-
-//     if (mongoose.Types.ObjectId.isValid(identifier)) {
-//       query.push({ _id: identifier });
-//     }
-
-//     const car = await Car.findOne({
-//       $or: query,
-//       lifecycleStatus: "ACTIVE",
-//     })
-//       .populate("brand", "name")
-//       .lean();
-
-//     if (!car) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Car not found",
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: car,
-//     });
-
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 export const createCar = async (req, res, next) => {
   try {
     const value = req.validatedData;

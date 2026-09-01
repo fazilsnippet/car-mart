@@ -4,18 +4,21 @@ import { HiOutlineChevronDown, HiOutlineX } from "react-icons/hi";
 /* ---------------- SECTION ---------------- */
 
 const Section = ({ id, title, children, open, onToggle }) => (
-  <div className="py-3 border-b border-color">
+  <div className="py-3 border-b   rounded-2xl
+                  border
+                  border-zinc-800
+                  bg-[#121317]  ">
     <button
       type="button"
       onClick={() => onToggle(id)}
       className="flex items-center justify-between w-full"
     >
-      <span className="text-sm font-semibold text-foreground">
+      <span className="text-sm font-semibold text-white">
         {title}
       </span>
 
       <HiOutlineChevronDown
-        className={`w-5 h-5 text-foreground transition-transform ${
+        className={`w-5 h-5 text-white transition-transform ${
           open[id] ? "rotate-180" : ""
         }`}
       />
@@ -31,13 +34,13 @@ const CheckRow = ({ label, count, checked, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center justify-between w-full px-2 py-2 transition rounded-lg hover:bg-gray-50"
+    className="flex items-center justify-between w-full px-2 py-2 transition rounded-lg hover:bg-[#D4AF37]"
   >
     <span className="flex items-center gap-3">
       <span
         className={`w-4 h-4 rounded-md border flex items-center justify-center transition ${
           checked
-            ? "bg-indigo-600 border-indigo-600"
+            ? "bg-[#D4AF37] border-[#f7c628]"
             : "border-gray-300 bg-white"
         }`}
       >
@@ -46,7 +49,7 @@ const CheckRow = ({ label, count, checked, onClick }) => (
         )}
       </span>
 
-      <span className="text-sm text-foreground">{label}</span>
+      <span className="text-sm text-white">{label}</span>
     </span>
 
     {typeof count === "number" && (
@@ -121,13 +124,16 @@ export default function CarFilters({
       className={`${
         compact
           ? ""
-          : "bg-background rounded-2xl shadow-sm border border-gray-100"
+          : " bg-[#212224] rounded-2xl shadow-sm border border-gray-100"
       }`}
     >
       {/* HEADER */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-background text-foreground">
+      <div className="flex items-center justify-between p-4   rounded-2xl
+                  border
+                  border-zinc-800
+                  bg-[#121317]  text-[#D4AF37]">
         <div>
-          <h2 className="text-base font-semibold text-foreground">
+          <h2 className="text-base font-semibold text-white">
             Filters
           </h2>
           <p className="text-xs text-foreground/70">
@@ -138,7 +144,7 @@ export default function CarFilters({
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 transition rounded-lg hover:bg-gray-100"
+            className="p-2 transition rounded-lg hover:bg-[#D4AF37]"
           >
             <HiOutlineX className="w-5 h-5 text-foreground" />
           </button>
@@ -146,7 +152,7 @@ export default function CarFilters({
       </div>
 
       {/* BODY */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4" >
         {/* BRAND */}
         <Section id="brand" title="Brand" open={open} onToggle={toggle}>
           {facets.brands?.map((b) => {
@@ -167,7 +173,7 @@ export default function CarFilters({
         </Section>
 
         {/* PRICE */}
-        <Section id="price" title="Budget" open={open} onToggle={toggle}>
+        <Section id="price"  title="Budget" open={open} onToggle={toggle}>
           {priceOptions.map((p) => (
             <CheckRow
               key={p.key}
@@ -180,6 +186,7 @@ export default function CarFilters({
                   page: 1
                 })
               }
+            
             />
           ))}
         </Section>
@@ -219,14 +226,17 @@ export default function CarFilters({
         <div className="sticky bottom-0 flex gap-3 pt-4 pb-5 mt-6 mb-10">
           <button
             onClick={resetFilters}
-            className="flex-1 py-2.5 text-sm font-medium border border-color rounded-xl hover:bg-slate-700 transition"
+            className="flex-1 py-2.5 text-sm font-medium border border-color rounded-xl hover:bg-black/20 transition text-[#D4AF37] bg-black"
           >
             Reset
           </button>
 
           <button
             onClick={applyFilters}
-            className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-sm"
+            className="flex-1 py-2.5 text-sm font-semibold text-black  bg-gradient-to-r
+                      from-[#D4AF37]
+                      via-[#fce7a2]
+                      to-[#BF953F] border border-color rounded-xl hover:bg-[#ecc030] transition shadow-sm border-white"
           >
             Apply
           </button>

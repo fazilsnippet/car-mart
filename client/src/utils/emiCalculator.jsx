@@ -57,8 +57,11 @@ const EmiCalculator = ({
   }, [loan, rate, tenure]);
 
   return (
-    <div className="p-5 bg-white rounded-2xl shadow-sm space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800">
+    <div className="p-5   bg-gradient-to-r
+                      from-[#D4AF37]
+                      via-[#fce7a2]
+                      to-[#BF953F] rounded-2xl shadow-sm space-y-4">
+      <h3 className="text-lg font-semibold text-black">
         EMI Calculator
       </h3>
 
@@ -73,34 +76,34 @@ const EmiCalculator = ({
             placeholder="Enter car price"
             value={manualPrice}
             onChange={(e) => setManualPrice(e.target.value)}
-            className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full px-4 py-3 mt-1 border border-gray-200 outline-none rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500"
           />
         </div>
       )}
 
       {/* SHOW PRICE */}
       {effectivePrice > 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm font-semibold text-black">
           Car Price: ₹ {effectivePrice.toLocaleString("en-IN")}
         </p>
       )}
 
       {/* DOWN PAYMENT */}
       <div>
-        <label className="text-sm text-gray-600">
+        <label className="text-sm font-bold text-black">
           Down Payment
         </label>
         <input
           type="number"
           value={downPayment}
           onChange={(e) => setDownPayment(Number(e.target.value))}
-          className="input mt-1"
+          className="mt-1 text-black input"
         />
       </div>
 
       {/* RATE */}
       <div>
-        <label className="text-sm text-gray-600">
+        <label className="text-sm font-bold text-black">
           Interest Rate (%)
         </label>
         <input
@@ -108,20 +111,20 @@ const EmiCalculator = ({
           step="0.01"
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
-          className="input mt-1"
+          className="mt-1 text-black input"
         />
       </div>
 
       {/* TENURE */}
       <div>
-        <label className="text-sm text-gray-600">
+        <label className="text-sm font-bold text-black">
           Tenure (years)
         </label>
         <input
           type="number"
           value={tenure}
           onChange={(e) => setTenure(Number(e.target.value))}
-          className="input mt-1"
+          className="mt-1 text-black input"
         />
       </div>
 
@@ -130,7 +133,7 @@ const EmiCalculator = ({
         <p className="text-lg font-semibold text-gray-800">
           EMI: ₹ {emiData.emi.toFixed(0)}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm font-bold text-black">
           Total Interest: ₹{" "}
           {emiData.totalInterest.toFixed(0)}
         </p>
