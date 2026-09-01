@@ -15,7 +15,7 @@ export const chatCompletion = async ({
         "Content-Type": "application/json",
 
         // Optional but recommended
-        "HTTP-Referer": process.env.APP_URL || "http://localhost:5173",
+        "HTTP-Referer": process.env.APP_URL || "https://car-mart-client.onrender.com",
         "X-OpenRouter-Title": "CarMart AI",
       },
 
